@@ -16,8 +16,8 @@ JetBrains Rider is recommended for developing for this project, but Visual Studi
 ### Building
 Build with the `dotnet` command line app:
 
-Linux: `dotnet publish -c Release -p:PublishProfile=Linux`
-Windows: `dotnet publish -c Release -p:PublishProfile=Linux`
+- Linux: `dotnet publish -c Release -p:PublishProfile=Linux`
+- Windows: `dotnet publish -c Release -p:PublishProfile=Windows`
 
 ## TODO
 - Localisation - use .resx or .po for translatable strings in UI elements.
