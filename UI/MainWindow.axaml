@@ -1,0 +1,84 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="UI.MainWindow"
+        Title="Tag Hierarchy Manager">
+    <!--
+    TODO:
+    - Menu bar
+    - Tag browser pane
+    - Tag editor pane
+    - Status bar
+    -->
+    <DockPanel Name="Top">
+        <Menu DockPanel.Dock="Top">
+            <!-- TODO migrate to resx -->
+            <MenuItem Header="_File">
+                <MenuItem Header="_New database"/>
+                <MenuItem Header="_New from import..."/>
+                <Separator/>
+                <MenuItem Header="_Open"/>
+                <Separator/>
+                <MenuItem Header="_Export"/>
+                <MenuItem Header="_Quit"/>
+            </MenuItem>
+            <MenuItem Header="_Database">
+                <MenuItem Header="_Settings"/>
+                <Separator/>
+                <MenuItem Header="Total tags: 0"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About"/>
+            </MenuItem>
+        </Menu>
+        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 ">Ready.</TextBlock>
+        <Grid ColumnDefinitions="Auto, *"
+              RowDefinitions="*"
+              Margin="0 0 0 0"
+              >
+            <TabControl Grid.Column="0">
+                <TabItem Header="Hierarchy Tree">
+                    <Grid RowDefinitions="*, Auto">
+                        <!-- TODO stretch this.-->
+                        <TreeView Grid.Row="0" VerticalAlignment="Stretch">
+                        <!-- TODO get the tag hierarchy loaded. -->
+                        </TreeView>
+                        <Button Grid.Row="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Add new tag</Button>
+                    </Grid>
+                    
+                </TabItem>
+                <TabItem Header="Search">
+                    <StackPanel>
+                        <TextBox Watermark="Query to search for..." Margin="0 0 0 5"></TextBox>
+                        <Button Margin="0 0 0 5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Search</Button>
+                        <ComboBox HorizontalAlignment="Stretch" Margin="0 0 0 5">
+                            <ComboBoxItem>Fuzzy search</ComboBoxItem>
+                            <ComboBoxItem>Starts with</ComboBoxItem>
+                            <ComboBoxItem>Ends with</ComboBoxItem>
+                            <ComboBoxItem>Exact match</ComboBoxItem>
+                        </ComboBox>
+                        <ListBox SelectionMode="Single">
+                        </ListBox>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+                <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, Auto, *, Auto" Margin="5">
+                    <TextBox Grid.Row="0" Name="NameTextbox" Watermark="Tag name" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="1" Name="ParentsTextBox" Watermark="Tag parents (separated by semicolons)" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="2" Name="BindingsTextBox" Watermark="Tag bindings (e.g. genre; style - separated by semicolons)" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="3" Name="AliasesTextBox" Watermark="Aliases/A.K.As (separated by semi-colons)" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="4" Name="NotesTextBox" Watermark="Notes" VerticalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3"/>
+                    <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
+                        <CheckBox Grid.Column="0" Name="TopLevelCheckBox">Is top level</CheckBox>
+                        <Button Grid.Column="1" Margin="0 0 5 0" >Delete</Button>
+                        <Button Grid.Column="2" Margin="0 0 5 0">Cancel</Button>
+                        <Button Grid.Column="3">Save</Button>
+                    </Grid>
+                </Grid>
+        </Grid>
+    </DockPanel>
+    
+    
+</Window>
