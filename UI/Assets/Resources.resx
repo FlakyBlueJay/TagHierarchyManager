@@ -128,4 +128,7 @@
     <data name="DatabaseSettingsDefaultTagBindings" xml:space="preserve">
         <value>Default tag bindings:</value>
     </data>
+    <data name="AboutTitleFormat" xml:space="preserve">
+        <value>About {0}</value>
+    </data>
 </root>

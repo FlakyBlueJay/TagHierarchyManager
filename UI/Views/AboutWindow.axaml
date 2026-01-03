@@ -3,14 +3,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+        xmlns:ui="clr-namespace:TagHierarchyManager.UI"
         mc:Ignorable="d" d:DesignWidth="405" d:DesignHeight="140"
-        Width="405" Height="180"
+        Width="405" Height="140"
         x:Class="TagHierarchyManager.UI.AboutWindow"
-        Title="AboutWindow">
+        CanResize="False">
+    <Window.Title>
+        <MultiBinding StringFormat="{x:Static assets:Resources.AboutTitleFormat}">
+            <Binding Source="{x:Static assets:Resources.Title}"/>
+        </MultiBinding>
+    </Window.Title>
     <StackPanel HorizontalAlignment="Center" Margin="10">
         <TextBlock FontSize="30" TextAlignment="Center" Text="{x:Static assets:Resources.Title}"/>
         <TextBlock TextAlignment="Center" Text="{x:Static assets:Resources.CopyrightAndLicense}"/>
-        <HyperlinkButton HorizontalContentAlignment="Center" Content="{x:Static assets:Resources.URL}" />
-        <Button HorizontalAlignment="Center" Content="{x:Static assets:Resources.ButtonOk}"/>
+        <HyperlinkButton HorizontalContentAlignment="Center" Content="{x:Static assets:Resources.URL}" NavigateUri="{Binding ProjectUri, RelativeSource={RelativeSource AncestorType=ui:AboutWindow}}"/>
+        <Button HorizontalAlignment="Center" Content="{x:Static assets:Resources.ButtonOk}" Click="OnOKClick"/>
     </StackPanel>
 </Window>
