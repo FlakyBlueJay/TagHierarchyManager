@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace UI;
+namespace TagHierarchyManager.UI;
 
 public partial class MainWindow : Window
 {

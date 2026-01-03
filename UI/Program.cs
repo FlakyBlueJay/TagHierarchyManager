@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace UI;
+namespace TagHierarchyManager.UI;
 
 class Program
 {

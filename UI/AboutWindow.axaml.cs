@@ -2,7 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace UI;
+namespace TagHierarchyManager.UI;
 
 public partial class AboutWindow : Window
 {
