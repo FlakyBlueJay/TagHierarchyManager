@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TagHierarchyManager.UI.MainWindow"
         Title="Tag Hierarchy Manager">
@@ -15,49 +16,49 @@
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
             <!-- TODO migrate to resx -->
-            <MenuItem Header="_File">
-                <MenuItem Header="_New database"/>
-                <MenuItem Header="_New from import..."/>
+            <MenuItem Header="{x:Static assets:Resources.MenuFile}">
+                <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemImport}"/>
                 <Separator/>
-                <MenuItem Header="_Open"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemOpen}"/>
                 <Separator/>
-                <MenuItem Header="_Export"/>
-                <MenuItem Header="_Quit"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemExport}"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}"/>
             </MenuItem>
-            <MenuItem Header="_Database">
-                <MenuItem Header="_Settings"/>
+            <MenuItem Header="{x:Static assets:Resources.MenuDatabase}">
+                <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}"/>
                 <Separator/>
-                <MenuItem Header="Total tags: 0"/>
+                <MenuItem IsEnabled="False" Header="{x:Static assets:Resources.MenuItemTotalTagsNoDatabase}"/>
             </MenuItem>
-            <MenuItem Header="_Help">
+            <MenuItem Header="{x:Static assets:Resources.MenuHelp}">
                 <MenuItem Header="_About"/>
             </MenuItem>
         </Menu>
-        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 ">Ready.</TextBlock>
+        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{x:Static assets:Resources.StatusBlockReady}"/>
         <Grid ColumnDefinitions="Auto, *"
               RowDefinitions="*"
               Margin="0 0 0 0"
               >
             <TabControl Grid.Column="0">
-                <TabItem Header="Hierarchy Tree">
+                <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
                     <Grid RowDefinitions="*, Auto">
-                        <!-- TODO stretch this.-->
                         <TreeView Grid.Row="0" BorderThickness="5" BorderBrush="Teal" VerticalAlignment="Stretch">
                         <!-- TODO get the tag hierarchy loaded. -->
                         </TreeView>
-                        <Button Grid.Row="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Add new tag</Button>
+                        <Button Grid.Row="1" HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center" 
+                                Content="{x:Static assets:Resources.ButtonAdd}"/>
                     </Grid>
-                    
                 </TabItem>
                 <TabItem Header="Search">
                     <StackPanel>
-                        <TextBox Watermark="Query to search for..." Margin="0 0 0 5"></TextBox>
+                        <TextBox Watermark="{x:Static assets:Resources.WatermarkSearchQuery}" Margin="0 0 0 5"></TextBox>
                         <Button Margin="0 0 0 5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Search</Button>
                         <ComboBox HorizontalAlignment="Stretch" Margin="0 0 0 5">
-                            <ComboBoxItem>Fuzzy search</ComboBoxItem>
-                            <ComboBoxItem>Starts with</ComboBoxItem>
-                            <ComboBoxItem>Ends with</ComboBoxItem>
-                            <ComboBoxItem>Exact match</ComboBoxItem>
+                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeFuzzy}"/>
+                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeStartsWith}"/>
+                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeEndsWith}"/>
+                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeExactMatch}"/>
                         </ComboBox>
                         <ListBox SelectionMode="Single">
                         </ListBox>
@@ -65,16 +66,16 @@
                 </TabItem>
             </TabControl>
                 <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, Auto, *, Auto" Margin="5">
-                    <TextBox Grid.Row="0" Name="NameTextbox" Watermark="Tag name" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="1" Name="ParentsTextBox" Watermark="Tag parents (separated by semicolons)" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="2" Name="BindingsTextBox" Watermark="Tag bindings (e.g. genre; style - separated by semicolons)" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="3" Name="AliasesTextBox" Watermark="Aliases/A.K.As (separated by semi-colons)" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="4" Name="NotesTextBox" Watermark="Notes" VerticalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3"/>
+                    <TextBox Grid.Row="0" Name="NameTextbox" Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="1" Name="ParentsTextBox" Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="2" Name="BindingsTextBox" Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="3" Name="AliasesTextBox" Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="4" Name="NotesTextBox" Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3"/>
                     <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
-                        <CheckBox Grid.Column="0" Name="TopLevelCheckBox">Is top level</CheckBox>
-                        <Button Grid.Column="1" Margin="0 0 5 0" >Delete</Button>
-                        <Button Grid.Column="2" Margin="0 0 5 0">Cancel</Button>
-                        <Button Grid.Column="3">Save</Button>
+                        <CheckBox Grid.Column="0" Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"/>
+                        <Button Grid.Column="1" Margin="0 0 5 0"  Content="{x:Static assets:Resources.ButtonDelete}" />
+                        <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}" />
+                        <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}" />
                     </Grid>
                 </Grid>
         </Grid>

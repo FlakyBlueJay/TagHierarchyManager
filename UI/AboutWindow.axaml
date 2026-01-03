@@ -2,24 +2,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="180"
-        Width="400" Height="180"
+        xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+        mc:Ignorable="d" d:DesignWidth="405" d:DesignHeight="140"
+        Width="405" Height="180"
         x:Class="TagHierarchyManager.UI.AboutWindow"
         Title="AboutWindow">
     <StackPanel HorizontalAlignment="Center" Margin="10">
-        <TextBlock FontSize="30" TextAlignment="Center">
-            Tag Hierarchy Manager
-        </TextBlock>
-        <TextBlock TextAlignment="Center">
-            (c) Flaky 2025
-            <LineBreak/><LineBreak/>
-            Licensed under MIT
-        </TextBlock>
-        <HyperlinkButton HorizontalContentAlignment="Center">
-            https://github.com/FlakyBlueJay/TagHierarchyManager
-        </HyperlinkButton>
-        <Button HorizontalAlignment="Center">OK</Button>
+        <TextBlock FontSize="30" TextAlignment="Center" Text="{x:Static assets:Resources.Title}"/>
+        <TextBlock TextAlignment="Center" Text="{x:Static assets:Resources.CopyrightAndLicense}"/>
+        <HyperlinkButton HorizontalContentAlignment="Center" Content="{x:Static assets:Resources.URL}" />
+        <Button HorizontalAlignment="Center" Content="{x:Static assets:Resources.ButtonOk}"/>
     </StackPanel>
-    
-    
 </Window>
