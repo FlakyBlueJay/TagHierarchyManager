@@ -3,8 +3,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+        xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TagHierarchyManager.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
         Title="{x:Static assets:Resources.Title}">
     <!--
     TODO:
@@ -16,7 +18,7 @@
                 <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}"/>
                 <MenuItem Header="{x:Static assets:Resources.MenuItemImport}"/>
                 <Separator/>
-                <MenuItem Header="{x:Static assets:Resources.MenuItemOpen}"/>
+                <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}" Click="MenuItemOpen_Click"/>
                 <Separator/>
                 <MenuItem Header="{x:Static assets:Resources.MenuItemExport}"/>
                 <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="Quit"/>
@@ -30,10 +32,12 @@
                 <MenuItem Header="_About" Click="OpenAboutWindow"/>
             </MenuItem>
         </Menu>
-        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{x:Static assets:Resources.StatusBlockReady}"/>
+        <!-- <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{x:Static assets:Resources.StatusBlockReady}"/> -->
+        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{Binding IsDbLoaded}"/>
         <Grid ColumnDefinitions="Auto, *"
               RowDefinitions="*"
               Margin="0 0 0 0"
+              IsEnabled="{Binding IsDbLoaded}"
               >
             <TabControl Grid.Column="0">
                 <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
