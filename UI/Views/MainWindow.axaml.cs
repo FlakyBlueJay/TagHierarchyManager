@@ -1,9 +1,7 @@
-using System;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace TagHierarchyManager.UI;
+namespace TagHierarchyManager.UI.Views;
 
 public partial class MainWindow : Window
 {

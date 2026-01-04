@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="TagHierarchyManager.UI.MainWindow"
+        x:Class="TagHierarchyManager.UI.Views.MainWindow"
         Title="{x:Static assets:Resources.Title}">
     <!--
     TODO:
