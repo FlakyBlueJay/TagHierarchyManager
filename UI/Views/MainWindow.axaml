@@ -42,8 +42,17 @@
             <TabControl Grid.Column="0">
                 <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
                     <Grid RowDefinitions="*, Auto">
-                        <TreeView Grid.Row="0" BorderThickness="5" BorderBrush="Teal" VerticalAlignment="Stretch">
-                        <!-- TODO get the tag hierarchy loaded. -->
+                        <TreeView Grid.Row="0"
+                                  BorderThickness="5"
+                                  BorderBrush="Teal"
+                                  VerticalAlignment="Stretch"
+                                  ItemsSource="{Binding TopLevelTags}"
+                                  SelectedItem="{Binding SelectedTag}">
+                            <TreeView.ItemTemplate>
+                                <TreeDataTemplate ItemsSource="{Binding Children}">
+                                    <TextBlock Text="{Binding Name}"/>
+                                </TreeDataTemplate>
+                            </TreeView.ItemTemplate>
                         </TreeView>
                         <Button Grid.Row="1" HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center" 
@@ -65,9 +74,9 @@
                     </StackPanel>
                 </TabItem>
             </TabControl>
-                <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, Auto, *, Auto" Margin="5">
-                    <TextBox Grid.Row="0" Name="NameTextbox" Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="1" Name="ParentsTextBox" Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch" Margin="3"/>
+                <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, Auto, *, Auto" Margin="5" DataContext="{Binding SelectedTag}">
+                    <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding Name}" Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="1" Name="ParentsTextBox" Text="{Binding Parents}" Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch" Margin="3"/>
                     <TextBox Grid.Row="2" Name="BindingsTextBox" Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch" Margin="3"/>
                     <TextBox Grid.Row="3" Name="AliasesTextBox" Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch" Margin="3"/>
                     <TextBox Grid.Row="4" Name="NotesTextBox" Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3"/>
