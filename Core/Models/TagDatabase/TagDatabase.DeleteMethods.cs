@@ -85,6 +85,7 @@ partial class TagDatabase
             int count = Convert.ToInt32(await command.ExecuteNonQueryAsync().ConfigureAwait(false));
             if (count > 0) await transaction.CommitAsync().ConfigureAwait(false);
             this.DeleteFromCache(targetTag);
+            TagDeleted.Invoke(this, (targetTag.Id, targetTag.Name));
         }
         catch (SqliteException)
         {

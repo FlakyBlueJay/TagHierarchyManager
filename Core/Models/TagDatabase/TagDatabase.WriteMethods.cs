@@ -41,9 +41,15 @@ public partial class TagDatabase
 
             int index = this.Tags.FindIndex(t => t.Id == tag.Id);
             if (index != -1)
+            {
                 this.Tags[index] = tag;
+                TagUpdated.Invoke(this, tag);
+            }
             else
+            {
                 this.Tags.Add(tag);
+                TagAdded.Invoke(this, tag);
+            }
         }
         catch (SqliteException)
         {

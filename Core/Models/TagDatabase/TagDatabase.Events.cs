@@ -7,6 +7,12 @@ public partial class TagDatabase
     /// </summary>
     public event EventHandler InitialisationComplete = delegate { };
     
+    public event EventHandler<Tag> TagAdded = delegate { };
+    
+    public event EventHandler<Tag> TagUpdated = delegate { };
+    
+    public event EventHandler<(int id, string name)> TagDeleted = delegate { };
+    
     private void OnInitialisationComplete(EventArgs e)
     {
         this.Logger.Debug("OnInitialised invoked!");
