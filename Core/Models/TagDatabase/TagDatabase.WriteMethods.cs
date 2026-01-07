@@ -43,12 +43,12 @@ public partial class TagDatabase
             if (index != -1)
             {
                 this.Tags[index] = tag;
-                TagUpdated.Invoke(this, tag);
+                TagUpdated?.Invoke(this, tag);
             }
             else
             {
                 this.Tags.Add(tag);
-                TagAdded.Invoke(this, tag);
+                TagAdded?.Invoke(this, tag);
             }
         }
         catch (SqliteException)

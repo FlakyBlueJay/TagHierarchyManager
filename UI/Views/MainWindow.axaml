@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TagHierarchyManager.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="{x:Static assets:Resources.Title}">
+        Title="{Binding WindowTitle}">
     <!--
     TODO:
     - Get all this working.
@@ -26,7 +26,7 @@
             <MenuItem Header="{x:Static assets:Resources.MenuDatabase}">
                 <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}"/>
                 <Separator/>
-                <MenuItem IsEnabled="False" Header="{x:Static assets:Resources.MenuItemTotalTagsNoDatabase}"/>
+                <MenuItem IsEnabled="False" Header="{Binding TotalTags, StringFormat={x:Static assets:Resources.MenuItemTotalTags}}"/>
             </MenuItem>
             <MenuItem Header="{x:Static assets:Resources.MenuHelp}">
                 <MenuItem Header="_About" Click="OpenAboutWindow"/>
@@ -43,6 +43,7 @@
                 <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
                     <Grid RowDefinitions="*, Auto">
                         <TreeView Grid.Row="0"
+                                  Name="TagTree"
                                   BorderThickness="5"
                                   BorderBrush="Teal"
                                   VerticalAlignment="Stretch"
@@ -50,7 +51,14 @@
                                   SelectedItem="{Binding SelectedTag}">
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">
-                                    <TextBlock Text="{Binding Name}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}"/>
+                                        <TextBlock IsVisible="{Binding TagBindings, 
+                                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                   FontStyle="Italic" Foreground="Gray">
+                                            <Run Text=" ("/><Run Text="{Binding TagBindings}"/><Run Text=")"/>
+                                        </TextBlock>
+                                    </StackPanel>
                                 </TreeDataTemplate>
                             </TreeView.ItemTemplate>
                         </TreeView>
@@ -74,17 +82,20 @@
                     </StackPanel>
                 </TabItem>
             </TabControl>
-                <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, Auto, *, Auto" Margin="5" DataContext="{Binding SelectedTag}">
-                    <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding Name}" Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="1" Name="ParentsTextBox" Text="{Binding Parents}" Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="2" Name="BindingsTextBox" Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="3" Name="AliasesTextBox" Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="4" Name="NotesTextBox" Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3"/>
+                <Grid Grid.Column="1"
+                      RowDefinitions="Auto, Auto, Auto, Auto, *, Auto"
+                      Margin="5"
+                      IsEnabled="{Binding SelectedTag, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName}" Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="1" Name="ParentsTextBox" Text="{Binding SelectedTag.EditingParents}" Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="2" Name="BindingsTextBox" Text="{Binding SelectedTag.EditingTagBindings}" Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="3" Name="AliasesTextBox" Text="{Binding SelectedTag.EditingAliases}" Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch" Margin="3"/>
+                    <TextBox Grid.Row="4" Name="NotesTextBox" Text="{Binding SelectedTag.EditingNotes}" Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3"/>
                     <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
-                        <CheckBox Grid.Column="0" Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"/>
+                        <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel}" Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"/>
                         <Button Grid.Column="1" Margin="0 0 5 0"  Content="{x:Static assets:Resources.ButtonDelete}" />
-                        <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}" />
-                        <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}" />
+                        <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}" Click="ButtonCancel_Click" />
+                        <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}" Click="ButtonSave_Click" />
                     </Grid>
                 </Grid>
         </Grid>

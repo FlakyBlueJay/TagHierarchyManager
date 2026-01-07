@@ -45,4 +45,21 @@ public partial class MainWindow : Window
             throw; // TODO handle exception
         }
     }
+
+    public async void ButtonSave_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await this.ViewModel.SaveTag();
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+    
+    public void ButtonCancel_Click(object? sender, RoutedEventArgs e)
+    {
+        this.ViewModel.SelectedTag.BeginEdit();
+    }
 }
