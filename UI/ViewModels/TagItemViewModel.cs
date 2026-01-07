@@ -150,6 +150,7 @@ public class TagItemViewModel(Tag tag, Func<int, string?> getNameById) : ViewMod
         OnPropertyChanged(nameof(EditingParents));
     }
     
+    
     public void SyncChildren(List<TagItemViewModel> children)
     {
         var newChildren = children.Select(c => c.Id).ToHashSet();
