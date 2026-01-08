@@ -9,6 +9,7 @@ namespace TagHierarchyManager.UI.Views;
 public partial class MainWindow : Window
 {
     public MainWindowViewModel? ViewModel => DataContext as MainWindowViewModel;
+    private bool _userWantsToQuit;
     
     public MainWindow()
     {
@@ -22,7 +23,7 @@ public partial class MainWindow : Window
     };
     
     public void OpenAboutWindow(object? sender, RoutedEventArgs e) => new AboutWindow().ShowDialog(this);
-    public void Quit(object? sender, RoutedEventArgs e) => this.Close();
+    public void MenuItemQuit_Click(object? sender, RoutedEventArgs e) => this.Close();
     
     public async void MenuItemOpen_Click(object? sender, RoutedEventArgs e)
     {
@@ -50,7 +51,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            await this.ViewModel.SaveTag();
+            await this.ViewModel.SaveSelectedTagAsync();
         }
         catch (Exception ex)
         {
@@ -61,5 +62,30 @@ public partial class MainWindow : Window
     public void ButtonCancel_Click(object? sender, RoutedEventArgs e)
     {
         this.ViewModel.SelectedTag.BeginEdit();
+    }
+
+    public async void WindowClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (this._userWantsToQuit) return;
+        if (this.ViewModel.UnsavedChanges)
+        {
+            e.Cancel = true;
+            var result = await this.ViewModel.ShowUnsavedChangesDialog();
+            switch (result)
+            {
+                case UnsavedChangesResult.Save:
+                    await this.ViewModel.SaveSelectedTagAsync();
+                    _userWantsToQuit = true;
+                    this.Close();
+                    break;
+                case UnsavedChangesResult.Discard:
+                    _userWantsToQuit = true;
+                    this.Close();
+                    break;
+                case UnsavedChangesResult.Cancel:
+                default:
+                    break;
+            }
+        }
     }
 }

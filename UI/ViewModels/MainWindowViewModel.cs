@@ -2,22 +2,50 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
 using TagHierarchyManager.UI.Assets;
+using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
     internal TagDatabase Database;
-
+    
+    [ObservableProperty]
+    private bool _unsavedChanges;
+    
+    private bool _isSwitching;
+    
     [ObservableProperty]
     private HierarchyTreeViewModel _hierarchyTreeViewModel;
     
     // Since multiple view models will be using this tag, best to store it here as the authoritative source.
-    [ObservableProperty]
     private TagItemViewModel? _selectedTag;
+
+    public TagItemViewModel? SelectedTag
+    {
+        get => _selectedTag;
+        set
+        {
+            if (_selectedTag == value || _isSwitching) return;
+            if (_selectedTag != null && this.UnsavedChanges)
+            {
+                _ = this.HandleTagSwitchAsync(this._selectedTag, value);
+            }
+            else
+            {
+                _selectedTag = value;
+                HierarchyTreeViewModel.SelectedTag = value;
+                _selectedTag?.BeginEdit();
+                this.UnsavedChanges = false;
+                this.OnPropertyChanged();
+            }
+        }
+    }
     
     [ObservableProperty]
     private ObservableCollection<TagItemViewModel> _topLevelTags = [];
@@ -39,12 +67,53 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
     }
-    
-    partial void OnSelectedTagChanged(TagItemViewModel? value)
+
+    public async Task<UnsavedChangesResult> ShowUnsavedChangesDialog()
     {
-        value?.BeginEdit();
+        var dialog = new UnsavedChangesDialog
+        {
+            DataContext = new UnsavedChangesViewModel()
+        };
+
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return UnsavedChangesResult.Cancel;
+
+        var mainWindow = desktop.MainWindow;
+        var result = await dialog.ShowDialog<UnsavedChangesResult>(mainWindow);
+        return result;
     }
 
+    private async Task HandleTagSwitchAsync(TagItemViewModel? oldTag, TagItemViewModel? newTag)
+    {
+        _isSwitching = true;
+        try
+        {
+            var result = await ShowUnsavedChangesDialog();
+
+            if (result == UnsavedChangesResult.Cancel)
+            {
+                _selectedTag = oldTag;
+                HierarchyTreeViewModel.SelectedTag = oldTag;
+                this.OnPropertyChanged(nameof(SelectedTag));
+                return;
+            }
+
+            if (result == UnsavedChangesResult.Save)
+                await this.SaveSelectedTagAsync();
+
+            _selectedTag = newTag;
+            HierarchyTreeViewModel.SelectedTag = newTag;
+            _selectedTag?.BeginEdit();
+            this.OnPropertyChanged(nameof(SelectedTag));
+            this.UnsavedChanges = false;
+        }
+        finally
+        {
+            _isSwitching = false;
+        }
+        
+    }
+    
     public async Task LoadDatabase(string filePath)
     {
         this.IsDbLoaded = false;
@@ -55,13 +124,14 @@ public partial class MainWindowViewModel : ViewModelBase
     
     // some of this could end up in a TagEditorViewModel for the right pane, but it's not taking up too much space, so
     // it doesn't matter.
-    public async Task SaveTag()
+    public async Task SaveSelectedTagAsync()
     {
         if (SelectedTag is null || this.Database is null) return;
-        var oldName = SelectedTag.Name;
         
         SelectedTag.CommitEdit();
         await this.Database.WriteTagToDatabase(SelectedTag.Tag);
+        this.StatusBlockText = $"Successfully saved tag {SelectedTag.Name}";
+        this.UnsavedChanges = false;
     }
     
     private void OnDatabaseLoaded(object sender, EventArgs e)

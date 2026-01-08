@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public class TagItemViewModel(Tag tag, Func<int, string?> getNameById) : ViewModelBase
+public partial class TagItemViewModel(Tag tag, Func<int, string?> getNameById) : ViewModelBase
 {
     internal Tag Tag { get; } = tag;
 
@@ -14,104 +16,66 @@ public class TagItemViewModel(Tag tag, Func<int, string?> getNameById) : ViewMod
     
     public string Name => Tag.Name;
 
+    [ObservableProperty]
     private string _editingName = tag.Name;
-    public string EditingName
-    {
-        get => _editingName;
-        set
-        {
-            if (_editingName == value) return;
-            _editingName = value;
-            OnPropertyChanged();
-        }
-    }
 
     private string Parents => Tag.ParentIds.Count > 0 
         ? string.Join("; ", Tag.ParentIds.Select(getNameById).Where(n => n != null)) 
         : string.Empty;
     
+    [ObservableProperty]
     private string _editingParents;
-    public string EditingParents
-    {
-        get => _editingParents;
-        set
-        {
-            if (_editingParents == value) return;
-            _editingParents = value;
-            OnPropertyChanged();
-        }
-    }
     
     public string TagBindings => Tag.TagBindings.Count > 0 
         ? string.Join("; ", Tag.TagBindings) 
         : string.Empty;
+    
+    [ObservableProperty]
     private string _editingTagBindings;
-
-    public string EditingTagBindings
-    {
-        get => _editingTagBindings;
-        set
-        {
-            if (_editingTagBindings == value) return;
-            _editingTagBindings = value;
-            OnPropertyChanged();
-        }
-    }
     
     public string Aliases => Tag.Aliases.Count > 0 
         ? string.Join("; ", Tag.Aliases) 
         : string.Empty;
+    
+    [ObservableProperty]
     private string _editingAliases;
-
-    public string EditingAliases
-    {
-        get => _editingAliases;
-        set
-        {
-            if (_editingAliases == value) return;
-            _editingAliases = value;
-            OnPropertyChanged();
-        }
-    }
-
+    
     public string Notes => Tag.Notes;
+    
+    [ObservableProperty]
     private string _editingNotes;
-
-    public string EditingNotes
-    {
-        get => _editingNotes;
-        set
-        {
-            if (_editingNotes == value) return;
-            _editingNotes = value;
-            OnPropertyChanged();
-        }
-    }
     
     private bool IsTopLevel => Tag.IsTopLevel;
+    [ObservableProperty]
     private bool _editingIsTopLevel;
-    public bool EditingIsTopLevel
-    {
-        get => _editingIsTopLevel;
-        set
-        {
-            if (_editingIsTopLevel == value) return;
-            _editingIsTopLevel = value;
-            OnPropertyChanged();
-        }
-    }
     
     
     public ObservableCollection<TagItemViewModel> Children { get; } = [];
 
+    private bool _isInitialising;
+    
+    public event EventHandler? UserEditedTag;
+    
     public void BeginEdit()
     {
+        _isInitialising = true;
         EditingName = Tag.Name;
-        this._editingParents = Parents;
-        this._editingIsTopLevel = IsTopLevel;
-        this._editingTagBindings = TagBindings;
-        this._editingAliases = Aliases;
-        this._editingNotes = Notes;
+        this.EditingParents = Parents;
+        this.EditingIsTopLevel = IsTopLevel;
+        this.EditingTagBindings = TagBindings;
+        this.EditingAliases = Aliases;
+        this.EditingNotes = Notes;
+        _isInitialising = false;
+    }
+    
+    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+
+        if (!_isInitialising && e.PropertyName.StartsWith("Editing"))
+        {
+            UserEditedTag.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public void CommitEdit()
@@ -132,7 +96,7 @@ public class TagItemViewModel(Tag tag, Func<int, string?> getNameById) : ViewMod
                                             StringSplitOptions.TrimEntries)
                 .ToList()
             : [];
-        Tag.Notes = EditingNotes;
+        Tag.Notes = !string.IsNullOrWhiteSpace(EditingNotes) ? EditingNotes : "";
         Tag.IsTopLevel = EditingIsTopLevel;
         OnPropertyChanged(nameof(Name));
         OnPropertyChanged(nameof(Parents));
@@ -145,9 +109,11 @@ public class TagItemViewModel(Tag tag, Func<int, string?> getNameById) : ViewMod
 
     public void RefreshParentsString()
     {
+        _isInitialising = true;
         OnPropertyChanged(nameof(Parents));
         _editingParents = Parents; 
         OnPropertyChanged(nameof(EditingParents));
+        _isInitialising = false;
     }
     
     

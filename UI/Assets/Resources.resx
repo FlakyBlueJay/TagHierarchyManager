@@ -137,4 +137,16 @@
     <data name="StatusBlockDbLoadSuccessful" xml:space="preserve">
         <value>Database "{0}" loaded successfully.</value>
     </data>
+    <data name="ButtonYes" xml:space="preserve">
+        <value>Yes</value>
+    </data>
+    <data name="ButtonNo" xml:space="preserve">
+        <value>No</value>
+    </data>
+    <data name="UnsavedChangesMessage" xml:space="preserve">
+        <value>You have unsaved changes to the currently loaded tag. Do you want to save them now?</value>
+    </data>
+    <data name="UnsavedChangesTitle" xml:space="preserve">
+        <value>Unsaved changes</value>
+    </data>
 </root>

@@ -14,12 +14,19 @@ public partial class HierarchyTreeViewModel : ViewModelBase
     private readonly Dictionary<string, TagItemViewModel> _viewModelMap = new();
     
     [ObservableProperty]
+    private TagItemViewModel? _selectedTag;
+
+    partial void OnSelectedTagChanged(TagItemViewModel? value)
+    {
+        _mainWindow.SelectedTag = value;
+    }
+    
+    [ObservableProperty]
     private ObservableCollection<TagItemViewModel> _topLevelTags = [];
     
     public HierarchyTreeViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
-        // TODO tell it to sync hierarchy.
         this._mainWindow.Database.TagUpdated += this.OnTagUpdated;
     }
     
@@ -97,6 +104,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase
             viewModel = new TagItemViewModel(tag, id => 
                 this._viewModelMap.Values.FirstOrDefault(v => v.Id == id)?.Name);
             this._viewModelMap[key] = viewModel;
+            viewModel.UserEditedTag += (s, e) => this._mainWindow.UnsavedChanges = true;
         }
         return viewModel;
     }

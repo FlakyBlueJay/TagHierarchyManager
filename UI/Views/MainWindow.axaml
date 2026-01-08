@@ -7,10 +7,17 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TagHierarchyManager.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        Closing="WindowClosing"
         Title="{Binding WindowTitle}">
     <!--
     TODO:
-    - Get all this working.
+    - Add button
+    - Delete button
+    - New database
+    - Import
+    - Export
+    - Database settings
+    - App settings
     -->
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
@@ -21,7 +28,7 @@
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}" Click="MenuItemOpen_Click"/>
                 <Separator/>
                 <MenuItem Header="{x:Static assets:Resources.MenuItemExport}"/>
-                <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="Quit"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="MenuItemQuit_Click"/>
             </MenuItem>
             <MenuItem Header="{x:Static assets:Resources.MenuDatabase}">
                 <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}"/>
@@ -48,7 +55,7 @@
                                   BorderBrush="Teal"
                                   VerticalAlignment="Stretch"
                                   ItemsSource="{Binding HierarchyTreeViewModel.TopLevelTags}"
-                                  SelectedItem="{Binding SelectedTag}">
+                                  SelectedItem="{Binding HierarchyTreeViewModel.SelectedTag, Mode=TwoWay}">
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">
                                     <StackPanel Orientation="Horizontal">

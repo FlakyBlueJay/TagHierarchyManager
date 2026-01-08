@@ -6,7 +6,9 @@
         mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="160"
         Width="500" Height="160"
         x:Class="TagHierarchyManager.UI.Views.DatabaseSettingsWindow"
-        Title="Settings - _DBNAME_">
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Title="Settings - {0}">
     <StackPanel Margin="5">
         <TextBlock Margin="0 0 0 25" Text="{x:Static assets:Resources.DatabaseSettingsDbVersion}"/>
         <TextBlock Text="{x:Static assets:Resources.DatabaseSettingsDefaultTagBindings}"/>
