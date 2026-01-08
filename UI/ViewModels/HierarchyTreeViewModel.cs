@@ -10,7 +10,6 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class HierarchyTreeViewModel : ViewModelBase
 {
-    // private readonly TagDatabase _database;
     private readonly MainWindowViewModel _mainWindow;
     private readonly Dictionary<string, TagItemViewModel> _viewModelMap = new();
     
@@ -89,9 +88,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase
             throw; // TODO handle exception
         }
     }
-
-
-    // HierarchyTreeViewModel
+    
     private TagItemViewModel GetOrCreateViewModel(Tag tag, int parentId)
     {
         string key = $"{parentId}_{tag.Id}";
@@ -124,7 +121,6 @@ public partial class HierarchyTreeViewModel : ViewModelBase
         parentVm.SyncChildren(childVms);
     }
     
-    // HierarchyTreeViewModel
     private void SyncCollection(ObservableCollection<TagItemViewModel> collection, List<TagItemViewModel> newItems)
     {
         var updatedKeys = newItems.Select(v => v.Id).ToHashSet();

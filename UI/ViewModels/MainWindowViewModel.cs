@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
@@ -17,6 +15,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private HierarchyTreeViewModel _hierarchyTreeViewModel;
     
+    // Since multiple view models will be using this tag, best to store it here as the authoritative source.
     [ObservableProperty]
     private TagItemViewModel? _selectedTag;
     
@@ -31,14 +30,15 @@ public partial class MainWindowViewModel : ViewModelBase
     public string WindowTitle => IsDbLoaded
         ? string.Format(Resources.TitleWithDatabase, this.Database.Name)
         : Resources.Title;
+
+    public string StatusBlockText = Resources.StatusBlockReady;
+    
     // TODO searchViewModel
-    // TODO hierarchyViewModel
     
     public MainWindowViewModel()
     {
     }
     
-    // TagEditorViewModel, maybe?
     partial void OnSelectedTagChanged(TagItemViewModel? value)
     {
         value?.BeginEdit();
@@ -52,7 +52,8 @@ public partial class MainWindowViewModel : ViewModelBase
         await db.LoadAsync(filePath);
     }
     
-    // TagEditorViewModel
+    // some of this could end up in a TagEditorViewModel for the right pane, but it's not taking up too much space, so
+    // it doesn't matter.
     public async Task SaveTag()
     {
         if (SelectedTag is null || this.Database is null) return;
