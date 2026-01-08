@@ -33,7 +33,7 @@
             </MenuItem>
         </Menu>
         <!-- <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{x:Static assets:Resources.StatusBlockReady}"/> -->
-        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{Binding IsDbLoaded}"/>
+        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{Binding StatusBlockText}"/>
         <Grid ColumnDefinitions="Auto, *"
               RowDefinitions="*"
               Margin="0 0 0 0"

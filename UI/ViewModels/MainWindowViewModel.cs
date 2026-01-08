@@ -31,7 +31,8 @@ public partial class MainWindowViewModel : ViewModelBase
         ? string.Format(Resources.TitleWithDatabase, this.Database.Name)
         : Resources.Title;
 
-    public string StatusBlockText = Resources.StatusBlockReady;
+    [ObservableProperty]
+    private string _statusBlockText = Resources.StatusBlockReady;
     
     // TODO searchViewModel
     
@@ -75,6 +76,7 @@ public partial class MainWindowViewModel : ViewModelBase
             this.OnPropertyChanged(nameof(TotalTags));
             this.OnPropertyChanged(nameof(WindowTitle));
             this.Database.InitialisationComplete -= OnDatabaseLoaded;
+            this.StatusBlockText = string.Format(Resources.StatusBlockDbLoadSuccessful, this.Database.Name);
         });
         Debug.WriteLine($"Database loaded on UI - name: {db.Name}, version: {db.Version}");
     }

@@ -134,4 +134,7 @@
     <data name="AboutTitleFormat" xml:space="preserve">
         <value>About {0}</value>
     </data>
+    <data name="StatusBlockDbLoadSuccessful" xml:space="preserve">
+        <value>Database "{0}" loaded successfully.</value>
+    </data>
 </root>
