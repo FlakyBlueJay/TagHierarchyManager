@@ -8,8 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Models\" />
-        <AvaloniaResource Include="Assets\**" />
+        <AvaloniaResource Include="Assets\**" Exclude="Assets\*.resx;Assets\*.Designer.cs"/>
         <EmbeddedResource Update="Assets\Resources.resx">
             <LastGenOutput>Resources.Designer.cs</LastGenOutput>
             <Generator>PublicResXFileCodeGenerator</Generator>
