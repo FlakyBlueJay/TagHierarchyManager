@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
+using TagHierarchyManager.Common;
+using TagHierarchyManager.Exporters;
 using TagHierarchyManager.Models;
 using TagHierarchyManager.UI.Assets;
 using TagHierarchyManager.UI.Views;
@@ -102,6 +105,25 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await DeleteSelectedTagAsync();
         }
+    }
+
+    private static IExporter PickExporterFromFileExt(string path)
+    {
+        string fileExt = Path.GetExtension(path);
+
+        // ReSharper disable once ConvertIfStatementToReturnStatement
+        if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension) return new MusicBeeTagHierarchyExporter();
+
+        throw new NotSupportedException($"File extension '{fileExt}' is not supported.");
+    }
+    
+    public async Task ExportAsync(string path)
+    {
+        IExporter exporter = PickExporterFromFileExt(path);
+        this.StatusBlockText = "Exporting...";
+        string exportContent = exporter.ExportDatabase(this.Database);
+        await File.WriteAllTextAsync(path, exportContent);
+        this.StatusBlockText = "Export complete.";
     }
 
     private void TagDatabase_TagAdded(object? sender, Tag _) => this.OnPropertyChanged(nameof(TotalTags));

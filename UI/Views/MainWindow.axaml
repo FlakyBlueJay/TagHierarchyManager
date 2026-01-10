@@ -12,9 +12,9 @@
     <!--
     TODO:
     - Import
-    - Export
     - Database settings
     - Search
+    - Error
     -->
     <Window.Styles>
         <!-- Target buttons with the 'delete-button' class -->
@@ -30,7 +30,7 @@
                 <Separator/>
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}" Click="MenuItemOpen_Click"/>
                 <Separator/>
-                <MenuItem Header="{x:Static assets:Resources.MenuItemExport}"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemExport}" Click="MenuItemExport_Click"/>
                 <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="MenuItemQuit_Click"/>
             </MenuItem>
             <MenuItem Header="{x:Static assets:Resources.MenuDatabase}">

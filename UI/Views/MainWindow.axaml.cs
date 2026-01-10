@@ -22,6 +22,11 @@ public partial class MainWindow : Window
         Patterns = ["*.thdb"]
     };
     
+    private static FilePickerFileType MusicBeeTagHierarchy { get; } = new("MusicBee tag hierarchy template")
+    {
+        Patterns = ["*.txt"]
+    };
+    
     public void OpenAboutWindow(object? sender, RoutedEventArgs e) => new AboutWindow().ShowDialog(this);
     public void MenuItemQuit_Click(object? sender, RoutedEventArgs e) => this.Close();
     
@@ -49,17 +54,38 @@ public partial class MainWindow : Window
     
     public async void MenuItemNew_Click(object? sender, RoutedEventArgs e)
     {
+        if (this.ViewModel.Database is null) return;
         try
         {
             var file = await this.StorageProvider.SaveFilePickerAsync(
                 new FilePickerSaveOptions
                 {
                     Title = "Create a new tag database...",
-                    FileTypeChoices = [TagDatabaseFileType]
+                    FileTypeChoices = [MusicBeeTagHierarchy]
                 });
             if (file == null) return;
             var path = file.TryGetLocalPath();
             await this.ViewModel.CreateNewDatabase(path);
+        }
+        catch (Exception ex)
+        {
+            throw; // TODO handle exception
+        }
+    }
+    
+    public async void MenuItemExport_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var file = await this.StorageProvider.SaveFilePickerAsync(
+                new FilePickerSaveOptions
+                {
+                    Title = "Export tag database...",
+                    FileTypeChoices = [MusicBeeTagHierarchy]
+                });
+            if (file == null) return;
+            var path = file.TryGetLocalPath();
+            await this.ViewModel.ExportAsync(path);
         }
         catch (Exception ex)
         {
