@@ -46,6 +46,26 @@ public partial class MainWindow : Window
             throw; // TODO handle exception
         }
     }
+    
+    public async void MenuItemNew_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var file = await this.StorageProvider.SaveFilePickerAsync(
+                new FilePickerSaveOptions
+                {
+                    Title = "Create a new tag database...",
+                    FileTypeChoices = [TagDatabaseFileType]
+                });
+            if (file == null) return;
+            var path = file.TryGetLocalPath();
+            await this.ViewModel.CreateNewDatabase(path);
+        }
+        catch (Exception ex)
+        {
+            throw; // TODO handle exception
+        }
+    }
 
     public async void ButtonSave_Click(object? sender, RoutedEventArgs e)
     {

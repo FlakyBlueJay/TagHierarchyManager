@@ -11,7 +11,6 @@
         Title="{Binding WindowTitle}">
     <!--
     TODO:
-    - New database
     - Import
     - Export
     - Database settings
@@ -26,7 +25,7 @@
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="{x:Static assets:Resources.MenuFile}">
-                <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}" Click="MenuItemNew_Click"/>
                 <MenuItem Header="{x:Static assets:Resources.MenuItemImport}"/>
                 <Separator/>
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}" Click="MenuItemOpen_Click"/>

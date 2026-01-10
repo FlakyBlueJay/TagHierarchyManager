@@ -150,7 +150,6 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             var childVm = GetOrCreateViewModel(ct, parentVm.Id);
             childVms.Add(childVm);
             
-            // Recurse: build this child's children
             SyncTagRecursive(childVm, childrenLookup, activeKeys);
         }
 

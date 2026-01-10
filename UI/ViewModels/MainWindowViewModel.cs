@@ -14,6 +14,7 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    // TODO consider moving editor-related functionality to a separate ViewModel.
     internal TagDatabase Database;
     
     [ObservableProperty]
@@ -103,6 +104,9 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    private void TagDatabase_TagAdded(object? sender, Tag _) => this.OnPropertyChanged(nameof(TotalTags));
+    private void TagDatabase_TagDeleted(object? sender, (int id, string name) _) => this.OnPropertyChanged(nameof(TotalTags));
+
     private async Task DeleteSelectedTagAsync()
     {
         if (SelectedTag is null || this.Database is null) return;
@@ -140,7 +144,6 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _isSwitching = false;
         }
-        
     }
     
     public async Task LoadDatabase(string filePath)
@@ -151,8 +154,16 @@ public partial class MainWindowViewModel : ViewModelBase
         await db.LoadAsync(filePath);
     }
     
-    // some of this could end up in a TagEditorViewModel for the right pane, but it's not taking up too much space, so
-    // it doesn't matter.
+    public async Task CreateNewDatabase(string filePath)
+    {
+        this.IsDbLoaded = false;
+        TagDatabase db = new();
+        db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
+        // overwrite is set to true here for now since the OS should handle the overwrite request.
+        // will need to remove once Terminal.Gui is replaced.
+        await db.CreateAsync(filePath, true);
+    }
+    
     public async Task SaveSelectedTagAsync()
     {
         if (SelectedTag is null || this.Database is null) return;
@@ -169,10 +180,17 @@ public partial class MainWindowViewModel : ViewModelBase
         Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
         {
             (this.HierarchyTreeViewModel as IDisposable)?.Dispose();
+            if (this.Database != null)
+            {
+                this.Database.TagAdded -= TagDatabase_TagAdded;
+                this.Database.TagDeleted -= TagDatabase_TagDeleted;
+            }
             
             this.Database = db;
             this.IsDbLoaded = true;
             this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this);
+            this.Database.TagAdded += TagDatabase_TagAdded;
+            this.Database.TagDeleted += TagDatabase_TagDeleted;
             await this.HierarchyTreeViewModel.InitializeAsync();
             this.OnPropertyChanged(nameof(TotalTags));
             this.OnPropertyChanged(nameof(WindowTitle));
