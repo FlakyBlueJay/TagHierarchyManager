@@ -11,14 +11,18 @@
         Title="{Binding WindowTitle}">
     <!--
     TODO:
-    - Add button
-    - Delete button
     - New database
     - Import
     - Export
     - Database settings
-    - App settings
+    - Search
     -->
+    <Window.Styles>
+        <!-- Target buttons with the 'delete-button' class -->
+        <Style Selector="Button.delete[Tag=0]">
+            <Setter Property="IsEnabled" Value="False"/>
+        </Style>
+    </Window.Styles>
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="{x:Static assets:Resources.MenuFile}">
@@ -39,7 +43,6 @@
                 <MenuItem Header="_About" Click="OpenAboutWindow"/>
             </MenuItem>
         </Menu>
-        <!-- <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{x:Static assets:Resources.StatusBlockReady}"/> -->
         <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{Binding StatusBlockText}"/>
         <Grid ColumnDefinitions="Auto, *"
               RowDefinitions="*"
@@ -71,7 +74,8 @@
                         </TreeView>
                         <Button Grid.Row="1" HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center" 
-                                Content="{x:Static assets:Resources.ButtonAdd}"/>
+                                Content="{x:Static assets:Resources.ButtonAdd}"
+                                Click="ButtonAdd_Click"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Search">
@@ -100,7 +104,7 @@
                     <TextBox Grid.Row="4" Name="NotesTextBox" Text="{Binding SelectedTag.EditingNotes}" Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3"/>
                     <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
                         <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel}" Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"/>
-                        <Button Grid.Column="1" Margin="0 0 5 0"  Content="{x:Static assets:Resources.ButtonDelete}" />
+                        <Button Grid.Column="1" Classes="delete" Tag="{Binding SelectedTag.Id}" Margin="0 0 5 0"  Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click" />
                         <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}" Click="ButtonCancel_Click" />
                         <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}" Click="ButtonSave_Click" />
                     </Grid>

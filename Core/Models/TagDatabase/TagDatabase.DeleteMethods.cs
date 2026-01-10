@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Data.Sqlite;
 
 namespace TagHierarchyManager.Models;
@@ -59,6 +60,7 @@ partial class TagDatabase
 
     private void DeleteFromCache(Tag targetTag)
     {
+        Debug.WriteLine($"Deleting tag {targetTag.Name} ({targetTag.Id}) from cache.");
         this.Tags.Where(tag => tag.ParentIds.Contains(targetTag.Id))
             .ToList()
             .ForEach(tag =>
@@ -66,7 +68,12 @@ partial class TagDatabase
                 tag.ParentIds.Remove(targetTag.Id);
                 tag.Parents.Remove(targetTag.Name);
             });
-        this.Tags.Remove(targetTag);
+        
+        Tag cachedTag = this.Tags.FirstOrDefault(t => t.Id == targetTag.Id);
+        if (cachedTag != null)
+        {
+            this.Tags.Remove(cachedTag);
+        }
     }
 
     private async Task ExecuteTagDeletion(Tag targetTag)
@@ -85,7 +92,7 @@ partial class TagDatabase
             int count = Convert.ToInt32(await command.ExecuteNonQueryAsync().ConfigureAwait(false));
             if (count > 0) await transaction.CommitAsync().ConfigureAwait(false);
             this.DeleteFromCache(targetTag);
-            TagDeleted.Invoke(this, (targetTag.Id, targetTag.Name));
+            TagDeleted?.Invoke(this, (targetTag.Id, targetTag.Name));
         }
         catch (SqliteException)
         {

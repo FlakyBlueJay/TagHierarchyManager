@@ -64,6 +64,16 @@ public partial class MainWindow : Window
         this.ViewModel.SelectedTag.BeginEdit();
     }
 
+    public void ButtonAdd_Click(object? sender, RoutedEventArgs e)
+    {
+        this.ViewModel.NewTag();
+    }
+    
+    public void ButtonDelete_Click(object? sender, RoutedEventArgs e)
+    {
+        this.ViewModel.StartTagDeletion();
+    }
+    
     public async void WindowClosing(object? sender, WindowClosingEventArgs e)
     {
         if (this._userWantsToQuit) return;
@@ -73,17 +83,16 @@ public partial class MainWindow : Window
             var result = await this.ViewModel.ShowUnsavedChangesDialog();
             switch (result)
             {
-                case UnsavedChangesResult.Save:
+                case true:
                     await this.ViewModel.SaveSelectedTagAsync();
                     _userWantsToQuit = true;
                     this.Close();
                     break;
-                case UnsavedChangesResult.Discard:
+                case false:
                     _userWantsToQuit = true;
                     this.Close();
                     break;
-                case UnsavedChangesResult.Cancel:
-                default:
+                case null:
                     break;
             }
         }

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
@@ -68,19 +69,47 @@ public partial class MainWindowViewModel : ViewModelBase
     {
     }
 
-    public async Task<UnsavedChangesResult> ShowUnsavedChangesDialog()
+    public async Task<bool?> ShowNullableBoolDialog(Window dialog)
     {
-        var dialog = new UnsavedChangesDialog
-        {
-            DataContext = new UnsavedChangesViewModel()
-        };
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return null;
+        
+        var mainWindow = desktop.MainWindow;
+        var result = await dialog.ShowDialog<bool?>(mainWindow);
+        return result;
+    }
+    
+    public async Task<bool?> ShowUnsavedChangesDialog()
+    {
+        var dialog = new UnsavedChangesDialog();
 
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return UnsavedChangesResult.Cancel;
+            return null;
 
         var mainWindow = desktop.MainWindow;
-        var result = await dialog.ShowDialog<UnsavedChangesResult>(mainWindow);
+        var result = await dialog.ShowDialog<bool?>(mainWindow);
         return result;
+    }
+
+    public async Task StartTagDeletion()
+    {
+        var result = await this.ShowNullableBoolDialog(new DeleteTagDialog());
+        if (result == null)
+            return;
+
+        if (result == true)
+        {
+            await DeleteSelectedTagAsync();
+        }
+    }
+
+    private async Task DeleteSelectedTagAsync()
+    {
+        if (SelectedTag is null || this.Database is null) return;
+        await this.Database.DeleteTag(SelectedTag.Tag.Id);
+        _selectedTag = null;
+        HierarchyTreeViewModel.SelectedTag = null;
+        this.OnPropertyChanged(nameof(SelectedTag));
     }
 
     private async Task HandleTagSwitchAsync(TagItemViewModel? oldTag, TagItemViewModel? newTag)
@@ -88,9 +117,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _isSwitching = true;
         try
         {
-            var result = await ShowUnsavedChangesDialog();
+            var result = await this.ShowNullableBoolDialog(new UnsavedChangesDialog());
 
-            if (result == UnsavedChangesResult.Cancel)
+            if (result == null)
             {
                 _selectedTag = oldTag;
                 HierarchyTreeViewModel.SelectedTag = oldTag;
@@ -98,7 +127,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            if (result == UnsavedChangesResult.Save)
+            if (result == true)
                 await this.SaveSelectedTagAsync();
 
             _selectedTag = newTag;
@@ -149,5 +178,18 @@ public partial class MainWindowViewModel : ViewModelBase
             this.StatusBlockText = string.Format(Resources.StatusBlockDbLoadSuccessful, this.Database.Name);
         });
         Debug.WriteLine($"Database loaded on UI - name: {db.Name}, version: {db.Version}");
+    }
+
+    public void NewTag()
+    {
+        this.SelectedTag = new TagItemViewModel(
+            new()
+                { 
+                    Name = string.Empty,
+                    IsTopLevel = true
+                }
+            );
+        this.SelectedTag.BeginEdit();
+        this.UnsavedChanges = true;
     }
 }

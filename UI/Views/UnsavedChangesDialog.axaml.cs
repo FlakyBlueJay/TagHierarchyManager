@@ -11,16 +11,9 @@ public partial class UnsavedChangesDialog : Window
     public UnsavedChangesDialog()
     {
         InitializeComponent();
-        this.DataContextChanged += (s, e) =>
-        {
-            if (ViewModel is not null)
-            {
-                ViewModel.CloseAction = (result) => this.Close(result);
-            }
-        };
     }
     
-    public void ButtonYes_Click(object? sender, RoutedEventArgs e) => ViewModel?.Save();
-    public void ButtonNo_Click(object? sender, RoutedEventArgs e) => ViewModel?.Discard();
-    public void ButtonCancel_Click(object? sender, RoutedEventArgs e) => ViewModel?.Cancel();
+    public void ButtonYes_Click(object? sender, RoutedEventArgs e) => this.Close(true);
+    public void ButtonNo_Click(object? sender, RoutedEventArgs e) => this.Close(false);
+    public void ButtonCancel_Click(object? sender, RoutedEventArgs e) => this.Close(null);
 }

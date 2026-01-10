@@ -8,7 +8,7 @@ using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public partial class TagItemViewModel(Tag tag, Func<int, string?> getNameById) : ViewModelBase
+public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById = null) : ViewModelBase
 {
     internal Tag Tag { get; } = tag;
 
@@ -19,7 +19,7 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?> getNameById) :
     [ObservableProperty]
     private string _editingName = tag.Name;
 
-    private string Parents => Tag.ParentIds.Count > 0 
+    private string Parents => (getNameById != null && Tag.ParentIds.Count > 0) 
         ? string.Join("; ", Tag.ParentIds.Select(getNameById).Where(n => n != null)) 
         : string.Empty;
     
@@ -74,7 +74,7 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?> getNameById) :
 
         if (!_isInitialising && e.PropertyName.StartsWith("Editing"))
         {
-            UserEditedTag.Invoke(this, EventArgs.Empty);
+            UserEditedTag?.Invoke(this, EventArgs.Empty);
         }
     }
 

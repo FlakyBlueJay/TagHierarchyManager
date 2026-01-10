@@ -27,7 +27,12 @@ public partial class HierarchyTreeViewModel : ViewModelBase
     public HierarchyTreeViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
-        this._mainWindow.Database.TagUpdated += this.OnTagUpdated;
+        
+        // this is a bit naive, but it works lol
+        this._mainWindow.Database.TagUpdated += (_, _) => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
+        this._mainWindow.Database.TagAdded += (_, _) => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
+        // TODO delete the single tag, don't resync hierarchy. should make it snappier and more manageable.
+        this._mainWindow.Database.TagDeleted += (_, _) => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
     }
     
     public async Task InitializeAsync()
@@ -35,8 +40,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase
         await this.SyncHierarchyAsync();
     }
 
-    
-    private async void OnTagUpdated(object sender, Tag updatedTag)
+    private async Task OnTreeUpdate()
     {
         try
         {
@@ -54,25 +58,26 @@ public partial class HierarchyTreeViewModel : ViewModelBase
             throw; // TODO handle exception
         }
     }
+    
 
     public async Task SyncHierarchyAsync()
     {
         if (this._mainWindow.Database is null) return;
 
         var activeKeys = new HashSet<string>();
-
+        
         try
         {
             var result = await Task.Run(() =>
             {
-                var activeKeys = new HashSet<string>();
+                
                 var children = this._mainWindow.Database.Tags
                     .SelectMany(t => t.ParentIds.Select(pId => new { ParentId = pId, Child = t }))
                     .ToLookup(x => x.ParentId, x => x.Child);
                 var topLevelTags = this._mainWindow.Database.Tags.Where(t => t.IsTopLevel).OrderBy(t => t.Name)
                     .ToList();
 
-                return (activeKeys, topLevelTags, children);
+                return (topLevelTags, children);
             });
 
             var topLevelViewModels = result.topLevelTags.Select(t =>
