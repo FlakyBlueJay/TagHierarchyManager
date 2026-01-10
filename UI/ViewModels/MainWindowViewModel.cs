@@ -147,7 +147,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         this.IsDbLoaded = false;
         TagDatabase db = new();
-        db.InitialisationComplete += OnDatabaseLoaded;
+        db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
         await db.LoadAsync(filePath);
     }
     
@@ -163,18 +163,20 @@ public partial class MainWindowViewModel : ViewModelBase
         this.UnsavedChanges = false;
     }
     
-    private void OnDatabaseLoaded(object sender, EventArgs e)
+    private void TagDatabase_OnInitalisationComplete(object sender, EventArgs e)
     {
         if (sender is not TagDatabase db) return;
         Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
         {
+            (this.HierarchyTreeViewModel as IDisposable)?.Dispose();
+            
             this.Database = db;
             this.IsDbLoaded = true;
             this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this);
             await this.HierarchyTreeViewModel.InitializeAsync();
             this.OnPropertyChanged(nameof(TotalTags));
             this.OnPropertyChanged(nameof(WindowTitle));
-            this.Database.InitialisationComplete -= OnDatabaseLoaded;
+            this.Database.InitialisationComplete -= this.TagDatabase_OnInitalisationComplete;
             this.StatusBlockText = string.Format(Resources.StatusBlockDbLoadSuccessful, this.Database.Name);
         });
         Debug.WriteLine($"Database loaded on UI - name: {db.Name}, version: {db.Version}");

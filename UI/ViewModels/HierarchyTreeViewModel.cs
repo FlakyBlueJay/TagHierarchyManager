@@ -8,7 +8,7 @@ using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public partial class HierarchyTreeViewModel : ViewModelBase
+public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 {
     private readonly MainWindowViewModel _mainWindow;
     private readonly Dictionary<string, TagItemViewModel> _viewModelMap = new();
@@ -28,11 +28,34 @@ public partial class HierarchyTreeViewModel : ViewModelBase
     {
         this._mainWindow = mainWindow;
         
-        // this is a bit naive, but it works lol
-        this._mainWindow.Database.TagUpdated += (_, _) => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
-        this._mainWindow.Database.TagAdded += (_, _) => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
-        // TODO delete the single tag, don't resync hierarchy. should make it snappier and more manageable.
-        this._mainWindow.Database.TagDeleted += (_, _) => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
+        // TODO proper methods here so it can be unsubscribed.
+        this.SubscribeToEvents();
+    }
+    
+    // TODO unsubscribe, if necessary.
+    private void SubscribeToEvents()
+    {
+        this._mainWindow.Database.TagUpdated += TagDatabase_OnTagUpdated;
+        this._mainWindow.Database.TagAdded += TagDatabase_OnTagAdded;
+        this._mainWindow.Database.TagDeleted += TagDatabase_OnTagDeleted;
+    }
+    
+    private void TagDatabase_OnTagUpdated(object? sender, Tag _) => 
+        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
+
+    private void TagDatabase_OnTagAdded(object? sender, Tag _) => 
+        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
+
+    private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) _) => 
+        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(OnTreeUpdate);
+
+    public void Dispose()
+    {
+        this._mainWindow.Database.TagUpdated -= TagDatabase_OnTagUpdated;
+        this._mainWindow.Database.TagAdded -= TagDatabase_OnTagAdded;
+        this._mainWindow.Database.TagDeleted -= TagDatabase_OnTagDeleted;
+        
+        _viewModelMap.Clear();
     }
     
     public async Task InitializeAsync()
