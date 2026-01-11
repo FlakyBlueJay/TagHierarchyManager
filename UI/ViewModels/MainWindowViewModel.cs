@@ -38,8 +38,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _unsavedChanges;
 
-    // TODO searchViewModel
-
     public int TotalTags => this.Database?.Tags.Count ?? 0;
 
     public string WindowTitle =>
@@ -197,6 +195,8 @@ public partial class MainWindowViewModel : ViewModelBase
         Dispatcher.UIThread.Post(async () =>
         {
             (this.HierarchyTreeViewModel as IDisposable)?.Dispose();
+            (this.SearchViewModel as IDisposable)?.Dispose();
+            
             if (this.Database != null)
             {
                 this.Database.TagAdded -= this.TagDatabase_TagAdded;

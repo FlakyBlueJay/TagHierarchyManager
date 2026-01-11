@@ -149,4 +149,22 @@
     <data name="UnsavedChangesTitle" xml:space="preserve">
         <value>Unsaved changes</value>
     </data>
+    <data name="SearchNoResultsFound" xml:space="preserve">
+        <value>No tags found.</value>
+    </data>
+    <data name="SearchOneResultFound" xml:space="preserve">
+        <value>One tag found.</value>
+    </data>
+    <data name="SearchMultipleResultsFound" xml:space="preserve">
+        <value>{0} tags found.</value>
+    </data>
+    <data name="FileFormatMusicBeeTagHierarchy" xml:space="preserve">
+        <value>MusicBee tag hierarchy template</value>
+    </data>
+    <data name="FileFormatTagHierarchyDatabase" xml:space="preserve">
+        <value>Tag hierarchy database</value>
+    </data>
+    <data name="SearchEnableAliases" xml:space="preserve">
+        <value>Search aliases/A.K.As?</value>
+    </data>
 </root>

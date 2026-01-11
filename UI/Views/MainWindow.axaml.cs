@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using TagHierarchyManager.Common;
@@ -17,13 +18,12 @@ public partial class MainWindow : Window
 
     private MainWindowViewModel? ViewModel => this.DataContext as MainWindowViewModel;
 
-    private static FilePickerFileType MusicBeeTagHierarchy { get; } = new("MusicBee tag hierarchy template")
+    private static FilePickerFileType MusicBeeTagHierarchy { get; } = new(Assets.Resources.FileFormatMusicBeeTagHierarchy)
     {
         Patterns = ["*.txt"]
     };
 
-    // TODO resx
-    private static FilePickerFileType TagDatabaseFileType { get; } = new("Tag Hierarchy Manager database")
+    private static FilePickerFileType TagDatabaseFileType { get; } = new(Assets.Resources.FileFormatTagHierarchyDatabase)
     {
         Patterns = ["*.thdb"]
     };
@@ -106,6 +106,14 @@ public partial class MainWindow : Window
     public void OpenAboutWindow(object? sender, RoutedEventArgs e)
     {
         new AboutWindow().ShowDialog(this);
+    }
+
+    public void SearchTextBox_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        this.ButtonSearch_Click(sender, e);
+        e.Handled = true;
+
     }
 
     public async void WindowClosing(object? sender, WindowClosingEventArgs e)
