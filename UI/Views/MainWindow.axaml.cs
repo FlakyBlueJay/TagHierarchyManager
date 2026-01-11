@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using TagHierarchyManager.Common;
 using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Views;
@@ -14,7 +15,7 @@ public partial class MainWindow : Window
         this.InitializeComponent();
     }
 
-    public MainWindowViewModel? ViewModel => this.DataContext as MainWindowViewModel;
+    private MainWindowViewModel? ViewModel => this.DataContext as MainWindowViewModel;
 
     private static FilePickerFileType MusicBeeTagHierarchy { get; } = new("MusicBee tag hierarchy template")
     {
@@ -45,6 +46,14 @@ public partial class MainWindow : Window
     public async void ButtonSave_Click(object? sender, RoutedEventArgs e)
     {
         await this.ViewModel.SaveSelectedTagAsync();
+    }
+
+    public void ButtonSearch_Click(object? sender, RoutedEventArgs e)
+    {
+        this.ViewModel.StartSearch(
+            this.SearchTextBox.Text,
+            (TagDatabaseSearchMode)this.SearchModeComboBox.SelectedIndex,
+            this.SearchAliasesCheckBox.IsChecked ?? false);
     }
 
     public async void MenuItemExport_Click(object? sender, RoutedEventArgs e)

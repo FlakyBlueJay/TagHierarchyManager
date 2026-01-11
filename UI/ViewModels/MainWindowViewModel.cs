@@ -22,6 +22,8 @@ public partial class MainWindowViewModel : ViewModelBase
     internal TagDatabase Database;
 
     [ObservableProperty] private HierarchyTreeViewModel _hierarchyTreeViewModel;
+    
+    [ObservableProperty] private SearchViewModel _searchViewModel;
 
     [ObservableProperty] private bool _isDbLoaded;
 
@@ -126,6 +128,11 @@ public partial class MainWindowViewModel : ViewModelBase
         return result;
     }
 
+    public void StartSearch(string searchQuery, TagDatabaseSearchMode mode, bool searchAliases)
+    {
+        this.SearchViewModel.Search(searchQuery, mode, searchAliases);
+    }
+
     public async Task StartTagDeletion()
     {
         var result = await this.ShowNullableBoolDialog(new DeleteTagDialog());
@@ -199,12 +206,14 @@ public partial class MainWindowViewModel : ViewModelBase
             this.Database = db;
             this.IsDbLoaded = true;
             this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this);
+            this.SearchViewModel = new SearchViewModel(this);
             this.Database.TagAdded += this.TagDatabase_TagAdded;
             this.Database.TagDeleted += this.TagDatabase_TagDeleted;
             await this.HierarchyTreeViewModel.InitializeAsync();
             this.OnPropertyChanged(nameof(this.TotalTags));
             this.OnPropertyChanged(nameof(this.WindowTitle));
             this.Database.InitialisationComplete -= this.TagDatabase_OnInitalisationComplete;
+            this.UnsavedChanges = false;
             this.StatusBlockText = string.Format(Resources.StatusBlockDbLoadSuccessful, this.Database.Name);
         });
         Debug.WriteLine($"Database loaded on UI - name: {db.Name}, version: {db.Version}");

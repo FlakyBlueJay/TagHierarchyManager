@@ -80,17 +80,27 @@
                     </Grid>
                 </TabItem>
                 <TabItem Header="Search">
-                    <StackPanel>
-                        <TextBox Watermark="{x:Static assets:Resources.WatermarkSearchQuery}" Margin="0 0 0 5" />
-                        <Button Margin="0 0 0 5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Search</Button>
-                        <ComboBox HorizontalAlignment="Stretch" Margin="0 0 0 5">
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
+                        <TextBox Grid.Row="0" Name="SearchTextBox" Watermark="{x:Static assets:Resources.WatermarkSearchQuery}" Margin="0 0 0 5" />
+                        <CheckBox Grid.Row="1" Name="SearchAliasesCheckBox" Content="SEARCHALIASES"/>
+                        <Button Grid.Row="2" Margin="0 0 0 5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="ButtonSearch_Click">Search</Button>
+                        <ComboBox Grid.Row="3" Name="SearchModeComboBox" HorizontalAlignment="Stretch" Margin="0 0 0 5" SelectedIndex="0">
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeFuzzy}" />
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeStartsWith}" />
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeEndsWith}" />
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeExactMatch}" />
                         </ComboBox>
-                        <ListBox SelectionMode="Single" />
-                    </StackPanel>
+                        <ListBox Grid.Row="4" SelectionMode="Single"
+                                 DataContext="{Binding SearchViewModel}"
+                                 ItemsSource="{Binding SearchResults}"
+                                 SelectedItem="{Binding SelectedSearchResult}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
                 </TabItem>
             </TabControl>
             <Grid Grid.Column="1"
