@@ -3,11 +3,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
-        xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
         mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="120"
         Width="500" Height="120" CanResize="False"
         x:Class="TagHierarchyManager.UI.Views.UnsavedChangesDialog"
-        x:DataType="vm:UnsavedChangesViewModel"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         Title="">

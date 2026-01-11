@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Common;
 using TagHierarchyManager.Exporters;
@@ -19,74 +20,104 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     // TODO consider moving editor-related functionality to a separate ViewModel.
     internal TagDatabase Database;
-    
-    [ObservableProperty]
-    private bool _unsavedChanges;
-    
+
+    [ObservableProperty] private HierarchyTreeViewModel _hierarchyTreeViewModel;
+
+    [ObservableProperty] private bool _isDbLoaded;
+
     private bool _isSwitching;
-    
-    [ObservableProperty]
-    private HierarchyTreeViewModel _hierarchyTreeViewModel;
-    
+
     // Since multiple view models will be using this tag, best to store it here as the authoritative source.
     private TagItemViewModel? _selectedTag;
 
+    [ObservableProperty] private string _statusBlockText = Resources.StatusBlockReady;
+
+    [ObservableProperty] private ObservableCollection<TagItemViewModel> _topLevelTags = [];
+
+    [ObservableProperty] private bool _unsavedChanges;
+
+    // TODO searchViewModel
+
+    public int TotalTags => this.Database?.Tags.Count ?? 0;
+
+    public string WindowTitle =>
+        this.IsDbLoaded
+            ? string.Format(Resources.TitleWithDatabase, this.Database.Name)
+            : Resources.Title;
+
     public TagItemViewModel? SelectedTag
     {
-        get => _selectedTag;
+        get => this._selectedTag;
         set
         {
-            if (_selectedTag == value || _isSwitching) return;
-            if (_selectedTag != null && this.UnsavedChanges)
+            if (this._selectedTag == value || this._isSwitching) return;
+            if (this._selectedTag != null && this.UnsavedChanges)
             {
                 _ = this.HandleTagSwitchAsync(this._selectedTag, value);
             }
             else
             {
-                _selectedTag = value;
-                HierarchyTreeViewModel.SelectedTag = value;
-                _selectedTag?.BeginEdit();
+                this._selectedTag = value;
+                this.HierarchyTreeViewModel.SelectedTag = value;
+                this._selectedTag?.BeginEdit();
                 this.UnsavedChanges = false;
                 this.OnPropertyChanged();
             }
         }
     }
-    
-    [ObservableProperty]
-    private ObservableCollection<TagItemViewModel> _topLevelTags = [];
 
-    [ObservableProperty]
-    private bool _isDbLoaded;
-    
-    public int TotalTags => this.Database?.Tags.Count ?? 0;
-    
-    public string WindowTitle => IsDbLoaded
-        ? string.Format(Resources.TitleWithDatabase, this.Database.Name)
-        : Resources.Title;
-
-    [ObservableProperty]
-    private string _statusBlockText = Resources.StatusBlockReady;
-    
-    // TODO searchViewModel
-    
-    public MainWindowViewModel()
+    public async Task CreateNewDatabase(string filePath)
     {
+        this.IsDbLoaded = false;
+        TagDatabase db = new();
+        db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
+        // overwrite is set to true here for now since the OS should handle the overwrite request.
+        // will need to remove once Terminal.Gui is replaced.
+        await db.CreateAsync(filePath, true);
+    }
+
+    public async Task ExportAsync(string path)
+    {
+        var exporter = PickExporterFromFileExt(path);
+        this.StatusBlockText = "Exporting...";
+        var exportContent = exporter.ExportDatabase(this.Database);
+        await File.WriteAllTextAsync(path, exportContent);
+        this.StatusBlockText = "Export complete.";
+    }
+
+    public async Task LoadDatabase(string filePath)
+    {
+        this.IsDbLoaded = false;
+        TagDatabase db = new();
+        db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
+        await db.LoadAsync(filePath);
+    }
+
+    public void NewTag()
+    {
+        this.SelectedTag = new TagItemViewModel(
+            new Tag
+            {
+                Name = string.Empty,
+                IsTopLevel = true
+            }
+        );
+        this.SelectedTag.BeginEdit();
+        this.UnsavedChanges = true;
+    }
+
+    public async Task SaveSelectedTagAsync()
+    {
+        if (this.SelectedTag is null || this.Database is null) return;
+
+        this.SelectedTag.CommitEdit();
+        await this.Database.WriteTagToDatabase(this.SelectedTag.Tag);
+        this.StatusBlockText = $"Successfully saved tag {this.SelectedTag.Name}";
+        this.UnsavedChanges = false;
     }
 
     public async Task<bool?> ShowNullableBoolDialog(Window dialog)
     {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return null;
-        
-        var mainWindow = desktop.MainWindow;
-        var result = await dialog.ShowDialog<bool?>(mainWindow);
-        return result;
-    }
-    
-    public async Task<bool?> ShowUnsavedChangesDialog()
-    {
-        var dialog = new UnsavedChangesDialog();
-
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return null;
 
@@ -101,137 +132,91 @@ public partial class MainWindowViewModel : ViewModelBase
         if (result == null)
             return;
 
-        if (result == true)
-        {
-            await DeleteSelectedTagAsync();
-        }
+        if (result == true) await this.DeleteSelectedTagAsync();
     }
 
     private static IExporter PickExporterFromFileExt(string path)
     {
-        string fileExt = Path.GetExtension(path);
+        var fileExt = Path.GetExtension(path);
 
         // ReSharper disable once ConvertIfStatementToReturnStatement
         if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension) return new MusicBeeTagHierarchyExporter();
 
         throw new NotSupportedException($"File extension '{fileExt}' is not supported.");
     }
-    
-    public async Task ExportAsync(string path)
-    {
-        IExporter exporter = PickExporterFromFileExt(path);
-        this.StatusBlockText = "Exporting...";
-        string exportContent = exporter.ExportDatabase(this.Database);
-        await File.WriteAllTextAsync(path, exportContent);
-        this.StatusBlockText = "Export complete.";
-    }
-
-    private void TagDatabase_TagAdded(object? sender, Tag _) => this.OnPropertyChanged(nameof(TotalTags));
-    private void TagDatabase_TagDeleted(object? sender, (int id, string name) _) => this.OnPropertyChanged(nameof(TotalTags));
 
     private async Task DeleteSelectedTagAsync()
     {
-        if (SelectedTag is null || this.Database is null) return;
-        await this.Database.DeleteTag(SelectedTag.Tag.Id);
-        _selectedTag = null;
-        HierarchyTreeViewModel.SelectedTag = null;
-        this.OnPropertyChanged(nameof(SelectedTag));
+        if (this.SelectedTag is null || this.Database is null) return;
+        await this.Database.DeleteTag(this.SelectedTag.Tag.Id);
+        this._selectedTag = null;
+        this.HierarchyTreeViewModel.SelectedTag = null;
+        this.OnPropertyChanged(nameof(this.SelectedTag));
     }
 
     private async Task HandleTagSwitchAsync(TagItemViewModel? oldTag, TagItemViewModel? newTag)
     {
-        _isSwitching = true;
+        this._isSwitching = true;
         try
         {
             var result = await this.ShowNullableBoolDialog(new UnsavedChangesDialog());
 
             if (result == null)
             {
-                _selectedTag = oldTag;
-                HierarchyTreeViewModel.SelectedTag = oldTag;
-                this.OnPropertyChanged(nameof(SelectedTag));
+                this._selectedTag = oldTag;
+                this.HierarchyTreeViewModel.SelectedTag = oldTag;
+                this.OnPropertyChanged(nameof(this.SelectedTag));
                 return;
             }
 
             if (result == true)
                 await this.SaveSelectedTagAsync();
 
-            _selectedTag = newTag;
-            HierarchyTreeViewModel.SelectedTag = newTag;
-            _selectedTag?.BeginEdit();
-            this.OnPropertyChanged(nameof(SelectedTag));
+            this._selectedTag = newTag;
+            this.HierarchyTreeViewModel.SelectedTag = newTag;
+            this._selectedTag?.BeginEdit();
+            this.OnPropertyChanged(nameof(this.SelectedTag));
             this.UnsavedChanges = false;
         }
         finally
         {
-            _isSwitching = false;
+            this._isSwitching = false;
         }
     }
-    
-    public async Task LoadDatabase(string filePath)
-    {
-        this.IsDbLoaded = false;
-        TagDatabase db = new();
-        db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
-        await db.LoadAsync(filePath);
-    }
-    
-    public async Task CreateNewDatabase(string filePath)
-    {
-        this.IsDbLoaded = false;
-        TagDatabase db = new();
-        db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
-        // overwrite is set to true here for now since the OS should handle the overwrite request.
-        // will need to remove once Terminal.Gui is replaced.
-        await db.CreateAsync(filePath, true);
-    }
-    
-    public async Task SaveSelectedTagAsync()
-    {
-        if (SelectedTag is null || this.Database is null) return;
-        
-        SelectedTag.CommitEdit();
-        await this.Database.WriteTagToDatabase(SelectedTag.Tag);
-        this.StatusBlockText = $"Successfully saved tag {SelectedTag.Name}";
-        this.UnsavedChanges = false;
-    }
-    
+
     private void TagDatabase_OnInitalisationComplete(object sender, EventArgs e)
     {
         if (sender is not TagDatabase db) return;
-        Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        Dispatcher.UIThread.Post(async () =>
         {
             (this.HierarchyTreeViewModel as IDisposable)?.Dispose();
             if (this.Database != null)
             {
-                this.Database.TagAdded -= TagDatabase_TagAdded;
-                this.Database.TagDeleted -= TagDatabase_TagDeleted;
+                this.Database.TagAdded -= this.TagDatabase_TagAdded;
+                this.Database.TagDeleted -= this.TagDatabase_TagDeleted;
             }
-            
+
             this.Database = db;
             this.IsDbLoaded = true;
             this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this);
-            this.Database.TagAdded += TagDatabase_TagAdded;
-            this.Database.TagDeleted += TagDatabase_TagDeleted;
+            this.Database.TagAdded += this.TagDatabase_TagAdded;
+            this.Database.TagDeleted += this.TagDatabase_TagDeleted;
             await this.HierarchyTreeViewModel.InitializeAsync();
-            this.OnPropertyChanged(nameof(TotalTags));
-            this.OnPropertyChanged(nameof(WindowTitle));
+            this.OnPropertyChanged(nameof(this.TotalTags));
+            this.OnPropertyChanged(nameof(this.WindowTitle));
             this.Database.InitialisationComplete -= this.TagDatabase_OnInitalisationComplete;
             this.StatusBlockText = string.Format(Resources.StatusBlockDbLoadSuccessful, this.Database.Name);
         });
         Debug.WriteLine($"Database loaded on UI - name: {db.Name}, version: {db.Version}");
     }
 
-    public void NewTag()
+    private void TagDatabase_TagAdded(object? sender, Tag _)
     {
-        this.SelectedTag = new TagItemViewModel(
-            new()
-                { 
-                    Name = string.Empty,
-                    IsTopLevel = true
-                }
-            );
-        this.SelectedTag.BeginEdit();
-        this.UnsavedChanges = true;
+        this.OnPropertyChanged(nameof(this.TotalTags));
+    }
+
+    private void TagDatabase_TagDeleted(object? sender, (int id, string name) _)
+    {
+        this.OnPropertyChanged(nameof(this.TotalTags));
     }
 }

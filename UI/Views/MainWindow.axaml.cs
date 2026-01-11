@@ -126,7 +126,7 @@ public partial class MainWindow : Window
         if (this.ViewModel.UnsavedChanges)
         {
             e.Cancel = true;
-            var result = await this.ViewModel.ShowUnsavedChangesDialog();
+            var result = await this.ViewModel.ShowNullableBoolDialog(new UnsavedChangesDialog());
             switch (result)
             {
                 case true:
