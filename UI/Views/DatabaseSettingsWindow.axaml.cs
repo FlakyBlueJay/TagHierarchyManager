@@ -1,6 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+﻿using Avalonia.Controls;
 
 namespace TagHierarchyManager.UI.Views;
 
@@ -8,6 +6,6 @@ public partial class DatabaseSettingsWindow : Window
 {
     public DatabaseSettingsWindow()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 }

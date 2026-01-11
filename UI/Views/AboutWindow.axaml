@@ -12,13 +12,14 @@
         CanResize="False">
     <Window.Title>
         <MultiBinding StringFormat="{x:Static assets:Resources.AboutTitleFormat}">
-            <Binding Source="{x:Static assets:Resources.Title}"/>
+            <Binding Source="{x:Static assets:Resources.Title}" />
         </MultiBinding>
     </Window.Title>
     <StackPanel HorizontalAlignment="Center" Margin="10">
-        <TextBlock FontSize="30" TextAlignment="Center" Text="{x:Static assets:Resources.Title}"/>
-        <TextBlock TextAlignment="Center" Text="{x:Static assets:Resources.CopyrightAndLicense}"/>
-        <HyperlinkButton HorizontalContentAlignment="Center" Content="{x:Static assets:Resources.URL}" NavigateUri="{Binding ProjectUri, RelativeSource={RelativeSource AncestorType=ui:AboutWindow}}"/>
-        <Button HorizontalAlignment="Center" Content="{x:Static assets:Resources.ButtonOk}" Click="OnOKClick"/>
+        <TextBlock FontSize="30" TextAlignment="Center" Text="{x:Static assets:Resources.Title}" />
+        <TextBlock TextAlignment="Center" Text="{x:Static assets:Resources.CopyrightAndLicense}" />
+        <HyperlinkButton HorizontalContentAlignment="Center" Content="{x:Static assets:Resources.URL}"
+                         NavigateUri="{Binding ProjectUri, RelativeSource={RelativeSource AncestorType=ui:AboutWindow}}" />
+        <Button HorizontalAlignment="Center" Content="{x:Static assets:Resources.ButtonOk}" Click="OnOKClick" />
     </StackPanel>
 </Window>

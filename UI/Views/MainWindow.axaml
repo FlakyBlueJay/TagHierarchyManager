@@ -19,35 +19,36 @@
     <Window.Styles>
         <!-- Target buttons with the 'delete-button' class -->
         <Style Selector="Button.delete[Tag=0]">
-            <Setter Property="IsEnabled" Value="False"/>
+            <Setter Property="IsEnabled" Value="False" />
         </Style>
     </Window.Styles>
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="{x:Static assets:Resources.MenuFile}">
-                <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}" Click="MenuItemNew_Click"/>
-                <MenuItem Header="{x:Static assets:Resources.MenuItemImport}"/>
-                <Separator/>
-                <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}" Click="MenuItemOpen_Click"/>
-                <Separator/>
-                <MenuItem Header="{x:Static assets:Resources.MenuItemExport}" Click="MenuItemExport_Click"/>
-                <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="MenuItemQuit_Click"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}" Click="MenuItemNew_Click" />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemImport}" />
+                <Separator />
+                <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}"
+                          Click="MenuItemOpen_Click" />
+                <Separator />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemExport}" Click="MenuItemExport_Click" />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="MenuItemQuit_Click" />
             </MenuItem>
             <MenuItem Header="{x:Static assets:Resources.MenuDatabase}">
-                <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}"/>
-                <Separator/>
-                <MenuItem IsEnabled="False" Header="{Binding TotalTags, StringFormat={x:Static assets:Resources.MenuItemTotalTags}}"/>
+                <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}" />
+                <Separator />
+                <MenuItem IsEnabled="False"
+                          Header="{Binding TotalTags, StringFormat={x:Static assets:Resources.MenuItemTotalTags}}" />
             </MenuItem>
             <MenuItem Header="{x:Static assets:Resources.MenuHelp}">
-                <MenuItem Header="_About" Click="OpenAboutWindow"/>
+                <MenuItem Header="_About" Click="OpenAboutWindow" />
             </MenuItem>
         </Menu>
-        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{Binding StatusBlockText}"/>
+        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{Binding StatusBlockText}" />
         <Grid ColumnDefinitions="Auto, *"
               RowDefinitions="*"
               Margin="0 0 0 0"
-              IsEnabled="{Binding IsDbLoaded}"
-              >
+              IsEnabled="{Binding IsDbLoaded}">
             <TabControl Grid.Column="0">
                 <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
                     <Grid RowDefinitions="*, Auto">
@@ -61,55 +62,68 @@
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Name}"/>
-                                        <TextBlock IsVisible="{Binding TagBindings, 
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock
+                                            IsVisible="{Binding TagBindings, 
                                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                                   FontStyle="Italic" Foreground="Gray">
-                                            <Run Text=" ("/><Run Text="{Binding TagBindings}"/><Run Text=")"/>
+                                            FontStyle="Italic" Foreground="Gray">
+                                            <Run Text=" (" /><Run Text="{Binding TagBindings}" /><Run Text=")" />
                                         </TextBlock>
                                     </StackPanel>
                                 </TreeDataTemplate>
                             </TreeView.ItemTemplate>
                         </TreeView>
                         <Button Grid.Row="1" HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Center" 
+                                HorizontalContentAlignment="Center"
                                 Content="{x:Static assets:Resources.ButtonAdd}"
-                                Click="ButtonAdd_Click"/>
+                                Click="ButtonAdd_Click" />
                     </Grid>
                 </TabItem>
                 <TabItem Header="Search">
                     <StackPanel>
-                        <TextBox Watermark="{x:Static assets:Resources.WatermarkSearchQuery}" Margin="0 0 0 5"></TextBox>
+                        <TextBox Watermark="{x:Static assets:Resources.WatermarkSearchQuery}" Margin="0 0 0 5" />
                         <Button Margin="0 0 0 5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Search</Button>
                         <ComboBox HorizontalAlignment="Stretch" Margin="0 0 0 5">
-                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeFuzzy}"/>
-                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeStartsWith}"/>
-                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeEndsWith}"/>
-                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeExactMatch}"/>
+                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeFuzzy}" />
+                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeStartsWith}" />
+                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeEndsWith}" />
+                            <ComboBoxItem Content="{x:Static assets:Resources.SearchModeExactMatch}" />
                         </ComboBox>
-                        <ListBox SelectionMode="Single">
-                        </ListBox>
+                        <ListBox SelectionMode="Single" />
                     </StackPanel>
                 </TabItem>
             </TabControl>
-                <Grid Grid.Column="1"
-                      RowDefinitions="Auto, Auto, Auto, Auto, *, Auto"
-                      Margin="5"
-                      IsEnabled="{Binding SelectedTag, Converter={x:Static ObjectConverters.IsNotNull}}">
-                    <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName}" Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="1" Name="ParentsTextBox" Text="{Binding SelectedTag.EditingParents}" Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="2" Name="BindingsTextBox" Text="{Binding SelectedTag.EditingTagBindings}" Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="3" Name="AliasesTextBox" Text="{Binding SelectedTag.EditingAliases}" Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch" Margin="3"/>
-                    <TextBox Grid.Row="4" Name="NotesTextBox" Text="{Binding SelectedTag.EditingNotes}" Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3"/>
-                    <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
-                        <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel}" Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"/>
-                        <Button Grid.Column="1" Classes="delete" Tag="{Binding SelectedTag.Id}" Margin="0 0 5 0"  Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click" />
-                        <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}" Click="ButtonCancel_Click" />
-                        <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}" Click="ButtonSave_Click" />
-                    </Grid>
+            <Grid Grid.Column="1"
+                  RowDefinitions="Auto, Auto, Auto, Auto, *, Auto"
+                  Margin="5"
+                  IsEnabled="{Binding SelectedTag, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName}"
+                         Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch"
+                         Margin="3" />
+                <TextBox Grid.Row="1" Name="ParentsTextBox" Text="{Binding SelectedTag.EditingParents}"
+                         Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch"
+                         Margin="3" />
+                <TextBox Grid.Row="2" Name="BindingsTextBox" Text="{Binding SelectedTag.EditingTagBindings}"
+                         Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch"
+                         Margin="3" />
+                <TextBox Grid.Row="3" Name="AliasesTextBox" Text="{Binding SelectedTag.EditingAliases}"
+                         Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch"
+                         Margin="3" />
+                <TextBox Grid.Row="4" Name="NotesTextBox" Text="{Binding SelectedTag.EditingNotes}"
+                         Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch"
+                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3" />
+                <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
+                    <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel}"
+                              Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}" />
+                    <Button Grid.Column="1" Classes="delete" Tag="{Binding SelectedTag.Id}" Margin="0 0 5 0"
+                            Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click" />
+                    <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}"
+                            Click="ButtonCancel_Click" />
+                    <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}" Click="ButtonSave_Click" />
                 </Grid>
+            </Grid>
         </Grid>
     </DockPanel>
-    
-    
+
+
 </Window>
