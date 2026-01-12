@@ -62,7 +62,8 @@ public partial class MainWindow : Window
             new FilePickerSaveOptions
             {
                 Title = "Export tag database...",
-                FileTypeChoices = [MusicBeeTagHierarchy]
+                FileTypeChoices = [MusicBeeTagHierarchy],
+                SuggestedFileName = this.ViewModel.Database?.Name
             });
         if (file == null) return;
         var path = file.TryGetLocalPath();

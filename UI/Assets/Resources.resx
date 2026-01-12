@@ -167,4 +167,22 @@
     <data name="SearchEnableAliases" xml:space="preserve">
         <value>Search aliases/A.K.As?</value>
     </data>
+    <data name="ErrorOrphanTagAttempt" xml:space="preserve">
+        <value>Tags that are not top level must have a parent.</value>
+    </data>
+    <data name="ErrorSelfParentAttempt" xml:space="preserve">
+        <value>You cannot make tags a parent of themselves.</value>
+    </data>
+    <data name="ErrorDialogTitle" xml:space="preserve">
+        <value>An error has occurred.</value>
+    </data>
+    <data name="StatusBlockTagSaveSuccessful" xml:space="preserve">
+        <value>Tag "{0}" saved successfully.</value>
+    </data>
+    <data name="StatusBlockExportInProgress" xml:space="preserve">
+        <value>Exporting tag database...</value>
+    </data>
+    <data name="StatusBlockExportSuccessful" xml:space="preserve">
+        <value>Database successfully exported at {0}</value>
+    </data>
 </root>

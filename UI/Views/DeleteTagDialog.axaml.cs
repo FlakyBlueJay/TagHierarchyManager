@@ -10,13 +10,7 @@ public partial class DeleteTagDialog : Window
         this.InitializeComponent();
     }
 
-    public void ButtonNo_Click(object? sender, RoutedEventArgs e)
-    {
-        this.Close(false);
-    }
+    public void ButtonNo_Click(object? sender, RoutedEventArgs e) => this.Close(false);
 
-    public void ButtonYes_Click(object? sender, RoutedEventArgs e)
-    {
-        this.Close(true);
-    }
+    public void ButtonYes_Click(object? sender, RoutedEventArgs e) => this.Close(true);
 }

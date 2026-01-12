@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
 
@@ -27,6 +26,8 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
+        if (this._mainWindow.Database is null) return;
+        
         this._mainWindow.Database.TagUpdated -= this.TagDatabase_OnTagUpdated;
         this._mainWindow.Database.TagAdded -= this.TagDatabase_OnTagAdded;
         this._mainWindow.Database.TagDeleted -= this.TagDatabase_OnTagDeleted;
@@ -40,7 +41,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     }
 
 
-    public async Task SyncHierarchyAsync()
+    private async Task SyncHierarchyAsync()
     {
         if (this._mainWindow.Database is null) return;
 
@@ -100,6 +101,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
     private void SubscribeToEvents()
     {
+        if (this._mainWindow.Database is null) return;
         this._mainWindow.Database.TagUpdated += this.TagDatabase_OnTagUpdated;
         this._mainWindow.Database.TagAdded += this.TagDatabase_OnTagAdded;
         this._mainWindow.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
@@ -144,18 +146,12 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         parentVm.SyncChildren(childVms);
     }
 
-    private void TagDatabase_OnTagAdded(object? sender, Tag _)
-    {
-        Dispatcher.UIThread.InvokeAsync(this.OnTreeUpdate);
-    }
+    private void TagDatabase_OnTagAdded(object? sender, Tag tag) =>
+        _ = Task.Run(async () => await this.OnTreeUpdate());
 
-    private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) _)
-    {
-        Dispatcher.UIThread.InvokeAsync(this.OnTreeUpdate);
-    }
+    private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) tag) =>
+        _ = Task.Run(async () => await this.OnTreeUpdate());
 
-    private void TagDatabase_OnTagUpdated(object? sender, Tag _)
-    {
-        Dispatcher.UIThread.InvokeAsync(this.OnTreeUpdate);
-    }
+    private void TagDatabase_OnTagUpdated(object? sender, Tag tag) =>
+        _ = Task.Run(async () => await this.OnTreeUpdate());
 }

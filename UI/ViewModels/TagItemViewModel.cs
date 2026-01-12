@@ -67,6 +67,7 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
 
     public void CommitEdit()
     {
+        this.Validate();
         this.Tag.Name = this.EditingName;
         this.Tag.Parents = !string.IsNullOrWhiteSpace(this.EditingParents)
             ? this.EditingParents.Split(';', StringSplitOptions.RemoveEmptyEntries |
@@ -129,7 +130,20 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
     {
         base.OnPropertyChanged(e);
 
-        if (!this._isInitialising && e.PropertyName.StartsWith("Editing"))
+        if (!this._isInitialising && e.PropertyName!.StartsWith("Editing"))
             this.UserEditedTag?.Invoke(this, EventArgs.Empty);
+    }
+    
+    private void Validate()
+    {
+        List<string> parentNames = this.EditingParents.Split(';',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+        
+        if (!this.EditingIsTopLevel && parentNames.Count == 0)
+            throw new InvalidOperationException(Assets.Resources.ErrorOrphanTagAttempt);
+
+        if (parentNames.Contains(this.Name))
+            throw new InvalidOperationException(Assets.Resources.ErrorSelfParentAttempt);
     }
 }

@@ -29,10 +29,10 @@
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}"
                           Click="MenuItemOpen_Click" />
                 <Separator />
-                <MenuItem Header="{x:Static assets:Resources.MenuItemExport}" Click="MenuItemExport_Click" />
+                <MenuItem IsEnabled="{Binding IsDbEnabled}" Header="{x:Static assets:Resources.MenuItemExport}" Click="MenuItemExport_Click" />
                 <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="MenuItemQuit_Click" />
             </MenuItem>
-            <MenuItem Header="{x:Static assets:Resources.MenuDatabase}">
+            <MenuItem IsEnabled="{Binding IsDbEnabled}" Header="{x:Static assets:Resources.MenuDatabase}">
                 <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}" />
                 <Separator />
                 <MenuItem IsEnabled="False"
@@ -46,7 +46,7 @@
         <Grid ColumnDefinitions="Auto, *"
               RowDefinitions="*"
               Margin="0 0 0 0"
-              IsEnabled="{Binding IsDbLoaded}">
+              IsEnabled="{Binding IsDbEnabled}">
             <TabControl Grid.Column="0">
                 <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
                     <Grid RowDefinitions="*, Auto">
