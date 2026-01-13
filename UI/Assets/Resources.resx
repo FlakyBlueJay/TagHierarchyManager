@@ -56,9 +56,6 @@
     <data name="MenuItemTotalTags" xml:space="preserve">
         <value>Total tags: {0}</value>
     </data>
-    <data name="MenuItemTotalTagsNoDatabase" xml:space="preserve">
-        <value>Total tags: 0</value>
-    </data>
     <data name="MenuHelp" xml:space="preserve">
         <value>_Help</value>
     </data>
@@ -146,9 +143,6 @@
     <data name="UnsavedChangesMessage" xml:space="preserve">
         <value>You have unsaved changes to the currently loaded tag. Do you want to save them now?</value>
     </data>
-    <data name="UnsavedChangesTitle" xml:space="preserve">
-        <value>Unsaved changes</value>
-    </data>
     <data name="SearchNoResultsFound" xml:space="preserve">
         <value>No tags found.</value>
     </data>
@@ -187,5 +181,47 @@
     </data>
     <data name="DatabaseSettingsTagCount" xml:space="preserve">
         <value>Tags: {0}, with {1} parent-child relationships</value>
+    </data>
+    <data name="ButtonImport" xml:space="preserve">
+        <value>Import</value>
+    </data>
+    <data name="ImportFileToImport" xml:space="preserve">
+        <value>File to import:</value>
+    </data>
+    <data name="ImportStatusInProgress" xml:space="preserve">
+        <value>Importing...</value>
+    </data>
+    <data name="ImportStatusFailed" xml:space="preserve">
+        <value>Import failed.</value>
+    </data>
+    <data name="ImportDatabaseToSave" xml:space="preserve">
+        <value>Database file to save to:</value>
+    </data>
+    <data name="ButtonBrowse" xml:space="preserve">
+        <value>Browse...</value>
+    </data>
+    <data name="ImportNoFilePicked" xml:space="preserve">
+        <value>No file picked.</value>
+    </data>
+    <data name="ImportDialogTitle" xml:space="preserve">
+        <value>Import...</value>
+    </data>
+    <data name="ErrorDialogTitleBarTitle" xml:space="preserve">
+        <value>Error</value>
+    </data>
+    <data name="DialogTitleExportTagDatabase" xml:space="preserve">
+        <value>Export tag database to file...</value>
+    </data>
+    <data name="DialogTitleSaveDatabaseAs" xml:space="preserve">
+        <value>Save tag database file...</value>
+    </data>
+    <data name="DialogTitleOpenDatabase" xml:space="preserve">
+        <value>Open tag database...</value>
+    </data>
+    <data name="DialogTitleChooseImportTemplate" xml:space="preserve">
+        <value>Choose template to import...</value>
+    </data>
+    <data name="ErrorImportFileTypeNotSupported" xml:space="preserve">
+        <value>File type '{0}' is not supported.</value>
     </data>
 </root>

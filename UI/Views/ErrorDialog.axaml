@@ -4,14 +4,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="160"
-        Width="500" Height="160" CanResize="False"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="125"
+        MinWidth="500" MinHeight="125" CanResize="False" SizeToContent="WidthAndHeight"
         x:Class="TagHierarchyManager.UI.Views.ErrorDialog"
         x:DataType="vm:ErrorDialogViewModel"
-        Title="ErrorDialog">
+        Title="{x:Static assets:Resources.ErrorDialogTitleBarTitle}">
     <StackPanel Margin="20">
         <TextBlock Text="{x:Static assets:Resources.ErrorDialogTitle}" Margin="0 0 0 10 " FontWeight="Bold" TextWrapping="Wrap" />
-        <TextBlock Text="{Binding ErrorMessage}"/>
+        <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="{x:Static assets:Resources.ButtonOk}" Click="OnOkClick" Margin="0 0 5 0" />
         </StackPanel>

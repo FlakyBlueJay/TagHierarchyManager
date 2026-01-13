@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -10,6 +11,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Common;
 using TagHierarchyManager.Exporters;
+using TagHierarchyManager.Importers;
 using TagHierarchyManager.Models;
 using TagHierarchyManager.UI.Assets;
 using TagHierarchyManager.UI.Views;
@@ -50,7 +52,7 @@ public partial class MainWindowViewModel : ViewModelBase
         set
         {
             if (this._selectedTag == value || this._isSwitching) return;
-            if (this._isDbEnabled == false && value == null) this._selectedTag = value;
+            if (!this.IsDbEnabled && value == null) this._selectedTag = value;
             if (this._selectedTag != null && this.UnsavedChanges)
             {
                 _ = this.HandleTagSwitchAsync(this._selectedTag, value);
@@ -66,25 +68,47 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public async Task CreateNewDatabase(string filePath)
+    public async Task CreateNewDatabase(string filePath, string? templateFilePath = null)
     {
         if (this.Database != null)
             this.UninitialiseDatabase();
-
+        
+        Dictionary<string, ImportedTag>? tagsToImport = null;
+        TagDatabase db = new();
+        db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
+        
         try
         {
-            TagDatabase db = new();
-            db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
+            if (string.IsNullOrWhiteSpace(filePath)) return;
+
+            if (templateFilePath is not null && File.Exists(templateFilePath))
+            {
+                Importer importer = PickImporterFromFileExt(templateFilePath);
+                tagsToImport = await importer.ImportFromFileAsync(templateFilePath);
+            }
+            
             // overwrite is set to true here for now since the OS should handle the overwrite request.
             // will need to remove once Terminal.Gui is fully replaced.
-            await Task.Run(() => db.CreateAsync(filePath, true));
+            await Task.Run(() => db.CreateAsync(filePath, true, tagsToImport));
         }
         catch (Exception ex)
         {
-            this.UninitialiseDatabase();
-            this.ShowErrorDialog(ex.Message);
+            db.InitialisationComplete -= this.TagDatabase_OnInitalisationComplete;
+            if (templateFilePath is null) this.ShowErrorDialog(ex.Message);
+            else throw;
         }
+    }
+    
+    private Importer PickImporterFromFileExt(string path)
+    {
+        string fileExt = Path.GetExtension(path);
+
+        // if more importers are added, convert this to a switch statement based on file extension.
+        // ReSharper disable once ConvertIfStatementToReturnStatement
+        if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension)
+            return new MusicBeeTagHierarchyImporter();
         
+        throw new NotSupportedException(string.Format(Resources.ErrorImportFileTypeNotSupported, fileExt));
     }
 
     public async Task ExportAsync(string path)
@@ -122,7 +146,6 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            this.UninitialiseDatabase();
             this.ShowErrorDialog(ex.Message);
         }
         
@@ -174,12 +197,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void ShowErrorDialog(string message)
     {
+        var error = new ErrorDialogViewModel(message);
+        error.ShowDialog();
+    }
+    
+    public void ShowImportDialog()
+    {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return;
+
+        var dialog = new ImportDialog
+        {
+            DataContext = new ImportDialogViewModel(this)
+        };
         
-        var mainWindow = desktop.MainWindow;
-        var error = new ErrorDialogViewModel(message);
-        error.ShowDialog(mainWindow);
+        dialog.ShowDialog(desktop.MainWindow!);
     }
 
     public async Task<bool?> ShowNullableBoolDialog(Window dialog)

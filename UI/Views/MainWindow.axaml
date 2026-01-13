@@ -9,15 +9,11 @@
         x:DataType="vm:MainWindowViewModel"
         Closing="WindowClosing"
         Title="{Binding WindowTitle}">
-    <!--
-    TODO:
-    - Import
-    -->
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="{x:Static assets:Resources.MenuFile}">
                 <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}" Click="MenuItemNew_Click" />
-                <MenuItem Header="{x:Static assets:Resources.MenuItemImport}" />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemImport}" Click="MenuItemImport_Click"/>
                 <Separator />
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}"
                           Click="MenuItemOpen_Click" />
@@ -36,7 +32,7 @@
                           StringFormat={x:Static assets:Resources.MenuItemTotalTags}}" />
             </MenuItem>
             <MenuItem Header="{x:Static assets:Resources.MenuHelp}">
-                <MenuItem Header="_About" Click="OpenAboutWindow" />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemAbout}" Click="OpenAboutWindow" />
             </MenuItem>
         </Menu>
         <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5 " Text="{Binding StatusBlockText}" />
@@ -59,7 +55,7 @@
                                         <TextBlock
                                             IsVisible="{Binding TagBindings, 
                                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                            FontStyle="Italic" Foreground="Gray">
+                                            FontStyle="Italic" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
                                             <Run Text=" (" /><Run Text="{Binding TagBindings}" /><Run Text=")" />
                                         </TextBlock>
                                     </StackPanel>
@@ -72,11 +68,16 @@
                                 Click="ButtonAdd_Click" />
                     </Grid>
                 </TabItem>
-                <TabItem Header="Search">
+                <TabItem Header="{x:Static assets:Resources.TabSearch}">
                     <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
                         <TextBox Grid.Row="0" Name="SearchTextBox" Watermark="{x:Static assets:Resources.WatermarkSearchQuery}" Margin="0 0 0 5" KeyDown="SearchTextBox_OnKeyDown" />
                         <CheckBox Grid.Row="1" Name="SearchAliasesCheckBox" Content="{x:Static assets:Resources.SearchEnableAliases}"/>
-                        <Button Grid.Row="2" Margin="0 0 0 5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="ButtonSearch_Click">Search</Button>
+                        <Button Grid.Row="2" 
+                                Content="{x:Static assets:Resources.ButtonSearch}"
+                                Margin="0 0 0 5" 
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center"
+                                Click="ButtonSearch_Click"/>
                         <ComboBox Grid.Row="3" Name="SearchModeComboBox" HorizontalAlignment="Stretch" Margin="0 0 0 5" SelectedIndex="0">
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeFuzzy}" />
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeStartsWith}" />

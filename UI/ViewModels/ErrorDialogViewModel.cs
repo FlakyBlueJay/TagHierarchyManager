@@ -1,4 +1,7 @@
-﻿using Avalonia.Controls;
+﻿using System.Linq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.UI.Assets;
 using TagHierarchyManager.UI.Views;
@@ -13,14 +16,18 @@ public partial class ErrorDialogViewModel : ViewModelBase
     {
         this.ErrorMessage = message;
     }
-
-    public void ShowDialog(Window window)
+    
+    public void ShowDialog()
     {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+        
         ErrorDialog error = new()
         {
             DataContext = this,
             Title = Resources.ErrorDialogTitle
         };
-        error.ShowDialog(window);
+        var ownerWindow = desktop.Windows.FirstOrDefault(w => w.IsActive) ?? desktop.MainWindow;
+        error.ShowDialog(ownerWindow);
     }
 }

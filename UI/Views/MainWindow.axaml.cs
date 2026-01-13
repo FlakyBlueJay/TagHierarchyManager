@@ -18,16 +18,6 @@ public partial class MainWindow : Window
 
     private MainWindowViewModel? ViewModel => this.DataContext as MainWindowViewModel;
 
-    private static FilePickerFileType MusicBeeTagHierarchy { get; } = new(Assets.Resources.FileFormatMusicBeeTagHierarchy)
-    {
-        Patterns = ["*.txt"]
-    };
-
-    private static FilePickerFileType TagDatabaseFileType { get; } = new(Assets.Resources.FileFormatTagHierarchyDatabase)
-    {
-        Patterns = ["*.thdb"]
-    };
-
     public void ButtonAdd_Click(object? sender, RoutedEventArgs e)
     {
         this.ViewModel.NewTag();
@@ -66,23 +56,28 @@ public partial class MainWindow : Window
         var file = await this.StorageProvider.SaveFilePickerAsync(
             new FilePickerSaveOptions
             {
-                Title = "Export tag database...",
-                FileTypeChoices = [MusicBeeTagHierarchy],
+                Title = Assets.Resources.DialogTitleExportTagDatabase,
+                FileTypeChoices = [Common.MusicBeeTagHierarchy],
                 SuggestedFileName = this.ViewModel.Database?.Name
             });
         if (file == null) return;
         var path = file.TryGetLocalPath();
         await this.ViewModel.ExportAsync(path);
     }
+    
+    public void MenuItemImport_Click(object? sender, RoutedEventArgs e)
+    {
+        this.ViewModel.ShowImportDialog();
+    }
 
     public async void MenuItemNew_Click(object? sender, RoutedEventArgs e)
     {
-        if (this.ViewModel.Database is null) return;
+        if (this.ViewModel is null) return;
         var file = await this.StorageProvider.SaveFilePickerAsync(
             new FilePickerSaveOptions
             {
-                Title = "Create a new tag database...",
-                FileTypeChoices = [MusicBeeTagHierarchy]
+                Title = Assets.Resources.DialogTitleSaveDatabaseAs,
+                FileTypeChoices = [Common.TagDatabaseFileType]
             });
         if (file == null) return;
         var path = file.TryGetLocalPath();
@@ -95,14 +90,15 @@ public partial class MainWindow : Window
             new FilePickerOpenOptions
             {
                 AllowMultiple = false,
-                Title = "Open a tag database...",
-                FileTypeFilter = [TagDatabaseFileType]
+                Title = Assets.Resources.DialogTitleOpenDatabase,
+                FileTypeFilter = [Common.TagDatabaseFileType]
             });
         if (files.Count == 0) return;
         var path = files[0].TryGetLocalPath();
         if (path == null) return;
         await this.ViewModel.LoadDatabase(path);
     }
+    
 
     public void MenuItemQuit_Click(object? sender, RoutedEventArgs e)
     {
