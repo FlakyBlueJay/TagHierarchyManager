@@ -102,7 +102,7 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
     {
         this._isInitialising = true;
         this.OnPropertyChanged(nameof(this.Parents));
-        this._editingParents = this.Parents;
+        this.EditingParents = this.Parents;
         this.OnPropertyChanged(nameof(this.EditingParents));
         this._isInitialising = false;
     }
