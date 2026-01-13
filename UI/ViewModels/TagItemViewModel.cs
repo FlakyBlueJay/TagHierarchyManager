@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
+using TagHierarchyManager.UI.Assets;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
@@ -40,17 +41,17 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
 
     public string Notes => this.Tag.Notes;
 
+    public bool OnDatabase => this.Id != 0;
+
     public string TagBindings =>
         this.Tag.TagBindings.Count > 0
             ? string.Join("; ", this.Tag.TagBindings)
             : string.Empty;
 
-    public bool OnDatabase => this.Id != 0;
-    
     internal Tag Tag { get; } = tag;
 
     private bool IsTopLevel => this.Tag.IsTopLevel;
-    
+
     private string Parents => getNameById != null && this.Tag.ParentIds.Count > 0
         ? string.Join("; ", this.Tag.ParentIds.Select(getNameById).Where(n => n != null))
         : string.Empty;
@@ -130,8 +131,8 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
 
     public void SyncId()
     {
-        OnPropertyChanged(nameof(Id));
-        OnPropertyChanged(nameof(OnDatabase));
+        this.OnPropertyChanged(nameof(this.Id));
+        this.OnPropertyChanged(nameof(this.OnDatabase));
     }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -141,17 +142,17 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
         if (!this._isInitialising && e.PropertyName!.StartsWith("Editing"))
             this.UserEditedTag?.Invoke(this, EventArgs.Empty);
     }
-    
+
     private void Validate()
     {
-        List<string> parentNames = this.EditingParents.Split(';',
+        var parentNames = this.EditingParents.Split(';',
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
-        
+
         if (!this.EditingIsTopLevel && parentNames.Count == 0)
-            throw new InvalidOperationException(Assets.Resources.ErrorOrphanTagAttempt);
+            throw new InvalidOperationException(Resources.ErrorOrphanTagAttempt);
 
         if (parentNames.Contains(this.Name))
-            throw new InvalidOperationException(Assets.Resources.ErrorSelfParentAttempt);
+            throw new InvalidOperationException(Resources.ErrorSelfParentAttempt);
     }
 }

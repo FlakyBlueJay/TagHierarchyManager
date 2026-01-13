@@ -7,24 +7,6 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class ImportDialogViewModel : ViewModelBase
 {
-    public event Action? RequestClose;
-    
-    public ImportDialogViewModel(MainWindowViewModel mainWindow)
-    {
-        this.MainWindow = mainWindow;
-    }
-    
-    public string VisibleTemplateFilePath => 
-        !string.IsNullOrWhiteSpace(TemplateFilePath) ? this.TemplateFilePath : Resources.ImportNoFilePicked;
-    
-    public string VisibleDatabaseFilePath => 
-        !string.IsNullOrWhiteSpace(DatabaseFilePath) ? this.DatabaseFilePath : Resources.ImportNoFilePicked;
-    
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(VisibleTemplateFilePath))]
-    [NotifyPropertyChangedFor(nameof(BothFilesSelected))]
-    private string _templateFilePath;
-    
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(VisibleDatabaseFilePath))]
     [NotifyPropertyChangedFor(nameof(BothFilesSelected))]
@@ -32,21 +14,40 @@ public partial class ImportDialogViewModel : ViewModelBase
 
     [ObservableProperty] private string _importStatus = string.Empty;
 
-    public bool BothFilesSelected => !string.IsNullOrWhiteSpace(TemplateFilePath) && !string.IsNullOrWhiteSpace(DatabaseFilePath);
-    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(VisibleTemplateFilePath))]
+    [NotifyPropertyChangedFor(nameof(BothFilesSelected))]
+    private string _templateFilePath;
+
+    public ImportDialogViewModel(MainWindowViewModel mainWindow)
+    {
+        this.MainWindow = mainWindow;
+    }
+
+    public event Action? RequestClose;
+
+    public bool BothFilesSelected => !string.IsNullOrWhiteSpace(this.TemplateFilePath) &&
+                                     !string.IsNullOrWhiteSpace(this.DatabaseFilePath);
+
+    public string VisibleDatabaseFilePath =>
+        !string.IsNullOrWhiteSpace(this.DatabaseFilePath) ? this.DatabaseFilePath : Resources.ImportNoFilePicked;
+
+    public string VisibleTemplateFilePath =>
+        !string.IsNullOrWhiteSpace(this.TemplateFilePath) ? this.TemplateFilePath : Resources.ImportNoFilePicked;
+
     private MainWindowViewModel MainWindow { get; }
 
     public async Task InitiateImport()
     {
         try
         {
-            ImportStatus = Assets.Resources.ImportStatusInProgress;
-            await this.MainWindow.CreateNewDatabase(DatabaseFilePath, TemplateFilePath);
-            RequestClose?.Invoke();
+            this.ImportStatus = Resources.ImportStatusInProgress;
+            await this.MainWindow.CreateNewDatabase(this.DatabaseFilePath, this.TemplateFilePath);
+            this.RequestClose?.Invoke();
         }
         catch (Exception ex)
         {
-            ImportStatus = Assets.Resources.ImportStatusFailed;
+            this.ImportStatus = Resources.ImportStatusFailed;
             var error = new ErrorDialogViewModel(ex.Message);
             error.ShowDialog();
         }

@@ -20,14 +20,14 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     public HierarchyTreeViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
-        
+
         this.SubscribeToEvents();
     }
 
     public void Dispose()
     {
         if (this._mainWindow.Database is null) return;
-        
+
         this._mainWindow.Database.TagUpdated -= this.TagDatabase_OnTagUpdated;
         this._mainWindow.Database.TagAdded -= this.TagDatabase_OnTagAdded;
         this._mainWindow.Database.TagDeleted -= this.TagDatabase_OnTagDeleted;
@@ -38,37 +38,6 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     public async Task InitializeAsync()
     {
         await this.SyncHierarchyAsync();
-    }
-
-
-    private async Task SyncHierarchyAsync()
-    {
-        if (this._mainWindow.Database is null) return;
-
-        var activeKeys = new HashSet<string>();
-
-        var result = await Task.Run(() =>
-        {
-            var children = this._mainWindow.Database.Tags
-                .SelectMany(t => t.ParentIds.Select(pId => new { ParentId = pId, Child = t }))
-                .ToLookup(x => x.ParentId, x => x.Child);
-            var topLevelTags = this._mainWindow.Database.Tags.Where(t => t.IsTopLevel).OrderBy(t => t.Name)
-                .ToList();
-
-            return (topLevelTags, children);
-        });
-
-        var topLevelViewModels = result.topLevelTags.Select(t =>
-        {
-            var vm = this.GetOrCreateViewModel(t, 0);
-            activeKeys.Add($"0_{t.Id}");
-            this.SyncTagRecursive(vm, result.children, activeKeys);
-            return vm;
-        }).ToList();
-        this.SyncCollection(this.TopLevelTags, topLevelViewModels);
-
-        var keysToRemove = this._viewModelMap.Keys.Where(k => !activeKeys.Contains(k)).ToList();
-        foreach (var key in keysToRemove) this._viewModelMap.Remove(key);
     }
 
     private TagItemViewModel GetOrCreateViewModel(Tag tag, int parentId)
@@ -124,6 +93,37 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
                            StringComparison.CurrentCultureIgnoreCase) < 0) index++;
                 collection.Insert(index, newItem);
             }
+    }
+
+
+    private async Task SyncHierarchyAsync()
+    {
+        if (this._mainWindow.Database is null) return;
+
+        var activeKeys = new HashSet<string>();
+
+        var result = await Task.Run(() =>
+        {
+            var children = this._mainWindow.Database.Tags
+                .SelectMany(t => t.ParentIds.Select(pId => new { ParentId = pId, Child = t }))
+                .ToLookup(x => x.ParentId, x => x.Child);
+            var topLevelTags = this._mainWindow.Database.Tags.Where(t => t.IsTopLevel).OrderBy(t => t.Name)
+                .ToList();
+
+            return (topLevelTags, children);
+        });
+
+        var topLevelViewModels = result.topLevelTags.Select(t =>
+        {
+            var vm = this.GetOrCreateViewModel(t, 0);
+            activeKeys.Add($"0_{t.Id}");
+            this.SyncTagRecursive(vm, result.children, activeKeys);
+            return vm;
+        }).ToList();
+        this.SyncCollection(this.TopLevelTags, topLevelViewModels);
+
+        var keysToRemove = this._viewModelMap.Keys.Where(k => !activeKeys.Contains(k)).ToList();
+        foreach (var key in keysToRemove) this._viewModelMap.Remove(key);
     }
 
     private void SyncTagRecursive(TagItemViewModel parentVm, ILookup<int, Tag> childrenLookup,

@@ -23,12 +23,12 @@ public partial class MainWindowViewModel : ViewModelBase
     internal TagDatabase? Database;
 
     [ObservableProperty] private HierarchyTreeViewModel? _hierarchyTreeViewModel;
-    
-    [ObservableProperty] private SearchViewModel? _searchViewModel;
 
     [ObservableProperty] private bool _isDbEnabled;
 
     private bool _isSwitching;
+
+    [ObservableProperty] private SearchViewModel? _searchViewModel;
 
     // Since multiple view models will be using this tag, best to store it here as the authoritative source.
     private TagItemViewModel? _selectedTag;
@@ -72,21 +72,21 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (this.Database != null)
             this.UninitialiseDatabase();
-        
+
         Dictionary<string, ImportedTag>? tagsToImport = null;
         TagDatabase db = new();
         db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
-        
+
         try
         {
             if (string.IsNullOrWhiteSpace(filePath)) return;
 
             if (templateFilePath is not null && File.Exists(templateFilePath))
             {
-                Importer importer = PickImporterFromFileExt(templateFilePath);
+                var importer = this.PickImporterFromFileExt(templateFilePath);
                 tagsToImport = await importer.ImportFromFileAsync(templateFilePath);
             }
-            
+
             // overwrite is set to true here for now since the OS should handle the overwrite request.
             // will need to remove once Terminal.Gui is fully replaced.
             await Task.Run(() => db.CreateAsync(filePath, true, tagsToImport));
@@ -98,18 +98,6 @@ public partial class MainWindowViewModel : ViewModelBase
             else throw;
         }
     }
-    
-    private Importer PickImporterFromFileExt(string path)
-    {
-        string fileExt = Path.GetExtension(path);
-
-        // if more importers are added, convert this to a switch statement based on file extension.
-        // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension)
-            return new MusicBeeTagHierarchyImporter();
-        
-        throw new NotSupportedException(string.Format(Resources.ErrorImportFileTypeNotSupported, fileExt));
-    }
 
     public async Task ExportAsync(string path)
     {
@@ -117,7 +105,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             if (this.Database is null || string.IsNullOrWhiteSpace(path)) return;
-            
+
             var exporter = PickExporterFromFileExt(path);
             this.StatusBlockText = Resources.StatusBlockExportInProgress;
             var exportContent = await Task.Run(() => exporter.ExportDatabase(this.Database!));
@@ -130,7 +118,6 @@ public partial class MainWindowViewModel : ViewModelBase
             this.IsDbEnabled = true;
             this.ShowErrorDialog(ex.Message);
         }
-
     }
 
     public async Task LoadDatabase(string filePath)
@@ -139,7 +126,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             if (this.Database != null)
                 this.UninitialiseDatabase();
-            
+
             TagDatabase db = new();
             db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
             await Task.Run(() => db.LoadAsync(filePath));
@@ -148,7 +135,6 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             this.ShowErrorDialog(ex.Message);
         }
-        
     }
 
     public void NewTag()
@@ -173,7 +159,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             this.SelectedTag.CommitEdit();
             await this.Database.WriteTagToDatabase(this.SelectedTag.Tag);
-            this.StatusBlockText = string.Format(Assets.Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
+            this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
             this.UnsavedChanges = false;
         }
         catch (Exception ex)
@@ -181,7 +167,7 @@ public partial class MainWindowViewModel : ViewModelBase
             this.ShowErrorDialog(ex.Message);
         }
     }
-    
+
     public void ShowDatabaseSettings()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -191,7 +177,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             DataContext = new DatabaseSettingsViewModel(this)
         };
-        
+
         dialog.ShowDialog(desktop.MainWindow!);
     }
 
@@ -200,7 +186,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var error = new ErrorDialogViewModel(message);
         error.ShowDialog();
     }
-    
+
     public void ShowImportDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -210,7 +196,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             DataContext = new ImportDialogViewModel(this)
         };
-        
+
         dialog.ShowDialog(desktop.MainWindow!);
     }
 
@@ -262,7 +248,6 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             this.ShowErrorDialog(ex.Message);
         }
-        
     }
 
     private async Task HandleTagSwitchAsync(TagItemViewModel? oldTag, TagItemViewModel? newTag)
@@ -295,6 +280,18 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    private Importer PickImporterFromFileExt(string path)
+    {
+        var fileExt = Path.GetExtension(path);
+
+        // if more importers are added, convert this to a switch statement based on file extension.
+        // ReSharper disable once ConvertIfStatementToReturnStatement
+        if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension)
+            return new MusicBeeTagHierarchyImporter();
+
+        throw new NotSupportedException(string.Format(Resources.ErrorImportFileTypeNotSupported, fileExt));
+    }
+
     private void TagDatabase_OnInitalisationComplete(object? sender, EventArgs e)
     {
         if (sender is not TagDatabase db) return;
@@ -304,7 +301,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 (this.HierarchyTreeViewModel as IDisposable)?.Dispose();
                 (this.SearchViewModel as IDisposable)?.Dispose();
-            
+
                 if (this.Database != null)
                 {
                     this.Database.TagAdded -= this.TagDatabase_TagAdded;
@@ -322,7 +319,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 this.OnPropertyChanged(nameof(this.TotalTags));
                 this.OnPropertyChanged(nameof(this.WindowTitle));
                 this.Database.InitialisationComplete -= this.TagDatabase_OnInitalisationComplete;
-                
+
                 this.UnsavedChanges = false;
                 this.StatusBlockText = string.Format(Resources.StatusBlockDbLoadSuccessful, this.Database.Name);
             }

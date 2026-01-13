@@ -10,7 +10,7 @@ public partial class DatabaseSettingsWindow : Window
     {
         this.InitializeComponent();
     }
-    
+
     private DatabaseSettingsViewModel? ViewModel => this.DataContext as DatabaseSettingsViewModel;
     
     public void ButtonCancel_Click(object? sender, RoutedEventArgs e) => this.Close();

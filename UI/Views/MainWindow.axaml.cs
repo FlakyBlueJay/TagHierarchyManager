@@ -20,35 +20,35 @@ public partial class MainWindow : Window
 
     public void ButtonAdd_Click(object? sender, RoutedEventArgs e)
     {
-        this.ViewModel.NewTag();
+        this.ViewModel?.NewTag();
     }
 
     public void ButtonCancel_Click(object? sender, RoutedEventArgs e)
     {
-        this.ViewModel.SelectedTag.BeginEdit();
+        this.ViewModel?.SelectedTag.BeginEdit();
     }
 
     public void ButtonDelete_Click(object? sender, RoutedEventArgs e)
     {
-        this.ViewModel.StartTagDeletion();
+        this.ViewModel?.StartTagDeletion();
     }
 
     public async void ButtonSave_Click(object? sender, RoutedEventArgs e)
     {
-        await this.ViewModel.SaveSelectedTagAsync();
+        await this.ViewModel?.SaveSelectedTagAsync();
     }
 
     public void ButtonSearch_Click(object? sender, RoutedEventArgs e)
     {
-        this.ViewModel.StartSearch(
-            this.SearchTextBox.Text,
+        this.ViewModel?.StartSearch(
+            this.SearchTextBox.Text!,
             (TagDatabaseSearchMode)this.SearchModeComboBox.SelectedIndex,
             this.SearchAliasesCheckBox.IsChecked ?? false);
     }
-    
+
     public void MenuItemDatabaseSettings_Click(object? sender, RoutedEventArgs e)
     {
-        this.ViewModel.ShowDatabaseSettings();
+        this.ViewModel?.ShowDatabaseSettings();
     }
 
     public async void MenuItemExport_Click(object? sender, RoutedEventArgs e)
@@ -58,16 +58,17 @@ public partial class MainWindow : Window
             {
                 Title = Assets.Resources.DialogTitleExportTagDatabase,
                 FileTypeChoices = [Common.MusicBeeTagHierarchy],
-                SuggestedFileName = this.ViewModel.Database?.Name
+                SuggestedFileName = this.ViewModel?.Database.Name
             });
         if (file == null) return;
         var path = file.TryGetLocalPath();
-        await this.ViewModel.ExportAsync(path);
+        if (path == null) return;
+        await this.ViewModel?.ExportAsync(path);
     }
-    
+
     public void MenuItemImport_Click(object? sender, RoutedEventArgs e)
     {
-        this.ViewModel.ShowImportDialog();
+        this.ViewModel?.ShowImportDialog();
     }
 
     public async void MenuItemNew_Click(object? sender, RoutedEventArgs e)
@@ -81,6 +82,7 @@ public partial class MainWindow : Window
             });
         if (file == null) return;
         var path = file.TryGetLocalPath();
+        if (path == null) return;
         await this.ViewModel.CreateNewDatabase(path);
     }
 
@@ -96,9 +98,9 @@ public partial class MainWindow : Window
         if (files.Count == 0) return;
         var path = files[0].TryGetLocalPath();
         if (path == null) return;
-        await this.ViewModel.LoadDatabase(path);
+        await this.ViewModel?.LoadDatabase(path);
     }
-    
+
 
     public void MenuItemQuit_Click(object? sender, RoutedEventArgs e)
     {
