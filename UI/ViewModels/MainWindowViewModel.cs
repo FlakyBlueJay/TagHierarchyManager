@@ -147,7 +147,6 @@ public partial class MainWindowViewModel : ViewModelBase
                 TagBindings = this.Database!.DefaultTagBindings
             }
         );
-        this.SelectedTag.BeginEdit();
         this.UnsavedChanges = true;
     }
 

@@ -124,9 +124,15 @@
                 <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
                     <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel}"
                               Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}" />
-                    <Button Grid.Column="1" IsEnabled="{Binding SelectedTag.OnDatabase}"
-                            Margin="0 0 5 0"
-                            Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click" />
+                    <Button Grid.Column="1" Margin="0 0 5 0"
+                            Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click">
+                        <Button.IsEnabled>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="SelectedTag.OnDatabase" />
+                                <Binding Path="!SelectedTag.HasChildren" />
+                            </MultiBinding>
+                        </Button.IsEnabled>
+                    </Button>
                     <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}"
                             Click="ButtonCancel_Click" />
                     <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}" Click="ButtonSave_Click" />

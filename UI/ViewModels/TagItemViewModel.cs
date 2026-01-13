@@ -42,6 +42,8 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
     public string Notes => this.Tag.Notes;
 
     public bool OnDatabase => this.Id != 0;
+    
+    public bool HasChildren => this.Children.Count > 0;
 
     public string TagBindings =>
         this.Tag.TagBindings.Count > 0
@@ -52,7 +54,7 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
 
     private bool IsTopLevel => this.Tag.IsTopLevel;
 
-    private string Parents => getNameById != null && this.Tag.ParentIds.Count > 0
+    private string Parents => getNameById != null && this.Tag.ParentIds is { Count: > 0 } 
         ? string.Join("; ", this.Tag.ParentIds.Select(getNameById).Where(n => n != null))
         : string.Empty;
 
@@ -60,7 +62,10 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
     {
         this._isInitialising = true;
         this.EditingName = this.Tag.Name;
-        this.EditingParents = this.Parents;
+        
+        if (this.OnDatabase || string.IsNullOrEmpty(this.EditingParents))
+            this.EditingParents = this.Parents;
+        
         this.EditingIsTopLevel = this.IsTopLevel;
         this.EditingTagBindings = this.TagBindings;
         this.EditingAliases = this.Aliases;
@@ -95,15 +100,19 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
         this.OnPropertyChanged(nameof(this.TagBindings));
         this.OnPropertyChanged(nameof(this.Notes));
         this.OnPropertyChanged(nameof(this.IsTopLevel));
-        
+        this.OnPropertyChanged(nameof(this.HasChildren));
     }
 
     public void RefreshParentsString()
     {
         this._isInitialising = true;
         this.OnPropertyChanged(nameof(this.Parents));
-        this.EditingParents = this.Parents;
-        this.OnPropertyChanged(nameof(this.EditingParents));
+        var newParents = this.Parents;
+        if (!string.IsNullOrEmpty(newParents))
+        {
+            this.EditingParents = newParents;
+            this.OnPropertyChanged(nameof(this.EditingParents));
+        }
         this._isInitialising = false;
     }
 
