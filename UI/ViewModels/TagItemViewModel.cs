@@ -45,10 +45,12 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
             ? string.Join("; ", this.Tag.TagBindings)
             : string.Empty;
 
+    public bool OnDatabase => this.Id != 0;
+    
     internal Tag Tag { get; } = tag;
 
     private bool IsTopLevel => this.Tag.IsTopLevel;
-
+    
     private string Parents => getNameById != null && this.Tag.ParentIds.Count > 0
         ? string.Join("; ", this.Tag.ParentIds.Select(getNameById).Where(n => n != null))
         : string.Empty;
@@ -124,6 +126,12 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
 
                 this.Children.Insert(index, child);
             }
+    }
+
+    public void SyncId()
+    {
+        OnPropertyChanged(nameof(Id));
+        OnPropertyChanged(nameof(OnDatabase));
     }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)

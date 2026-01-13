@@ -18,7 +18,6 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    // TODO consider moving editor-related functionality to a separate ViewModel.
     internal TagDatabase? Database;
 
     [ObservableProperty] private HierarchyTreeViewModel? _hierarchyTreeViewModel;
@@ -159,6 +158,19 @@ public partial class MainWindowViewModel : ViewModelBase
             this.ShowErrorDialog(ex.Message);
         }
     }
+    
+    public void ShowDatabaseSettings()
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var dialog = new DatabaseSettingsWindow
+        {
+            DataContext = new DatabaseSettingsViewModel(this)
+        };
+        
+        dialog.ShowDialog(desktop.MainWindow!);
+    }
 
     public void ShowErrorDialog(string message)
     {
@@ -294,6 +306,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void TagDatabase_TagAdded(object? sender, Tag _)
     {
         this.OnPropertyChanged(nameof(this.TotalTags));
+        this.SelectedTag!.SyncId();
     }
 
     private void TagDatabase_TagDeleted(object? sender, (int id, string name) _)

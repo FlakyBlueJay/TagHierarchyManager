@@ -12,14 +12,7 @@
     <!--
     TODO:
     - Import
-    - Database settings
-    - Error
     -->
-    <Window.Styles>
-        <Style Selector="Button.delete[Tag=0]">
-            <Setter Property="IsEnabled" Value="False" />
-        </Style>
-    </Window.Styles>
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="{x:Static assets:Resources.MenuFile}">
@@ -29,14 +22,18 @@
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}"
                           Click="MenuItemOpen_Click" />
                 <Separator />
-                <MenuItem IsEnabled="{Binding IsDbEnabled}" Header="{x:Static assets:Resources.MenuItemExport}" Click="MenuItemExport_Click" />
+                <MenuItem IsEnabled="{Binding IsDbEnabled}"
+                          Header="{x:Static assets:Resources.MenuItemExport}" Click="MenuItemExport_Click" />
                 <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="MenuItemQuit_Click" />
             </MenuItem>
-            <MenuItem IsEnabled="{Binding IsDbEnabled}" Header="{x:Static assets:Resources.MenuDatabase}">
-                <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}" />
+            <MenuItem IsEnabled="{Binding IsDbEnabled}"
+                      Header="{x:Static assets:Resources.MenuDatabase}">
+                <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}"
+                          Click="MenuItemDatabaseSettings_Click" />
                 <Separator />
                 <MenuItem IsEnabled="False"
-                          Header="{Binding TotalTags, StringFormat={x:Static assets:Resources.MenuItemTotalTags}}" />
+                          Header="{Binding TotalTags,
+                          StringFormat={x:Static assets:Resources.MenuItemTotalTags}}" />
             </MenuItem>
             <MenuItem Header="{x:Static assets:Resources.MenuHelp}">
                 <MenuItem Header="_About" Click="OpenAboutWindow" />
@@ -121,7 +118,8 @@
                 <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
                     <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel}"
                               Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}" />
-                    <Button Grid.Column="1" Classes="delete" Tag="{Binding SelectedTag.Id}" Margin="0 0 5 0"
+                    <Button Grid.Column="1" IsEnabled="{Binding SelectedTag.OnDatabase}"
+                            Margin="0 0 5 0"
                             Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click" />
                     <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}"
                             Click="ButtonCancel_Click" />

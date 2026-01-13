@@ -55,6 +55,11 @@ public partial class MainWindow : Window
             (TagDatabaseSearchMode)this.SearchModeComboBox.SelectedIndex,
             this.SearchAliasesCheckBox.IsChecked ?? false);
     }
+    
+    public void MenuItemDatabaseSettings_Click(object? sender, RoutedEventArgs e)
+    {
+        this.ViewModel.ShowDatabaseSettings();
+    }
 
     public async void MenuItemExport_Click(object? sender, RoutedEventArgs e)
     {
@@ -114,7 +119,6 @@ public partial class MainWindow : Window
         if (e.Key != Key.Enter) return;
         this.ButtonSearch_Click(sender, e);
         e.Handled = true;
-
     }
 
     public async void WindowClosing(object? sender, WindowClosingEventArgs e)

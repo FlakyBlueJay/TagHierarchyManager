@@ -29,12 +29,10 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
         var results = searchAliases
             ? this.mainWindow.Database.SearchWithAliases(searchQuery, mode)
             : this.mainWindow.Database.Search(searchQuery, mode);
-
-        string statusBlockString = string.Empty;
+        
         this.SearchResults.Clear();
         if (results.Count == 0)
         {
-            // todo resx
             this.mainWindow.StatusBlockText = Assets.Resources.SearchNoResultsFound;
             return;
         }
