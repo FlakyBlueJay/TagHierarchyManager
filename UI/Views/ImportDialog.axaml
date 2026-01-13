@@ -5,7 +5,7 @@
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="200"
-        Width="600" Height="200"
+        Width="600" Height="200" CanResize="False" ShowInTaskbar="False"
         x:Class="TagHierarchyManager.UI.Views.ImportDialog"
         x:DataType="vm:ImportDialogViewModel"
         Title="{x:Static assets:Resources.ImportDialogTitle}">

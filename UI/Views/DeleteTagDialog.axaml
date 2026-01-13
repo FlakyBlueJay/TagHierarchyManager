@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="100"
-        Width="500" Height="120" CanResize="False"
+        Width="500" Height="120" CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         x:Class="TagHierarchyManager.UI.Views.DeleteTagDialog"
         Title="DeleteTagDialog">

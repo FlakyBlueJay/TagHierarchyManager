@@ -159,6 +159,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             this.SelectedTag.CommitEdit();
             await this.Database.WriteTagToDatabase(this.SelectedTag.Tag);
+            this.SelectedTag.RefreshParentsString();
             this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
             this.UnsavedChanges = false;
         }

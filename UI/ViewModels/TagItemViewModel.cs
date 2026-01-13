@@ -95,7 +95,7 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
         this.OnPropertyChanged(nameof(this.TagBindings));
         this.OnPropertyChanged(nameof(this.Notes));
         this.OnPropertyChanged(nameof(this.IsTopLevel));
-        this.RefreshParentsString();
+        
     }
 
     public void RefreshParentsString()
