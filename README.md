@@ -9,7 +9,7 @@ An application for managing tree hierarchies for music tags, focusing on the Mus
 JetBrains Rider is recommended for developing for this project, but Visual Studio Code/VS Codium should work too.
 
 ### Dependencies
-- Terminal.Gui
+- Avalonia
 - Serilog (for logging/debugging)
 - NUnit (for tests)
 

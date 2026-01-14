@@ -176,7 +176,7 @@ public class TagDatabaseWriteTests : TestBase
             Assert.That(savedTag.Parents, Is.EquivalentTo(inputTag.Parents));
             Assert.That(savedTag.ParentIds.Count, Is.EqualTo(inputTag.Parents.Count));
             List<string> parentTags = await savedTag.ParentIds.ToAsyncEnumerable()
-                .SelectAwait(async parentId =>
+                .Select(async (int parentId, CancellationToken _) =>
                 {
                     Tag? tag = await this.Database.SelectTagFromDatabase(parentId);
                     return tag!.Name;

@@ -73,6 +73,16 @@ public partial class TagDatabase
         return tags;
     }
 
+    public int GetTagRelationshipCount()
+    {
+        this.CheckInitialisation();
+        SqliteCommand command = this.currentConnection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM tag_parent_link";
+        
+        int count = Convert.ToInt32(command.ExecuteScalar());
+        return count;
+    }
+
     /// <summary>
     ///     Selects one specific tag by its exact name.
     /// </summary>

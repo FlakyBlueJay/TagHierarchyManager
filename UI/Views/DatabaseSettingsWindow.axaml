@@ -1,0 +1,29 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+        xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="180"
+        Width="500" Height="200"
+        x:Class="TagHierarchyManager.UI.Views.DatabaseSettingsWindow"
+        x:DataType="vm:DatabaseSettingsViewModel"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False" CanResize="False"
+        Title="{Binding WindowTitle}">
+    <StackPanel Margin="5">
+        <TextBlock Margin="0 0 0 0" Text="{Binding DatabaseVersion}" />
+        <TextBlock Margin="0 0 0 25" Text="{Binding TagRowsCount}" />
+
+        <TextBlock Text="{x:Static assets:Resources.DatabaseSettingsDefaultTagBindings}" />
+        <TextBox Name="DefaultTagBindingTextBox"
+                 Text="{Binding DefaultTagBindings}"
+                 Watermark="{x:Static assets:Resources.WatermarkTagBindings}" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 25 0 0 ">
+            <Button Margin="0 0 5 0"
+                    Content="{x:Static assets:Resources.ButtonCancel}"
+                    Click="ButtonCancel_Click" />
+            <Button Content="{x:Static assets:Resources.ButtonOk}" Click="ButtonOk_Click" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root"
+                xmlns="">
+        <xsd:element name="root" msdata:IsDataSet="true">
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <data name="Title" xml:space="preserve">
+        <value>Tag Hierarchy Manager</value>
+    </data>
+    <data name="TitleWithDatabase" xml:space="preserve">
+        <value>{0} - Tag Hierarchy Manager</value>
+    </data>
+    <data name="CopyrightAndLicense" xml:space="preserve">
+        <value>(c) Flaky 2025, licensed under MIT</value>
+    </data>
+    <data name="URL" xml:space="preserve">
+        <value>https://github.com/FlakyBlueJay/TagHierarchyManager</value>
+    </data>
+    <data name="MenuFile" xml:space="preserve">
+        <value>_File</value>
+    </data>
+    <data name="MenuItemNewDatabase" xml:space="preserve">
+        <value>_New database</value>
+    </data>
+    <data name="MenuItemImport" xml:space="preserve">
+        <value>_New from import...</value>
+    </data>
+    <data name="MenuItemOpen" xml:space="preserve">
+        <value>_Open</value>
+    </data>
+    <data name="MenuItemExport" xml:space="preserve">
+        <value>_Export</value>
+    </data>
+    <data name="MenuItemQuit" xml:space="preserve">
+        <value>_Quit</value>
+    </data>
+    <data name="MenuDatabase" xml:space="preserve">
+        <value>_Database</value>
+    </data>
+    <data name="MenuItemDatabaseSettings" xml:space="preserve">
+        <value>Database _settings</value>
+    </data>
+    <data name="MenuItemTotalTags" xml:space="preserve">
+        <value>Total tags: {0}</value>
+    </data>
+    <data name="MenuHelp" xml:space="preserve">
+        <value>_Help</value>
+    </data>
+    <data name="MenuItemAbout" xml:space="preserve">
+        <value>_About</value>
+    </data>
+    <data name="TabHierarchyTree" xml:space="preserve">
+        <value>Hierarchy Tree</value>
+    </data>
+    <data name="TabSearch" xml:space="preserve">
+        <value>Search</value>
+    </data>
+    <data name="ButtonAdd" xml:space="preserve">
+        <value>Add new tag...</value>
+    </data>
+    <data name="ButtonDelete" xml:space="preserve">
+        <value>Delete</value>
+    </data>
+    <data name="ButtonCancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+    <data name="ButtonSave" xml:space="preserve">
+        <value>Save</value>
+    </data>
+    <data name="ButtonOk" xml:space="preserve">
+        <value>OK</value>
+    </data>
+    <data name="StatusBlockReady" xml:space="preserve">
+        <value>Ready.</value>
+    </data>
+    <data name="WatermarkTagName" xml:space="preserve">
+        <value>Tag name (required)</value>
+    </data>
+    <data name="WatermarkTagParents" xml:space="preserve">
+        <value>Tag parents (Separated by semi-colons)</value>
+    </data>
+    <data name="WatermarkTagBindings" xml:space="preserve">
+        <value>Tag bindings (Separated by semi-colons, e.g. genre; style)</value>
+    </data>
+    <data name="WatermarkTagAliases" xml:space="preserve">
+        <value>Aliases/A.K.As (Separated by semi-colons)</value>
+    </data>
+    <data name="WatermarkTagNotes" xml:space="preserve">
+        <value>Notes</value>
+    </data>
+    <data name="CheckBoxTopLevel" xml:space="preserve">
+        <value>Is top level</value>
+    </data>
+    <data name="WatermarkSearchQuery" xml:space="preserve">
+        <value>Query to search for...</value>
+    </data>
+    <data name="ButtonSearch" xml:space="preserve">
+        <value>Search</value>
+    </data>
+    <data name="SearchModeFuzzy" xml:space="preserve">
+        <value>Fuzzy search</value>
+    </data>
+    <data name="SearchModeStartsWith" xml:space="preserve">
+        <value>Starts with...</value>
+    </data>
+    <data name="SearchModeEndsWith" xml:space="preserve">
+        <value>Ends with...</value>
+    </data>
+    <data name="SearchModeExactMatch" xml:space="preserve">
+        <value>Exact match</value>
+    </data>
+    <data name="DatabaseSettingsDbVersion" xml:space="preserve">
+        <value>Version: {0}</value>
+    </data>
+    <data name="DatabaseSettingsDefaultTagBindings" xml:space="preserve">
+        <value>Default tag bindings:</value>
+    </data>
+    <data name="AboutTitleFormat" xml:space="preserve">
+        <value>About {0}</value>
+    </data>
+    <data name="StatusBlockDbLoadSuccessful" xml:space="preserve">
+        <value>Database "{0}" loaded successfully.</value>
+    </data>
+    <data name="ButtonYes" xml:space="preserve">
+        <value>Yes</value>
+    </data>
+    <data name="ButtonNo" xml:space="preserve">
+        <value>No</value>
+    </data>
+    <data name="UnsavedChangesMessage" xml:space="preserve">
+        <value>You have unsaved changes to the currently loaded tag. Do you want to save them now?</value>
+    </data>
+    <data name="SearchNoResultsFound" xml:space="preserve">
+        <value>No tags found.</value>
+    </data>
+    <data name="SearchOneResultFound" xml:space="preserve">
+        <value>One tag found.</value>
+    </data>
+    <data name="SearchMultipleResultsFound" xml:space="preserve">
+        <value>{0} tags found.</value>
+    </data>
+    <data name="FileFormatMusicBeeTagHierarchy" xml:space="preserve">
+        <value>MusicBee tag hierarchy template</value>
+    </data>
+    <data name="FileFormatTagHierarchyDatabase" xml:space="preserve">
+        <value>Tag hierarchy database</value>
+    </data>
+    <data name="SearchEnableAliases" xml:space="preserve">
+        <value>Search aliases/A.K.As?</value>
+    </data>
+    <data name="ErrorOrphanTagAttempt" xml:space="preserve">
+        <value>Tags that are not top level must have a parent.</value>
+    </data>
+    <data name="ErrorSelfParentAttempt" xml:space="preserve">
+        <value>You cannot make tags a parent of themselves.</value>
+    </data>
+    <data name="ErrorDialogTitle" xml:space="preserve">
+        <value>An error has occurred.</value>
+    </data>
+    <data name="StatusBlockTagSaveSuccessful" xml:space="preserve">
+        <value>Tag "{0}" saved successfully.</value>
+    </data>
+    <data name="StatusBlockExportInProgress" xml:space="preserve">
+        <value>Exporting tag database...</value>
+    </data>
+    <data name="StatusBlockExportSuccessful" xml:space="preserve">
+        <value>Database successfully exported at {0}</value>
+    </data>
+    <data name="DatabaseSettingsTagCount" xml:space="preserve">
+        <value>Tags: {0}, with {1} parent-child relationships</value>
+    </data>
+    <data name="ButtonImport" xml:space="preserve">
+        <value>Import</value>
+    </data>
+    <data name="ImportFileToImport" xml:space="preserve">
+        <value>File to import:</value>
+    </data>
+    <data name="ImportStatusInProgress" xml:space="preserve">
+        <value>Importing...</value>
+    </data>
+    <data name="ImportStatusFailed" xml:space="preserve">
+        <value>Import failed.</value>
+    </data>
+    <data name="ImportDatabaseToSave" xml:space="preserve">
+        <value>Database file to save to:</value>
+    </data>
+    <data name="ButtonBrowse" xml:space="preserve">
+        <value>Browse...</value>
+    </data>
+    <data name="ImportNoFilePicked" xml:space="preserve">
+        <value>No file picked.</value>
+    </data>
+    <data name="ImportDialogTitle" xml:space="preserve">
+        <value>Import...</value>
+    </data>
+    <data name="ErrorDialogTitleBarTitle" xml:space="preserve">
+        <value>Error</value>
+    </data>
+    <data name="DialogTitleExportTagDatabase" xml:space="preserve">
+        <value>Export tag database to file...</value>
+    </data>
+    <data name="DialogTitleSaveDatabaseAs" xml:space="preserve">
+        <value>Save tag database file...</value>
+    </data>
+    <data name="DialogTitleOpenDatabase" xml:space="preserve">
+        <value>Open tag database...</value>
+    </data>
+    <data name="DialogTitleChooseImportTemplate" xml:space="preserve">
+        <value>Choose template to import...</value>
+    </data>
+    <data name="ErrorImportFileTypeNotSupported" xml:space="preserve">
+        <value>File type '{0}' is not supported.</value>
+    </data>
+</root>
