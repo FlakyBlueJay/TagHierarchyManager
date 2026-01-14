@@ -6,7 +6,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsTestProject>false</IsTestProject>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <IsTrimmable>true</IsTrimmable>
     </PropertyGroup>
 

@@ -11,17 +11,17 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById = null) : ViewModelBase
 {
-    [ObservableProperty] private string _editingAliases;
+    [ObservableProperty] private string _editingAliases = string.Empty;
 
     [ObservableProperty] private bool _editingIsTopLevel;
 
     [ObservableProperty] private string _editingName = tag.Name;
 
-    [ObservableProperty] private string _editingNotes;
+    [ObservableProperty] private string _editingNotes = string.Empty;
 
-    [ObservableProperty] private string _editingParents;
+    [ObservableProperty] private string _editingParents = string.Empty;
 
-    [ObservableProperty] private string _editingTagBindings;
+    [ObservableProperty] private string _editingTagBindings = string.Empty;
 
     private bool _isInitialising;
 

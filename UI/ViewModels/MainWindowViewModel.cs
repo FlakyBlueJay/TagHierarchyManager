@@ -42,7 +42,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public int TotalTags => this.Database?.Tags.Count ?? 0;
 
     public string WindowTitle =>
-        this.IsDbEnabled
+        this.Database is not null
             ? string.Format(Resources.TitleWithDatabase, this.Database?.Name)
             : Resources.Title;
 
@@ -52,7 +52,7 @@ public partial class MainWindowViewModel : ViewModelBase
         set
         {
             if (this._selectedTag == value || this._isSwitching) return;
-            if (!this.IsDbEnabled && value == null) this._selectedTag = value;
+            if (value == null) this._selectedTag = value;
             if (this._selectedTag != null && this.UnsavedChanges)
             {
                 _ = this.HandleTagSwitchAsync(this._selectedTag, value);
@@ -101,23 +101,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public async Task ExportAsync(string path)
     {
+        if (this.Database is null || string.IsNullOrWhiteSpace(path)) return;
         this.IsDbEnabled = false;
-        try
-        {
-            if (this.Database is null || string.IsNullOrWhiteSpace(path)) return;
-
-            var exporter = PickExporterFromFileExt(path);
-            this.StatusBlockText = Resources.StatusBlockExportInProgress;
-            var exportContent = await Task.Run(() => exporter.ExportDatabase(this.Database!));
-            await File.WriteAllTextAsync(path, exportContent);
-            this.IsDbEnabled = true;
-            this.StatusBlockText = string.Format(Resources.StatusBlockExportSuccessful, path);
-        }
-        catch (Exception ex)
-        {
-            this.IsDbEnabled = true;
-            this.ShowErrorDialog(ex.Message);
-        }
+        var exporter = PickExporterFromFileExt(path);
+        this.StatusBlockText = Resources.StatusBlockExportInProgress;
+        var exportContent = await Task.Run(() => exporter.ExportDatabase(this.Database!));
+        await File.WriteAllTextAsync(path, exportContent);
+        this.IsDbEnabled = true;
+        this.StatusBlockText = string.Format(Resources.StatusBlockExportSuccessful, path);
     }
 
     public async Task LoadDatabase(string filePath)
@@ -153,19 +144,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public async Task SaveSelectedTagAsync()
     {
         if (this.SelectedTag is null || this.Database is null) return;
-
-        try
-        {
-            this.SelectedTag.CommitEdit();
-            await this.Database.WriteTagToDatabase(this.SelectedTag.Tag);
-            this.SelectedTag.RefreshParentsString();
-            this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
-            this.UnsavedChanges = false;
-        }
-        catch (Exception ex)
-        {
-            this.ShowErrorDialog(ex.Message);
-        }
+        
+        this.SelectedTag.CommitEdit();
+        await this.Database.WriteTagToDatabase(this.SelectedTag.Tag);
+        this.SelectedTag.RefreshParentsString();
+        this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
+        this.UnsavedChanges = false;
     }
 
     public void ShowDatabaseSettings()
@@ -179,12 +163,6 @@ public partial class MainWindowViewModel : ViewModelBase
         };
 
         dialog.ShowDialog(desktop.MainWindow!);
-    }
-
-    public void ShowErrorDialog(string message)
-    {
-        var error = new ErrorDialogViewModel(message);
-        error.ShowDialog();
     }
 
     public void ShowImportDialog()
@@ -330,6 +308,12 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         });
         Debug.WriteLine($"Database loaded on UI - name: {db.Name}, version: {db.Version}");
+    }
+    
+    private void ShowErrorDialog(string message)
+    {
+        var error = new ErrorDialogViewModel(message);
+        error.ShowDialog();
     }
 
     private void TagDatabase_TagAdded(object? sender, Tag _)

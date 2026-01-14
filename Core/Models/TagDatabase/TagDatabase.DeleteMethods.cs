@@ -69,7 +69,7 @@ partial class TagDatabase
                 tag.Parents.Remove(targetTag.Name);
             });
         
-        Tag cachedTag = this.Tags.FirstOrDefault(t => t.Id == targetTag.Id);
+        Tag? cachedTag = this.Tags.FirstOrDefault(t => t.Id == targetTag.Id);
         if (cachedTag != null)
         {
             this.Tags.Remove(cachedTag);

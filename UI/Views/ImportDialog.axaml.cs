@@ -11,9 +11,16 @@ public partial class ImportDialog : Window
     public ImportDialog()
     {
         this.InitializeComponent();
-        this.DataContextChanged += (s, e) =>
+
+        this.DataContextChanged += (_, _) =>
         {
             if (this.ViewModel != null) this.ViewModel.RequestClose += this.Close;
+        };
+        
+        this.Unloaded += (_, _) =>
+        {
+            if (this.ViewModel != null)
+                this.ViewModel.RequestClose -= this.Close;
         };
     }
 
@@ -68,6 +75,19 @@ public partial class ImportDialog : Window
     public void ButtonCancel_Click(object? sender, RoutedEventArgs e) =>
         this.Close();
 
-    public async void ButtonImport_Click(object? sender, RoutedEventArgs e) =>
-        await this.ViewModel?.InitiateImport();
+    public async void ButtonImport_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (this.ViewModel?.DatabaseFilePath == null || this.ViewModel?.TemplateFilePath == null ||
+                this.ViewModel is null) return;
+            await this.ViewModel.InitiateImport();
+        }
+        catch (Exception ex)
+        {
+            var error = new ErrorDialogViewModel(ex.Message);
+            error.ShowDialog();
+        }
+    }
+        
 }

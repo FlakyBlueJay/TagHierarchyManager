@@ -48,12 +48,12 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             viewModel = new TagItemViewModel(tag, id =>
                 this._viewModelMap.Values.FirstOrDefault(v => v.Id == id)?.Name);
             this._viewModelMap[key] = viewModel;
-            viewModel.UserEditedTag += (s, e) => this._mainWindow.UnsavedChanges = true;
+            viewModel.UserEditedTag += this.OnUserEditedTag;
         }
 
         return viewModel;
     }
-
+    
     partial void OnSelectedTagChanged(TagItemViewModel? value)
     {
         this._mainWindow.SelectedTag = value;
@@ -67,6 +67,8 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         });
         await this.SyncHierarchyAsync();
     }
+    
+    private void OnUserEditedTag(object? sender, EventArgs e) => this._mainWindow.UnsavedChanges = true;
 
     private void SubscribeToEvents()
     {
@@ -95,7 +97,6 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             }
     }
 
-
     private async Task SyncHierarchyAsync()
     {
         if (this._mainWindow.Database is null) return;
@@ -123,7 +124,11 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         this.SyncCollection(this.TopLevelTags, topLevelViewModels);
 
         var keysToRemove = this._viewModelMap.Keys.Where(k => !activeKeys.Contains(k)).ToList();
-        foreach (var key in keysToRemove) this._viewModelMap.Remove(key);
+        foreach (var key in keysToRemove)
+        {
+            this._viewModelMap[key].UserEditedTag -= this.OnUserEditedTag;
+            this._viewModelMap.Remove(key);
+        }
     }
 
     private void SyncTagRecursive(TagItemViewModel parentVm, ILookup<int, Tag> childrenLookup,
