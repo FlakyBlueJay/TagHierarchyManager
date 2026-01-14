@@ -9,7 +9,7 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class SearchViewModel : ViewModelBase, IDisposable
 {
-    private readonly MainWindowViewModel mainWindow;
+    private readonly MainWindowViewModel _mainWindow;
 
     [ObservableProperty] private ObservableCollection<TagItemViewModel> _searchResults = [];
 
@@ -17,34 +17,34 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
 
     public SearchViewModel(MainWindowViewModel mainWindow)
     {
-        this.mainWindow = mainWindow;
-        mainWindow.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
+        this._mainWindow = mainWindow;
+        mainWindow.Database?.TagDeleted += this.TagDatabase_OnTagDeleted;
     }
 
-    public void Dispose() => this.mainWindow.Database?.TagDeleted -= this.TagDatabase_OnTagDeleted;
+    public void Dispose() => this._mainWindow.Database?.TagDeleted -= this.TagDatabase_OnTagDeleted;
 
     public void Search(string searchQuery, TagDatabaseSearchMode mode, bool searchAliases)
     {
-        if (this.mainWindow.Database == null || string.IsNullOrWhiteSpace(searchQuery)) return;
+        if (this._mainWindow.Database == null || string.IsNullOrWhiteSpace(searchQuery)) return;
 
         var results = searchAliases
-            ? this.mainWindow.Database.SearchWithAliases(searchQuery, mode)
-            : this.mainWindow.Database.Search(searchQuery, mode);
+            ? this._mainWindow.Database.SearchWithAliases(searchQuery, mode)
+            : this._mainWindow.Database.Search(searchQuery, mode);
 
         this.SearchResults.Clear();
         if (results.Count == 0)
         {
-            this.mainWindow.StatusBlockText = Resources.SearchNoResultsFound;
+            this._mainWindow.StatusBlockText = Resources.SearchNoResultsFound;
             return;
         }
 
         results.Select(tag =>
-                new TagItemViewModel(tag, id => this.mainWindow.Database.Tags.FirstOrDefault(t => t.Id == id)?.Name))
+                new TagItemViewModel(tag, id => this._mainWindow.Database.Tags.FirstOrDefault(t => t.Id == id)?.Name))
             .OrderBy(tag => tag.Name)
             .ToList()
             .ForEach(this.SearchResults.Add);
 
-        this.mainWindow.StatusBlockText = results.Count > 1
+        this._mainWindow.StatusBlockText = results.Count > 1
             ? string.Format(Resources.SearchMultipleResultsFound, results.Count)
             : Resources.SearchOneResultFound;
     }
@@ -52,7 +52,7 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
     partial void OnSelectedSearchResultChanged(TagItemViewModel? value)
     {
         if (value is null) return;
-        this.mainWindow.SelectedTag = value;
+        this._mainWindow.SelectedTag = value;
     }
 
     private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) deletedTag)

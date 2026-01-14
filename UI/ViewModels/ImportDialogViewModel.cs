@@ -5,24 +5,19 @@ using TagHierarchyManager.UI.Assets;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public partial class ImportDialogViewModel : ViewModelBase
+public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : ViewModelBase
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(VisibleDatabaseFilePath))]
     [NotifyPropertyChangedFor(nameof(BothFilesSelected))]
-    private string _databaseFilePath;
+    private string _databaseFilePath = string.Empty;
 
     [ObservableProperty] private string _importStatus = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(VisibleTemplateFilePath))]
     [NotifyPropertyChangedFor(nameof(BothFilesSelected))]
-    private string _templateFilePath;
-
-    public ImportDialogViewModel(MainWindowViewModel mainWindow)
-    {
-        this.MainWindow = mainWindow;
-    }
+    private string _templateFilePath = string.Empty;
 
     public event Action? RequestClose;
 
@@ -35,7 +30,7 @@ public partial class ImportDialogViewModel : ViewModelBase
     public string VisibleTemplateFilePath =>
         !string.IsNullOrWhiteSpace(this.TemplateFilePath) ? this.TemplateFilePath : Resources.ImportNoFilePicked;
 
-    private MainWindowViewModel MainWindow { get; }
+    private MainWindowViewModel MainWindow { get; } = mainWindow;
 
     public async Task InitiateImport()
     {

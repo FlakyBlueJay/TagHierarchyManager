@@ -3,7 +3,7 @@ using TagHierarchyManager.UI.Assets;
 
 namespace TagHierarchyManager.UI.Views;
 
-public class Common
+public static class Common
 {
     public static FilePickerFileType MusicBeeTagHierarchy { get; } = new(Resources.FileFormatMusicBeeTagHierarchy)
     {

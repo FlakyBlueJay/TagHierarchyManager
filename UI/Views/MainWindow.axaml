@@ -46,8 +46,8 @@
                         <TreeView Grid.Row="0"
                                   Name="TagTree"
                                   VerticalAlignment="Stretch"
-                                  ItemsSource="{Binding HierarchyTreeViewModel.TopLevelTags}"
-                                  SelectedItem="{Binding HierarchyTreeViewModel.SelectedTag, Mode=TwoWay}">
+                                  ItemsSource="{Binding HierarchyTreeViewModel.TopLevelTags, FallbackValue={x:Null}}"
+                                  SelectedItem="{Binding HierarchyTreeViewModel.SelectedTag, Mode=TwoWay, FallbackValue={x:Null}}">
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">
                                     <StackPanel Orientation="Horizontal">
@@ -106,30 +106,30 @@
                   RowDefinitions="Auto, Auto, Auto, Auto, *, Auto"
                   Margin="5"
                   IsEnabled="{Binding SelectedTag, Converter={x:Static ObjectConverters.IsNotNull}}">
-                <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName}"
+                <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch"
                          Margin="3" />
-                <TextBox Grid.Row="1" Name="ParentsTextBox" Text="{Binding SelectedTag.EditingParents}"
+                <TextBox Grid.Row="1" Name="ParentsTextBox" Text="{Binding SelectedTag.EditingParents, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch"
                          Margin="3" />
-                <TextBox Grid.Row="2" Name="BindingsTextBox" Text="{Binding SelectedTag.EditingTagBindings}"
+                <TextBox Grid.Row="2" Name="BindingsTextBox" Text="{Binding SelectedTag.EditingTagBindings, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch"
                          Margin="3" />
-                <TextBox Grid.Row="3" Name="AliasesTextBox" Text="{Binding SelectedTag.EditingAliases}"
+                <TextBox Grid.Row="3" Name="AliasesTextBox" Text="{Binding SelectedTag.EditingAliases, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch"
                          Margin="3" />
-                <TextBox Grid.Row="4" Name="NotesTextBox" Text="{Binding SelectedTag.EditingNotes}"
+                <TextBox Grid.Row="4" Name="NotesTextBox" Text="{Binding SelectedTag.EditingNotes, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch"
                          AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="3" />
                 <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="3">
-                    <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel}"
+                    <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel, FallbackValue=''}"
                               Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}" />
                     <Button Grid.Column="1" Margin="0 0 5 0"
                             Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click">
                         <Button.IsEnabled>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                <Binding Path="SelectedTag.OnDatabase" />
-                                <Binding Path="!SelectedTag.HasChildren" />
+                                <Binding Path="SelectedTag.OnDatabase" FallbackValue="False"/>
+                                <Binding Path="!SelectedTag.HasChildren" FallbackValue="False"/>
                             </MultiBinding>
                         </Button.IsEnabled>
                     </Button>
