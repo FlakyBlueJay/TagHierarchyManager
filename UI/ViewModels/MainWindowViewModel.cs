@@ -62,8 +62,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 this._selectedTag = value;
                 this.HierarchyTreeViewModel?.SelectedTag = value;
                 this._selectedTag?.BeginEdit();
-                this.UnsavedChanges = false;
                 this.OnPropertyChanged();
+                this.UnsavedChanges = false;
             }
         }
     }
