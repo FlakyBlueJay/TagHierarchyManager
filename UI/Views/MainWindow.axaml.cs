@@ -21,8 +21,7 @@ public partial class MainWindow : Window
 
     public void ButtonAdd_Click(object? sender, RoutedEventArgs e)
     {
-        if (this.ViewModel?.SelectedTag is null) return;
-        this.ViewModel.NewTag();
+        this.ViewModel?.NewTag();
     }
 
     public void ButtonCancel_Click(object? sender, RoutedEventArgs e)
