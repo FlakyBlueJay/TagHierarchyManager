@@ -14,7 +14,7 @@
         <Grid ColumnDefinitions="*, Auto" Margin="0 0 0 20">
             <TextBlock Grid.Column="0" Name="ImportTargetTextBlock" VerticalAlignment="Center"
                        TextTrimming="PrefixCharacterEllipsis"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       Foreground="{DynamicResource SemiColorTertiary}"
                        Text="{Binding VisibleTemplateFilePath}" />
             <Button Name="ButtonBrowseTemplate" Grid.Column="1" Margin=" 5 0 0 0"
                     Content="{x:Static assets:Resources.ButtonBrowse}" Click="ButtonBrowseTemplate_Click" />
@@ -23,7 +23,7 @@
         <Grid ColumnDefinitions="*, Auto" Margin="0 0 0 20">
             <TextBlock Grid.Column="0" Name="ImportDatabaseTextBlock" VerticalAlignment="Center"
                        TextTrimming="PrefixCharacterEllipsis"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       Foreground="{DynamicResource SemiColorTertiary}"
                        Text="{Binding VisibleDatabaseFilePath}" />
             <Button Name="ButtonBrowseDatabase" Grid.Column="1" Margin=" 5 0 0 0"
                     Content="{x:Static assets:Resources.ButtonBrowse}" Click="ButtonBrowseDatabase_Click" />

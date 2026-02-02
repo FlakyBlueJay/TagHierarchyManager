@@ -2,14 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TagHierarchyManager.UI.App"
              xmlns:local="using:TagHierarchyManager.UI"
-             RequestedThemeVariant="Default">
+             xmlns:semi="https://irihi.tech/semi"
+             RequestedThemeVariant="Dark">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
   
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
+     <Application.Styles>
+         <semi:SemiTheme Locale="en-GB" />
+     </Application.Styles>
 </Application>

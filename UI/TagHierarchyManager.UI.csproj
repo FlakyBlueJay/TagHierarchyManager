@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**" Exclude="Assets\*.resx;Assets\*.Designer.cs"/>
+        <AvaloniaResource Include="Assets\**" Exclude="Assets\*.resx;Assets\*.Designer.cs" />
         <EmbeddedResource Update="Assets\Resources.resx">
             <LastGenOutput>Resources.Designer.cs</LastGenOutput>
             <Generator>PublicResXFileCodeGenerator</Generator>
@@ -33,6 +33,7 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+        <PackageReference Include="Semi.Avalonia" Version="11.3.7.2" />
     </ItemGroup>
     
     <ItemGroup>
