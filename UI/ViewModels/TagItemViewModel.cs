@@ -9,7 +9,8 @@ using TagHierarchyManager.UI.Assets;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById = null) : ViewModelBase
+public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? getParentNamesByIds = null)
+    : ViewModelBase
 {
     [ObservableProperty] private string _editingAliases = string.Empty;
 
@@ -32,8 +33,7 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
             ? string.Join("; ", this.Tag.Aliases)
             : string.Empty;
 
-
-    public ObservableCollection<TagItemViewModel> Children { get; } = [];
+    public bool HasChildren => this.Children.Count > 0;
 
     public int Id => this.Tag.Id;
 
@@ -42,30 +42,30 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
     public string Notes => this.Tag.Notes;
 
     public bool OnDatabase => this.Id != 0;
-    
-    public bool HasChildren => this.Children.Count > 0;
 
     public string TagBindings =>
         this.Tag.TagBindings.Count > 0
             ? string.Join("; ", this.Tag.TagBindings)
             : string.Empty;
 
+    public ObservableCollection<TagItemViewModel> Children { get; set; } = [];
+
     internal Tag Tag { get; } = tag;
 
     private bool IsTopLevel => this.Tag.IsTopLevel;
 
-    private string Parents => getNameById != null && this.Tag.ParentIds is { Count: > 0 } 
-        ? string.Join("; ", this.Tag.ParentIds.Select(getNameById).Where(n => n != null))
+    private string Parents => getParentNamesByIds is not null && this.Tag.ParentIds is { Count: > 0 }
+        ? string.Join("; ", getParentNamesByIds(this.Tag.ParentIds))
         : string.Empty;
 
     public void BeginEdit()
     {
         this._isInitialising = true;
         this.EditingName = this.Tag.Name;
-        
+
         if (this.OnDatabase || string.IsNullOrEmpty(this.EditingParents))
             this.EditingParents = this.Parents;
-        
+
         this.EditingIsTopLevel = this.IsTopLevel;
         this.EditingTagBindings = this.TagBindings;
         this.EditingAliases = this.Aliases;
@@ -113,29 +113,19 @@ public partial class TagItemViewModel(Tag tag, Func<int, string?>? getNameById =
             this.EditingParents = newParents;
             this.OnPropertyChanged(nameof(this.EditingParents));
         }
+        
         this._isInitialising = false;
     }
 
-
-    public void SyncChildren(List<TagItemViewModel> children)
+    public void RefreshSelf()
     {
-        var newChildren = children.Select(c => c.Id).ToHashSet();
-
-        for (var i = this.Children.Count - 1; i >= 0; i--)
-            if (!newChildren.Contains(this.Children[i].Id))
-                this.Children.RemoveAt(i);
-
-        var currentIds = this.Children.Select(c => c.Id).ToHashSet();
-        foreach (var child in children)
-            if (!currentIds.Contains(child.Id))
-            {
-                // Find the correct index to maintain alphabetical order
-                var index = 0;
-                while (index < this.Children.Count && string.Compare(this.Children[index].Name, child.Name,
-                           StringComparison.CurrentCultureIgnoreCase) < 0) index++;
-
-                this.Children.Insert(index, child);
-            }
+        this.OnPropertyChanged(nameof(this.Name));
+        this.OnPropertyChanged(nameof(this.Parents));
+        this.OnPropertyChanged(nameof(this.Aliases));
+        this.OnPropertyChanged(nameof(this.TagBindings));
+        this.OnPropertyChanged(nameof(this.Notes));
+        this.OnPropertyChanged(nameof(this.IsTopLevel));
+        this.OnPropertyChanged(nameof(this.HasChildren));
     }
 
     public void SyncId()

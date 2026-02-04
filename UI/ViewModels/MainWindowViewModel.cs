@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -35,8 +34,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private string _statusBlockText = Resources.StatusBlockReady;
 
-    [ObservableProperty] private ObservableCollection<TagItemViewModel> _topLevelTags = [];
-
     [ObservableProperty] private bool _unsavedChanges;
 
     public int TotalTags => this.Database?.Tags.Count ?? 0;
@@ -59,11 +56,13 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             else
             {
+                this._selectedTag?.UserEditedTag -= this.OnUserEditedTag;
                 this._selectedTag = value;
                 this.HierarchyTreeViewModel?.SelectedTag = value;
                 this._selectedTag?.BeginEdit();
                 this.OnPropertyChanged();
                 this.UnsavedChanges = false;
+                this._selectedTag?.UserEditedTag += this.OnUserEditedTag;
             }
         }
     }
@@ -144,7 +143,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public async Task SaveSelectedTagAsync()
     {
         if (this.SelectedTag is null || this.Database is null) return;
-        
+
         this.SelectedTag.CommitEdit();
         await this.Database.WriteTagToDatabase(this.SelectedTag.Tag);
         this.SelectedTag.RefreshParentsString();
@@ -246,9 +245,11 @@ public partial class MainWindowViewModel : ViewModelBase
             if (result == true)
                 await this.SaveSelectedTagAsync();
 
+
             this._selectedTag = newTag;
             this.HierarchyTreeViewModel?.SelectedTag = newTag;
             this._selectedTag?.BeginEdit();
+            this._selectedTag?.UserEditedTag += this.OnUserEditedTag;
             this.OnPropertyChanged(nameof(this.SelectedTag));
             this.UnsavedChanges = false;
         }
@@ -256,6 +257,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             this._isSwitching = false;
         }
+    }
+
+    private void OnUserEditedTag(object? sender, EventArgs e)
+    {
+        this.UnsavedChanges = true;
     }
 
     private Importer PickImporterFromFileExt(string path)
@@ -268,6 +274,12 @@ public partial class MainWindowViewModel : ViewModelBase
             return new MusicBeeTagHierarchyImporter();
 
         throw new NotSupportedException(string.Format(Resources.ErrorImportFileTypeNotSupported, fileExt));
+    }
+
+    private void ShowErrorDialog(string message)
+    {
+        var error = new ErrorDialogViewModel(message);
+        error.ShowDialog();
     }
 
     private void TagDatabase_OnInitalisationComplete(object? sender, EventArgs e)
@@ -288,7 +300,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
                 this.Database = db;
                 this.SelectedTag = null;
-                this.IsDbEnabled = true;
+
                 this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this);
                 this.SearchViewModel = new SearchViewModel(this);
                 this.Database.TagAdded += this.TagDatabase_TagAdded;
@@ -296,6 +308,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 await this.HierarchyTreeViewModel.InitializeAsync();
                 this.OnPropertyChanged(nameof(this.TotalTags));
                 this.OnPropertyChanged(nameof(this.WindowTitle));
+                this.IsDbEnabled = true;
                 this.Database.InitialisationComplete -= this.TagDatabase_OnInitalisationComplete;
 
                 this.UnsavedChanges = false;
@@ -308,12 +321,6 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         });
         Debug.WriteLine($"Database loaded on UI - name: {db.Name}, version: {db.Version}");
-    }
-    
-    private void ShowErrorDialog(string message)
-    {
-        var error = new ErrorDialogViewModel(message);
-        error.ShowDialog();
     }
 
     private void TagDatabase_TagAdded(object? sender, Tag _)
@@ -330,10 +337,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private void UninitialiseDatabase()
     {
         if (this.Database == null) return;
+        this.SelectedTag = null;
+        this.IsDbEnabled = false;
         this.Database.TagAdded -= this.TagDatabase_TagAdded;
         this.Database.TagDeleted -= this.TagDatabase_TagDeleted;
         this.Database = null;
-        this.IsDbEnabled = false;
         this.HierarchyTreeViewModel = null;
         this.SearchViewModel = null;
         this.OnPropertyChanged(nameof(this.TotalTags));

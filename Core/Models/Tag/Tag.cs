@@ -34,6 +34,7 @@ public partial class Tag
     public string Notes { get; set; } = string.Empty;
 
     // TODO ensure ParentIds is the authority on parent-child relationships in both the core + UI.
+    // TODO convert these to hashsets
     /// <summary>
     ///     Gets or sets a list of the tag entry's parent IDs for interaction with the database.
     /// </summary>

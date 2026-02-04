@@ -42,7 +42,7 @@ public partial class MainWindow : Window
             error.ShowDialog();
         }
     }
-    
+
     public async void ButtonSave_Click(object? sender, RoutedEventArgs e)
     {
         try
@@ -72,7 +72,6 @@ public partial class MainWindow : Window
             var error = new ErrorDialogViewModel(ex.Message);
             error.ShowDialog();
         }
-        
     }
 
     public void MenuItemDatabaseSettings_Click(object? sender, RoutedEventArgs e)

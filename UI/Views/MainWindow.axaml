@@ -37,22 +37,22 @@
         </Menu>
         <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5" Text="{Binding StatusBlockText}" />
         <Grid
-              RowDefinitions="*"
-              Margin="10 0"
-              IsEnabled="{Binding IsDbEnabled}">
+            RowDefinitions="*"
+            Margin="10 0"
+            IsEnabled="{Binding IsDbEnabled}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition MinWidth="300" Width="300"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition MinWidth="300" Width="300" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            
+
             <TabControl Grid.Column="0" Margin="0 0 5 0 " Theme="{StaticResource CardTabControl}">
                 <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
                     <Grid RowDefinitions="*, Auto">
                         <TreeView Grid.Row="0"
                                   Name="TagTree"
                                   VerticalAlignment="Stretch"
-                                  ItemsSource="{Binding HierarchyTreeViewModel.TopLevelTags, FallbackValue={x:Null}}"
+                                  ItemsSource="{Binding HierarchyTreeViewModel.TopLevelTagNodes, FallbackValue={x:Null}}"
                                   SelectedItem="{Binding HierarchyTreeViewModel.SelectedTag, Mode=TwoWay, FallbackValue={x:Null}}">
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">
@@ -72,7 +72,7 @@
                         <Button Grid.Row="1" HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center"
                                 Content="{x:Static assets:Resources.ButtonAdd}"
-                                Click="ButtonAdd_Click" Theme="{StaticResource SolidButton}"/>
+                                Click="ButtonAdd_Click" Theme="{StaticResource SolidButton}" />
                     </Grid>
                 </TabItem>
                 <TabItem Header="{x:Static assets:Resources.TabSearch}">
@@ -116,13 +116,16 @@
                 <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch"
                          Margin="0 0 0 5 " />
-                <TextBox Grid.Row="1" Name="ParentsTextBox" Text="{Binding SelectedTag.EditingParents, FallbackValue=''}"
+                <TextBox Grid.Row="1" Name="ParentsTextBox"
+                         Text="{Binding SelectedTag.EditingParents, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch"
                          Margin="0 0 0 5 " />
-                <TextBox Grid.Row="2" Name="BindingsTextBox" Text="{Binding SelectedTag.EditingTagBindings, FallbackValue=''}"
+                <TextBox Grid.Row="2" Name="BindingsTextBox"
+                         Text="{Binding SelectedTag.EditingTagBindings, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch"
                          Margin="0 0 0 5 " />
-                <TextBox Grid.Row="3" Name="AliasesTextBox" Text="{Binding SelectedTag.EditingAliases, FallbackValue=''}"
+                <TextBox Grid.Row="3" Name="AliasesTextBox"
+                         Text="{Binding SelectedTag.EditingAliases, FallbackValue=''}"
                          Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch"
                          Margin="0 0 0 5 " />
                 <TextBox Grid.Row="4" Name="NotesTextBox" Classes="TextArea ClearButton"
@@ -131,14 +134,14 @@
                          AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0 0 0 5 " />
                 <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="0">
                     <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel, FallbackValue=''}"
-                              Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}" 
-                              VerticalAlignment="Center"/>
+                              Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"
+                              VerticalAlignment="Center" />
                     <Button Grid.Column="1" Margin="0 0 5 0"
                             Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click">
                         <Button.IsEnabled>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                <Binding Path="SelectedTag.OnDatabase" FallbackValue="False"/>
-                                <Binding Path="!SelectedTag.HasChildren" FallbackValue="False"/>
+                                <Binding Path="SelectedTag.OnDatabase" FallbackValue="False" />
+                                <Binding Path="!SelectedTag.HasChildren" FallbackValue="False" />
                             </MultiBinding>
                         </Button.IsEnabled>
                     </Button>
