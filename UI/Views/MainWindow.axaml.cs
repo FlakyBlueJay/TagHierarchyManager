@@ -24,6 +24,11 @@ public partial class MainWindow : Window
         this.ViewModel?.NewTag();
     }
 
+    public void ButtonBulkAdd_Click(object? sender, RoutedEventArgs e)
+    {
+        this.ViewModel?.ShowBulkAddDialog();
+    }
+
     public void ButtonCancel_Click(object? sender, RoutedEventArgs e)
     {
         this.ViewModel?.SelectedTag?.BeginEdit();

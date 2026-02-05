@@ -68,8 +68,8 @@ public partial class TagDatabase
         bool isTransactionOwner = transaction == null;
         transaction ??= (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
 
-        HashSet<Tag> updatedTags = [];
-        HashSet<Tag> newlyAddedTags = [];
+        List<Tag> updatedTags = [];
+        List<Tag> newlyAddedTags = [];
 
         try
         {

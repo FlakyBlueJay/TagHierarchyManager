@@ -1,0 +1,66 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+        xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
+        x:DataType="vm:BulkAddViewModel"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="450"
+        Width="1100" Height="450"
+        x:Class="TagHierarchyManager.UI.Views.BulkAddWindow"
+        Title="{Binding WindowTitle}">
+    <Grid
+        RowDefinitions="*, Auto"
+        Margin="20">
+        <Grid Grid.Row="0">
+            <Panel DoubleTapped="DataGrid_OnDoubleClick" Background="Transparent" />
+            <DataGrid
+                Name="TagTable"
+                CanUserResizeColumns="True"
+                ItemsSource="{Binding Tags}"
+                CanUserSortColumns="False">
+                <DataGrid.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuItem Header="{x:Static assets:Resources.BulkAddButtonDeleteRow}"
+                                  Click="ButtonDelete_OnClick" />
+                    </MenuFlyout>
+                </DataGrid.ContextFlyout>
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="{x:Static assets:Resources.CheckBoxTopLevel}" CanUserResize="False"
+                                            Binding="{Binding IsTopLevel}" />
+                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderName}" Binding="{Binding Name}"
+                                        MinWidth="200" />
+                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderParents}" Binding="{Binding Parents}"
+                                        MinWidth="200" />
+                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderTagBindings}"
+                                        Binding="{Binding TagBindings}" />
+                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderAliases}" Binding="{Binding Aliases}"
+                                        MinWidth="200" />
+                    <!-- TODO add custom cell for handling multi-line note editing -->
+                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderNotes}" Binding="{Binding Notes}"
+                                        MinWidth="200" />
+
+                </DataGrid.Columns>
+
+
+            </DataGrid>
+
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, *, Auto, Auto" Margin="0 15 0 0">
+            <Button Grid.Column="0" Margin="0 0 5 0"
+                    Content="{x:Static assets:Resources.BulkAddButtonAddRow}" Theme="{StaticResource OutlineButton}"
+                    Click="ButtonAdd_OnClick" />
+            <Button Grid.Column="1" Margin="0 0 5 0"
+                    Content="{x:Static assets:Resources.BulkAddButtonDeleteRow}" Theme="{StaticResource OutlineButton}"
+                    Classes="Danger" Click="ButtonDelete_OnClick" />
+            <Button Grid.Column="3" Margin="0 0 5 0"
+                    Content="{x:Static assets:Resources.ButtonCancel}"
+                    Click="ButtonCancel_Click" />
+            <Button Grid.Column="4" Content="{x:Static assets:Resources.ButtonOk}"
+                    Theme="{StaticResource SolidButton}"
+                    IsEnabled="{Binding CanSave}"
+                    Click="ButtonSave_OnClick" />
+        </Grid>
+    </Grid>
+</Window>

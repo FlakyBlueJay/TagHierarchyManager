@@ -69,10 +69,15 @@
                                 </TreeDataTemplate>
                             </TreeView.ItemTemplate>
                         </TreeView>
-                        <Button Grid.Row="1" HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Center"
-                                Content="{x:Static assets:Resources.ButtonAdd}"
-                                Click="ButtonAdd_Click" Theme="{StaticResource SolidButton}" />
+                        <StackPanel Grid.Row="1" Orientation="Vertical">
+                            <Button Content="{x:Static assets:Resources.ButtonBulkAdd}"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0 6 " Click="ButtonBulkAdd_Click"
+                                    Theme="{StaticResource OutlineButton}" />
+                            <Button HorizontalAlignment="Stretch"
+                                    Content="{x:Static assets:Resources.ButtonAdd}"
+                                    Click="ButtonAdd_Click" Theme="{StaticResource SolidButton}" />
+                        </StackPanel>
                     </Grid>
                 </TabItem>
                 <TabItem Header="{x:Static assets:Resources.TabSearch}">
@@ -137,7 +142,8 @@
                               Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"
                               VerticalAlignment="Center" />
                     <Button Grid.Column="1" Margin="0 0 5 0"
-                            Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click">
+                            Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click"
+                            Theme="{StaticResource OutlineButton}" Classes="Danger">
                         <Button.IsEnabled>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
                                 <Binding Path="SelectedTag.OnDatabase" FallbackValue="False" />
@@ -146,7 +152,7 @@
                         </Button.IsEnabled>
                     </Button>
                     <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}"
-                            Click="ButtonCancel_Click" />
+                            Click="ButtonCancel_Click" Theme="{StaticResource OutlineButton}" />
                     <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}"
                             Theme="{StaticResource SolidButton}" Click="ButtonSave_Click" />
                 </Grid>

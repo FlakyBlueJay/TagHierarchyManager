@@ -151,6 +151,19 @@ public partial class MainWindowViewModel : ViewModelBase
         this.UnsavedChanges = false;
     }
 
+    public void ShowBulkAddDialog()
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var dialog = new BulkAddWindow
+        {
+            DataContext = new BulkAddViewModel(this)
+        };
+
+        dialog.ShowDialog(desktop.MainWindow!);
+    }
+
     public void ShowDatabaseSettings()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)

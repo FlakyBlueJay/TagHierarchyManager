@@ -113,7 +113,7 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
             this.EditingParents = newParents;
             this.OnPropertyChanged(nameof(this.EditingParents));
         }
-        
+
         this._isInitialising = false;
     }
 
@@ -147,6 +147,9 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
         var parentNames = this.EditingParents.Split(';',
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
+
+        if (string.IsNullOrWhiteSpace(this.Name))
+            throw new ArgumentException(Resources.ErrorBlankTagName);
 
         if (!this.EditingIsTopLevel && parentNames.Count == 0)
             throw new InvalidOperationException(Resources.ErrorOrphanTagAttempt);

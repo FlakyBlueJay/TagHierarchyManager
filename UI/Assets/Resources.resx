@@ -107,7 +107,7 @@
         <value>Notes</value>
     </data>
     <data name="CheckBoxTopLevel" xml:space="preserve">
-        <value>Is top level</value>
+        <value>Is top level?</value>
     </data>
     <data name="WatermarkSearchQuery" xml:space="preserve">
         <value>Query to search for...</value>
@@ -137,7 +137,7 @@
         <value>About {0}</value>
     </data>
     <data name="StatusBlockDbLoadSuccessful" xml:space="preserve">
-        <value>Database "{0}" loaded successfully.</value>
+        <value>"{0}" loaded successfully.</value>
     </data>
     <data name="ButtonYes" xml:space="preserve">
         <value>Yes</value>
@@ -179,10 +179,10 @@
         <value>Tag "{0}" saved successfully.</value>
     </data>
     <data name="StatusBlockExportInProgress" xml:space="preserve">
-        <value>Exporting tag database...</value>
+        <value>Exporting tag hierarchy...</value>
     </data>
     <data name="StatusBlockExportSuccessful" xml:space="preserve">
-        <value>Database successfully exported at {0}</value>
+        <value>Successfully exported at "{0}"</value>
     </data>
     <data name="DatabaseSettingsTagCount" xml:space="preserve">
         <value>Tags: {0}, with {1} parent-child relationships</value>
@@ -228,5 +228,38 @@
     </data>
     <data name="ErrorImportFileTypeNotSupported" xml:space="preserve">
         <value>File type '{0}' is not supported.</value>
+    </data>
+    <data name="HeaderName" xml:space="preserve">
+        <value>Name</value>
+    </data>
+    <data name="HeaderParents" xml:space="preserve">
+        <value>Parent(s)</value>
+    </data>
+    <data name="HeaderTagBindings" xml:space="preserve">
+        <value>Tag binding(s)</value>
+    </data>
+    <data name="HeaderAliases" xml:space="preserve">
+        <value>Alias(es)</value>
+    </data>
+    <data name="HeaderNotes" xml:space="preserve">
+        <value>Notes</value>
+    </data>
+    <data name="BulkAddButtonAddRow" xml:space="preserve">
+        <value>Add row...</value>
+    </data>
+    <data name="BulkAddButtonDeleteRow" xml:space="preserve">
+        <value>Delete row(s)...</value>
+    </data>
+    <data name="ErrorBlankTagName" xml:space="preserve">
+        <value>File name cannot be blank.</value>
+    </data>
+    <data name="StatusBlockBulkAddSuccess" xml:space="preserve">
+        <value>Successfully added {0} tags.</value>
+    </data>
+    <data name="BulkAddDialogTitle" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ButtonBulkAdd" xml:space="preserve">
+        <value>Add multiple tags...</value>
     </data>
 </root>

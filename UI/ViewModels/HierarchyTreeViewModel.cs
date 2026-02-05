@@ -18,7 +18,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private TagItemViewModel? _selectedTag;
 
     [ObservableProperty] private ObservableCollection<TagItemViewModel> _topLevelTagNodes = [];
-    
+
     [ObservableProperty] private Dictionary<int, HashSet<TagItemViewModel>> _viewModelMap = new();
 
     public HierarchyTreeViewModel(MainWindowViewModel mainWindow)
@@ -39,12 +39,13 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         this._mainWindow.Database.TagUpdated -= this.TagDatabase_OnTagUpdated;
         this._mainWindow.Database.TagAdded -= this.TagDatabase_OnTagAdded;
         this._mainWindow.Database.TagDeleted -= this.TagDatabase_OnTagDeleted;
+        this._mainWindow.Database.TagsAdded -= this.TagDatabase_OnTagsAdded;
+        GC.SuppressFinalize(this);
     }
 
     public async Task InitializeAsync()
     {
         if (this._mainWindow.Database is null) return;
-        // await this.SyncHierarchyAsync();
         this.ViewModelMap.Clear();
         await Task.Run(() =>
         {
@@ -93,6 +94,9 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         if (!this.ViewModelMap.TryGetValue(parentId, out var parentViewModels)) return;
 
         foreach (var parent in parentViewModels)
+        {
+            if (parent.Children.Any(c => c.Id == tag.Id)) continue;
+
             await Task.Run(() =>
             {
                 var tagNode = new TagItemViewModel(tag, this._getParentNamesById);
@@ -105,6 +109,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
                 parent.Children.Insert(index, tagNode);
                 this.AddTagNodeToViewModelMap(tagNode);
             });
+        }
 
         if (!this.ChildNodeMap.TryGetValue(tag.Id, out var set))
             this.ChildNodeMap.Add(tag.Id, [parentId]);
@@ -166,17 +171,9 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         this._mainWindow.SelectedTag = value;
     }
 
-    private void SubscribeToEvents()
+    private async Task ProcessTagAdditions(List<Tag> newTags)
     {
-        if (this._mainWindow.Database is null) return;
-        this._mainWindow.Database.TagUpdated += this.TagDatabase_OnTagUpdated;
-        this._mainWindow.Database.TagAdded += this.TagDatabase_OnTagAdded;
-        this._mainWindow.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
-    }
-
-    private async void TagDatabase_OnTagAdded(object? sender, Tag newTag)
-    {
-        try
+        foreach (var newTag in newTags)
         {
             if (newTag.IsTopLevel)
                 await this.AddTopLevelNode(newTag);
@@ -184,6 +181,23 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             if (newTag.ParentIds.Count == 0) return;
             foreach (var parentId in newTag.ParentIds)
                 await this.AddChildNode(newTag, parentId);
+        }
+    }
+
+    private void SubscribeToEvents()
+    {
+        if (this._mainWindow.Database is null) return;
+        this._mainWindow.Database.TagUpdated += this.TagDatabase_OnTagUpdated;
+        this._mainWindow.Database.TagAdded += this.TagDatabase_OnTagAdded;
+        this._mainWindow.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
+        this._mainWindow.Database.TagsAdded += this.TagDatabase_OnTagsAdded;
+    }
+
+    private async void TagDatabase_OnTagAdded(object? sender, Tag newTag)
+    {
+        try
+        {
+            await this.ProcessTagAdditions([newTag]);
         }
         catch (Exception e)
         {
@@ -197,6 +211,19 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         try
         {
             await this.WipeTagNodes(deletedTag.id);
+        }
+        catch (Exception e)
+        {
+            var error = new ErrorDialogViewModel(e.Message);
+            error.ShowDialog();
+        }
+    }
+
+    private async void TagDatabase_OnTagsAdded(object? sender, List<Tag> newTags)
+    {
+        try
+        {
+            await this.ProcessTagAdditions(newTags);
         }
         catch (Exception e)
         {

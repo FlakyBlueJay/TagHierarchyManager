@@ -69,12 +69,15 @@ public partial class Tag
     /// <exception cref="InvalidOperationException">Thrown when both Parents and ParentNames are empty.</exception>
     public bool Validate()
     {
+        if (string.IsNullOrWhiteSpace(this.Name))
+            throw new InvalidOperationException("Tag name cannot be blank.");
+        
         if (!this.IsTopLevel && this.ParentIds.Count == 0 && this.Parents.Count == 0)
             throw new InvalidOperationException(ErrorMessages.OrphanTagAttempt(this.Name));
 
         if (this.Parents.Contains(this.Name) || this.ParentIds.Contains(this.Id))
             throw new InvalidOperationException(ErrorMessages.MakingSelfParentAttempt(this.Name));
-
+        
         return true;
     }
 }
