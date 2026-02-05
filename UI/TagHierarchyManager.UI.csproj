@@ -34,6 +34,7 @@
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
         <PackageReference Include="Semi.Avalonia" Version="11.3.7.2" />
+        <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.3.7.2" />
     </ItemGroup>
     
     <ItemGroup>

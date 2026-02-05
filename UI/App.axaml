@@ -12,5 +12,6 @@
   
      <Application.Styles>
          <semi:SemiTheme Locale="en-GB" />
+         <semi:DataGridSemiTheme/>
      </Application.Styles>
 </Application>
