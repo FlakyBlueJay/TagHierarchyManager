@@ -2,6 +2,7 @@ using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager;
 
+// TODO Migrate to RESX
 /// <summary>
 ///     A static class storing error message strings for use when showing errors or throwing exceptions.<br /><br />
 ///     Some classes can have their own error message classes for more specific messages, this is intended for error

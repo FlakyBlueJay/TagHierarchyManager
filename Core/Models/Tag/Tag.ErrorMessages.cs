@@ -1,5 +1,6 @@
 namespace TagHierarchyManager.Models;
 
+// TODO migrate to RESX
 public partial class Tag
 {
     /// <summary>
