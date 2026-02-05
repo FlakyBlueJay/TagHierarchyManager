@@ -186,4 +186,22 @@ public class TagDatabaseWriteTests : TestBase
             Assert.That(savedTag.Aliases, Is.EquivalentTo(inputTag.Aliases));
         }
     }
+
+    [Test]
+    public async Task TagDatabase_WriteTagsToDatabase_TagAdded()
+    {
+        // Arrange
+        HashSet<Tag> eventExpectedTags = [];
+        List<Tag> testTags = [TestSampleTags.Ambient, TestSampleTags.Electronic, TestSampleTags.SpaceAmbient];
+        this.Database.TagsAdded += (_, tags) => eventExpectedTags.UnionWith(tags);
+        this.Database.ClearTags();
+        
+        // Act
+        await this.Database.WriteTagsToDatabase(testTags);
+        
+        // Assert
+        var retrievedTags = await this.Database.GetAllTagsFromDatabase();
+        Assert.That(retrievedTags.Count, Is.EqualTo(testTags.Count));
+        Assert.That(eventExpectedTags.Count, Is.EqualTo(testTags.Count));
+    }
 }

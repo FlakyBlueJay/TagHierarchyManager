@@ -61,6 +61,71 @@ public partial class TagDatabase
             if (isTransactionOwner) await transaction.DisposeAsync().ConfigureAwait(false);
         }
     }
+    
+    public async Task WriteTagsToDatabase(List<Tag> tags, SqliteTransaction? transaction = null)
+    {
+        this.CheckInitialisation();
+        bool isTransactionOwner = transaction == null;
+        transaction ??= (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
+
+        HashSet<Tag> updatedTags = [];
+        HashSet<Tag> newlyAddedTags = [];
+
+        try
+        {
+            // technically, this supports bulk tag updates as well, but i ain't doing that rn.
+            foreach (var tag in tags)
+            {
+                bool alreadyOnDatabase = tag.Id != 0;
+                
+                SqliteCommand addCommand = this.currentConnection.CreateCommand();
+                addCommand.Transaction = transaction;
+                QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
+                
+                if (await this.SelectTagFromDatabase(tag.Name) is not null && !alreadyOnDatabase)
+                    throw new ArgumentException(ErrorMessages.TagAlreadyExists(tag.Name));
+                
+                tag.Id = Convert.ToInt32(await addCommand.ExecuteScalarAsync().ConfigureAwait(false),
+                    CultureInfo.InvariantCulture);
+                
+                await this.SaveTagAliases(transaction, tag.Id, tag.Aliases).ConfigureAwait(false);
+                await this.SaveTagParents(transaction, tag.Id, tag.Parents, tag).ConfigureAwait(false);
+
+                int index = this.Tags.FindIndex(t => t.Id == tag.Id);
+                if (index != -1)
+                {
+                    this.Tags[index] = tag;
+                    updatedTags.Add(tag);
+                }
+                else
+                {
+                    this.Tags.Add(tag);
+                    newlyAddedTags.Add(tag);
+                }
+            }
+            
+            if (isTransactionOwner) await transaction.CommitAsync().ConfigureAwait(false);
+
+            if (updatedTags.Count > 0)
+            {
+                this.TagsUpdated.Invoke(this, updatedTags);
+            }
+            
+            if (newlyAddedTags.Count > 0)
+            {
+                this.TagsAdded.Invoke(this, newlyAddedTags);
+            }
+        }
+        catch (SqliteException)
+        {
+            await transaction.RollbackAsync().ConfigureAwait(false);
+            throw;
+        }
+        finally
+        {
+            if (isTransactionOwner) await transaction.DisposeAsync().ConfigureAwait(false);
+        }
+    }
 
     private async Task SaveTagAliases(SqliteTransaction transaction, int id, IReadOnlyCollection<string> aliases)
     {

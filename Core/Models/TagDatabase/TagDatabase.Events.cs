@@ -13,6 +13,10 @@ public partial class TagDatabase
     
     public event EventHandler<(int id, string name)> TagDeleted = delegate { };
     
+    public event EventHandler<HashSet<Tag>> TagsAdded = delegate { };
+    
+    public event EventHandler<HashSet<Tag>> TagsUpdated = delegate { };
+    
     private void OnInitialisationComplete(EventArgs e)
     {
         this.Logger.Debug("OnInitialised invoked!");
