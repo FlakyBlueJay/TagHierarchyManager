@@ -191,8 +191,7 @@ public class TagDatabaseService : ObservableObject
         this.Database.TagUpdated += this.TagDatabase_OnTagUpdated;
         this.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
     }
-
-    // TODO this isn't activating and new database results in NullReferenceException.
+    
     private void TagDatabase_OnInitialisationComplete(object? sender, EventArgs e)
     {
         this.Database = sender as TagDatabase;

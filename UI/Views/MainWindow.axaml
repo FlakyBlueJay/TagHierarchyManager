@@ -4,17 +4,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
+        xmlns:parameterConverters="clr-namespace:TagHierarchyManager.UI.ParameterConverters"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TagHierarchyManager.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Closing="WindowClosing"
         Title="{Binding WindowTitle}">
+    <Window.Resources>
+        <parameterConverters:SearchParametersConverter x:Key="SearchParametersConverter" />
+    </Window.Resources>
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="{x:Static assets:Resources.MenuFile}">
                 <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}"
                           Command="{Binding NewDatabaseCommand}" />
-                <MenuItem Header="{x:Static assets:Resources.MenuItemImport}" Click="MenuItemImport_Click" />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemImport}"
+                          Command="{Binding ShowImportDialogCommand}"/>
                 <Separator />
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}"
                           Command="{Binding OpenDatabaseCommand}" />
@@ -26,14 +31,14 @@
             <MenuItem IsEnabled="{Binding IsDbEnabled}"
                       Header="{x:Static assets:Resources.MenuDatabase}">
                 <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}"
-                          Click="MenuItemDatabaseSettings_Click" />
+                          Command="{Binding ShowDatabaseSettingsCommand}" />
                 <Separator />
                 <MenuItem IsEnabled="False"
                           Header="{Binding TotalTags,
                           StringFormat={x:Static assets:Resources.MenuItemTotalTags}}" />
             </MenuItem>
             <MenuItem Header="{x:Static assets:Resources.MenuHelp}">
-                <MenuItem Header="{x:Static assets:Resources.MenuItemAbout}" Click="OpenAboutWindow" />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemAbout}" Click="MenuItemAbout_Click" />
             </MenuItem>
         </Menu>
         <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5" Text="{Binding StatusBlockText}" />
@@ -73,11 +78,11 @@
                         <StackPanel Grid.Row="1" Orientation="Vertical">
                             <Button Content="{x:Static assets:Resources.ButtonBulkAdd}"
                                     HorizontalAlignment="Stretch"
-                                    Margin="0 6 " Click="ButtonBulkAdd_Click"
+                                    Margin="0 6 " Command="{Binding ShowBulkAddDialogCommand}"
                                     Theme="{StaticResource OutlineButton}" />
                             <Button HorizontalAlignment="Stretch"
                                     Content="{x:Static assets:Resources.ButtonAdd}"
-                                    Click="ButtonAdd_Click" Theme="{StaticResource SolidButton}" />
+                                    Command="{Binding NewTagCommand}" Theme="{StaticResource SolidButton}" />
                         </StackPanel>
                     </Grid>
                 </TabItem>
@@ -93,7 +98,15 @@
                                 Margin="0 5 "
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center"
-                                Click="ButtonSearch_Click" />
+                                Command="{Binding StartSearchCommand}">
+                            <Button.CommandParameter>
+                                <MultiBinding Converter="{StaticResource SearchParametersConverter}">
+                                    <Binding ElementName="SearchTextBox" Path="Text"/>
+                                    <Binding ElementName="SearchModeComboBox" Path="SelectedIndex"/>
+                                    <Binding ElementName="SearchAliasesCheckBox" Path="IsChecked"/>
+                                </MultiBinding>
+                            </Button.CommandParameter>
+                        </Button>
                         <ComboBox Grid.Row="3" Name="SearchModeComboBox" HorizontalAlignment="Stretch" Margin="0 0 0 5"
                                   SelectedIndex="0">
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeFuzzy}" />
@@ -162,6 +175,7 @@
         </Grid>
     </DockPanel>
     <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+B" Command="{Binding ShowBulkAddDialogCommand}"></KeyBinding>
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveSelectedTagCommand}" />
         <KeyBinding Gesture="Delete" Command="{Binding StartTagDeletionCommand}" />
         <KeyBinding Gesture="Ctrl+E" Command="{Binding StartExportCommand}" />

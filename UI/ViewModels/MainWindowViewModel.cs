@@ -14,7 +14,8 @@ using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-// this has become a "god" view model and becoming unwieldy to manage.
+// things have improved here but i will want to separate some more stuff one day.
+// such as putting search functions and tag editor functions in their own viewmodels.
 public partial class MainWindowViewModel : ViewModelBase
 {
     [ObservableProperty] private HierarchyTreeViewModel? _hierarchyTreeViewModel;
@@ -41,6 +42,13 @@ public partial class MainWindowViewModel : ViewModelBase
         this.TagDatabaseService.InitialisationComplete += this.TagDatabaseService_OnInitalisationComplete;
         this.TagDatabaseService.TagAdded += this.TagDatabaseService_TagAdded;
         this.TagDatabaseService.TagDeleted += this.TagDatabaseService_TagDeleted;
+        this.TagDatabaseService.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(this.TagDatabaseService.TagCount))
+            {
+                this.OnPropertyChanged(nameof(this.TotalTags));
+            }
+        };
     }
 
     public int TotalTags => this.TagDatabaseService.TagCount;
@@ -74,7 +82,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public async Task NewTag()
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task NewTag()
     {
         var userWantsToSave = await this.ShowUnsavedChangesDialog();
         if (userWantsToSave is null) return;
@@ -102,6 +111,7 @@ public partial class MainWindowViewModel : ViewModelBase
         this.UnsavedChanges = false;
     }
 
+    [RelayCommand]
     public void ShowBulkAddDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -115,6 +125,7 @@ public partial class MainWindowViewModel : ViewModelBase
         dialog.ShowDialog(desktop.MainWindow!);
     }
 
+    [RelayCommand]
     public void ShowDatabaseSettings()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -128,6 +139,7 @@ public partial class MainWindowViewModel : ViewModelBase
         dialog.ShowDialog(desktop.MainWindow!);
     }
 
+    [RelayCommand]
     public void ShowImportDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -158,9 +170,24 @@ public partial class MainWindowViewModel : ViewModelBase
         return result;
     }
 
-    public void StartSearch(string searchQuery, TagDatabaseSearchMode mode, bool searchAliases)
+    [RelayCommand]
+    private void StartSearch(object? parameter)
     {
-        this.SearchViewModel?.Search(searchQuery, mode, searchAliases);
+        if (parameter is not object[] values || values.Length < 3) return;
+        
+        var query = values[0] as string ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(query)) return;
+        var mode = (TagDatabaseSearchMode)values[1];
+        var searchAliases = (bool)values[2];
+
+        try
+        {
+            this.SearchViewModel?.Search(query, mode, searchAliases);
+        }
+        catch (Exception ex)
+        {
+            this.ShowErrorDialog(ex.Message);
+        }
     }
 
     [RelayCommand]
@@ -190,7 +217,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task DeleteSelectedTagAsync()
     {
         var oldTag = this.SelectedTag;
-        if (this.SelectedTag is null || this.TagDatabaseService.IsDatabaseOpen) return;
+        if (this.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen) return;
         try
         {
             await this.TagDatabaseService.DeleteTag(this.SelectedTag.Tag.Id);
@@ -242,7 +269,6 @@ public partial class MainWindowViewModel : ViewModelBase
             this._isSwitching = false;
         }
     }
-
 
     [RelayCommand]
     private async Task NewDatabaseAsync()
@@ -375,7 +401,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void TagDatabaseService_OnInitalisationComplete(object? sender, EventArgs e)
     {
-        if (sender is not TagDatabaseService tdb) return;
+        if (sender is not TagDatabaseService _) return;
         Dispatcher.UIThread.Post(async void () =>
         {
             try
