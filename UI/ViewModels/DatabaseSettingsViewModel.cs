@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.UI.Assets;
 
 namespace TagHierarchyManager.UI.ViewModels;
@@ -25,10 +27,13 @@ public partial class DatabaseSettingsViewModel : ViewModelBase
             mainWindow.TagDatabaseService.TagCount, tagRelationshipCount);
         this.DefaultTagBindings = string.Join("; ", mainWindow.TagDatabaseService.DefaultTagBindings);
     }
+    
+    public event Action? RequestClose;
 
-
-    public void SaveSettings()
+    [RelayCommand]
+    private void SaveSettings()
     {
         this._mainWindow.TagDatabaseService.SetDefaultTagBindings(this.DefaultTagBindings);
+        this.RequestClose?.Invoke();
     }
 }
