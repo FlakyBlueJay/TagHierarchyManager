@@ -1,7 +1,7 @@
 ﻿using Avalonia.Platform.Storage;
 using TagHierarchyManager.UI.Assets;
 
-namespace TagHierarchyManager.UI.Views;
+namespace TagHierarchyManager.UI;
 
 public static class Common
 {

@@ -12,20 +12,20 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class BulkAddViewModel : ViewModelBase
 {
+    private readonly MainWindowViewModel _mainWindow;
     [ObservableProperty] private ObservableCollection<TagRow> _tags = [new() { Name = "", IsTopLevel = false }];
 
     [ObservableProperty] private string _windowTitle;
 
     public BulkAddViewModel(MainWindowViewModel mainWindow)
     {
-        this.MainWindow = mainWindow;
+        this._mainWindow = mainWindow;
         this.Tags.CollectionChanged += this.OnTagsCollectionChanged;
-        this.WindowTitle = string.Format("{0} - " + Resources.ButtonBulkAdd, this.MainWindow.Database?.Name);
+        this.WindowTitle = string.Format("{0} - " + Resources.ButtonBulkAdd,
+            this._mainWindow.TagDatabaseService.DatabaseName);
     }
 
     public bool CanSave => this.Tags.Count > 0;
-
-    private MainWindowViewModel MainWindow { get; }
 
     public void AddTag()
     {
@@ -39,7 +39,7 @@ public partial class BulkAddViewModel : ViewModelBase
 
     public async Task SaveTags()
     {
-        if (this.MainWindow.Database is null) return;
+        if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
         var tags = this.Tags.Select(tagRow =>
             {
                 var tag = new Tag
@@ -68,8 +68,8 @@ public partial class BulkAddViewModel : ViewModelBase
             })
             .ToList();
 
-        await this.MainWindow.Database.WriteTagsToDatabase(tags);
-        this.MainWindow.StatusBlockText = string.Format(Resources.StatusBlockBulkAddSuccess, tags.Count);
+        await this._mainWindow.TagDatabaseService.WriteTagsToDatabase(tags);
+        this._mainWindow.StatusBlockText = string.Format(Resources.StatusBlockBulkAddSuccess, tags.Count);
     }
 
     private void OnTagsCollectionChanged(object? sender,

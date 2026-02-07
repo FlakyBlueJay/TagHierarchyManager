@@ -1,0 +1,19 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="120"
+        Width="500" Height="120" CanResize="False"
+        x:Class="TagHierarchyManager.UI.Views.UnsavedCancelDialog"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Title="">
+    <StackPanel Margin="20">
+        <TextBlock Text="{x:Static assets:Resources.MessageUnsavedCancel}" Margin="0 0 0 10 " TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="{x:Static assets:Resources.ButtonYes}" Click="ButtonYes_Click" Margin="0 0 5 0" />
+            <Button Content="{x:Static assets:Resources.ButtonNo}" Click="ButtonNo_Click" Margin="0 0 5 0" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -256,10 +256,10 @@
     <data name="StatusBlockBulkAddSuccess" xml:space="preserve">
         <value>Successfully added {0} tags.</value>
     </data>
-    <data name="BulkAddDialogTitle" xml:space="preserve">
-        <value />
-    </data>
     <data name="ButtonBulkAdd" xml:space="preserve">
         <value>Add multiple tags...</value>
+    </data>
+    <data name="MessageUnsavedCancel" xml:space="preserve">
+        <value>You have unsaved changes to the currently loaded tag. Are you sure you want to cancel?</value>
     </data>
 </root>

@@ -17,7 +17,8 @@
                        Foreground="{DynamicResource SemiColorTertiary}"
                        Text="{Binding VisibleTemplateFilePath}" />
             <Button Name="ButtonBrowseTemplate" Grid.Column="1" Margin=" 5 0 0 0"
-                    Content="{x:Static assets:Resources.ButtonBrowse}" Click="ButtonBrowseTemplate_Click" />
+                    Content="{x:Static assets:Resources.ButtonBrowse}"
+                    Command="{Binding ShowTemplateBrowseDialogCommand}" />
         </Grid>
         <TextBlock Text="{x:Static assets:Resources.ImportDatabaseToSave}" />
         <Grid ColumnDefinitions="*, Auto" Margin="0 0 0 20">
@@ -26,14 +27,16 @@
                        Foreground="{DynamicResource SemiColorTertiary}"
                        Text="{Binding VisibleDatabaseFilePath}" />
             <Button Name="ButtonBrowseDatabase" Grid.Column="1" Margin=" 5 0 0 0"
-                    Content="{x:Static assets:Resources.ButtonBrowse}" Click="ButtonBrowseDatabase_Click" />
+                    Content="{x:Static assets:Resources.ButtonBrowse}"
+                    Command="{Binding ShowDatabaseBrowseDialogCommand}" />
         </Grid>
         <Grid ColumnDefinitions="*, Auto, Auto">
             <TextBlock Grid.Column="0" IsVisible="True" VerticalAlignment="Center" Text="{Binding ImportStatus}" />
             <Button Grid.Column="1" Content="{x:Static assets:Resources.ButtonCancel}" Click="ButtonCancel_Click" />
             <Button Grid.Column="2" Margin=" 5 0 0 0"
                     Content="{x:Static assets:Resources.ButtonImport}"
-                    IsEnabled="{Binding BothFilesSelected}" Click="ButtonImport_Click" />
+                    IsEnabled="{Binding BothFilesSelected}"
+                    Command="{Binding InitiateImportCommand}" />
         </Grid>
     </StackPanel>
 </Window>

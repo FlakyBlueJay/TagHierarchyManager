@@ -20,28 +20,23 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
     public SearchViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
-        this._getParentNamesById = parents =>
-            parents.Select(id => this._mainWindow.Database?.Tags.FirstOrDefault(t => t.Id == id))
-                .Where(tag => tag is not null)
-                .Select(tag => tag!.Name)
-                .ToList();
-        mainWindow.Database?.TagDeleted += this.TagDatabase_OnTagDeleted;
+        this._getParentNamesById = mainWindow.TagDatabaseService.GetParentNamesByIds;
+        mainWindow.TagDatabaseService.TagDeleted += this.TagDatabase_OnTagDeleted;
     }
 
     public void Dispose()
     {
-        this._mainWindow.Database?.TagDeleted -= this.TagDatabase_OnTagDeleted;
+        this._mainWindow.TagDatabaseService.TagDeleted -= this.TagDatabase_OnTagDeleted;
     }
 
     public void Search(string searchQuery, TagDatabaseSearchMode mode, bool searchAliases)
     {
-        if (this._mainWindow.Database == null || string.IsNullOrWhiteSpace(searchQuery)) return;
-
-        var results = searchAliases
-            ? this._mainWindow.Database.SearchWithAliases(searchQuery, mode)
-            : this._mainWindow.Database.Search(searchQuery, mode);
+        if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen || string.IsNullOrWhiteSpace(searchQuery)) return;
 
         this.SearchResults.Clear();
+
+        var results = this._mainWindow.TagDatabaseService.SearchTags(searchQuery, mode, searchAliases);
+
         if (results.Count == 0)
         {
             this._mainWindow.StatusBlockText = Resources.SearchNoResultsFound;

@@ -148,13 +148,13 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
                 StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
 
-        if (string.IsNullOrWhiteSpace(this.Name))
+        if (string.IsNullOrWhiteSpace(this.EditingName))
             throw new ArgumentException(Resources.ErrorBlankTagName);
 
         if (!this.EditingIsTopLevel && parentNames.Count == 0)
             throw new InvalidOperationException(Resources.ErrorOrphanTagAttempt);
 
-        if (parentNames.Contains(this.Name))
+        if (parentNames.Contains(this.EditingName))
             throw new InvalidOperationException(Resources.ErrorSelfParentAttempt);
     }
 }

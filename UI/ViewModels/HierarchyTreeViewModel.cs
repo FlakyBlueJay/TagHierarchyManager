@@ -24,41 +24,40 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     public HierarchyTreeViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
-        this._getParentNamesById = parentIds =>
-            parentIds.Select(id => this._mainWindow.Database?.Tags.FirstOrDefault(t => t.Id == id))
-                .Where(tag => tag is not null)
-                .Select(tag => tag!.Name)
-                .ToList();
+        this._getParentNamesById = mainWindow.TagDatabaseService.GetParentNamesByIds;
         this.SubscribeToEvents();
     }
 
     public void Dispose()
     {
-        if (this._mainWindow.Database is null) return;
+        if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
 
-        this._mainWindow.Database.TagUpdated -= this.TagDatabase_OnTagUpdated;
-        this._mainWindow.Database.TagAdded -= this.TagDatabase_OnTagAdded;
-        this._mainWindow.Database.TagDeleted -= this.TagDatabase_OnTagDeleted;
-        this._mainWindow.Database.TagsAdded -= this.TagDatabase_OnTagsAdded;
+        this._mainWindow.TagDatabaseService.TagUpdated -= this.TagDatabase_OnTagUpdated;
+        this._mainWindow.TagDatabaseService.TagAdded -= this.TagDatabase_OnTagAdded;
+        this._mainWindow.TagDatabaseService.TagDeleted -= this.TagDatabase_OnTagDeleted;
+        this._mainWindow.TagDatabaseService.TagsAdded -= this.TagDatabase_OnTagsAdded;
         GC.SuppressFinalize(this);
     }
 
     public async Task InitializeAsync()
     {
-        if (this._mainWindow.Database is null) return;
+        if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
         this.ViewModelMap.Clear();
+        this.TopLevelTagNodes.Clear();
         await Task.Run(() =>
         {
-            var topLevelTags = this._mainWindow.Database?.Tags.Where(t => t.IsTopLevel).ToList();
+            var topLevelTags = this._mainWindow.TagDatabaseService.GetAllTags(true);
             var buildingTopLevelNodes = new List<TagItemViewModel>();
-            foreach (var tagNode in topLevelTags!.Select(tag => new TagItemViewModel(tag, this._getParentNamesById)))
+            foreach (var tagNode in
+                     topLevelTags!.Select(tag => new TagItemViewModel(tag, this._getParentNamesById)))
             {
                 buildingTopLevelNodes.Add(tagNode);
                 this.AddTagNodeToViewModelMap(tagNode);
                 this.AddAllChildrenAsync(tagNode);
             }
 
-            this.TopLevelTagNodes = new ObservableCollection<TagItemViewModel>(buildingTopLevelNodes);
+            foreach (var tagNode in buildingTopLevelNodes)
+                this.TopLevelTagNodes.Add(tagNode);
         });
     }
 
@@ -72,7 +71,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         }
 
         var childTags =
-            this._mainWindow.Database?.Tags.Where(t => t.ParentIds.Contains(tag.Id)).OrderBy(t => t.Name).ToList();
+            this._mainWindow.TagDatabaseService.GetAllTagChildren(tag.Id);
 
         if (childTags is null) return;
         foreach (var childNode in childTags.Select(child =>
@@ -138,7 +137,14 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             var newTopLevelTag = new TagItemViewModel(tag, this._getParentNamesById);
             // this does create considerable delay, would be nice to speed it up somehow.
             this.AddAllChildrenAsync(newTopLevelTag);
-            this.TopLevelTagNodes.Add(newTopLevelTag);
+
+            var index = 0;
+            while (index < this.TopLevelTagNodes.Count
+                   && string.Compare(this.TopLevelTagNodes[index].Name, newTopLevelTag.Name,
+                       StringComparison.CurrentCultureIgnoreCase) < 0)
+                index++;
+
+            this.TopLevelTagNodes.Insert(index, newTopLevelTag);
             this.AddTagNodeToViewModelMap(newTopLevelTag);
         });
     }
@@ -186,11 +192,11 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
     private void SubscribeToEvents()
     {
-        if (this._mainWindow.Database is null) return;
-        this._mainWindow.Database.TagUpdated += this.TagDatabase_OnTagUpdated;
-        this._mainWindow.Database.TagAdded += this.TagDatabase_OnTagAdded;
-        this._mainWindow.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
-        this._mainWindow.Database.TagsAdded += this.TagDatabase_OnTagsAdded;
+        if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
+        this._mainWindow.TagDatabaseService.TagUpdated += this.TagDatabase_OnTagUpdated;
+        this._mainWindow.TagDatabaseService.TagAdded += this.TagDatabase_OnTagAdded;
+        this._mainWindow.TagDatabaseService.TagDeleted += this.TagDatabase_OnTagDeleted;
+        this._mainWindow.TagDatabaseService.TagsAdded += this.TagDatabase_OnTagsAdded;
     }
 
     private async void TagDatabase_OnTagAdded(object? sender, Tag newTag)

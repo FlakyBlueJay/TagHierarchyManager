@@ -8,6 +8,7 @@ namespace TagHierarchyManager.UI.Views;
 
 public partial class BulkAddWindow : Window
 {
+    // TODO keydown del = delete selected row/s
     public BulkAddWindow()
     {
         this.InitializeComponent();

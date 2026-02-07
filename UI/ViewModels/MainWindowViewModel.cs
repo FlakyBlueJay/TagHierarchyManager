@@ -1,29 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.Common;
-using TagHierarchyManager.Exporters;
-using TagHierarchyManager.Importers;
 using TagHierarchyManager.Models;
 using TagHierarchyManager.UI.Assets;
 using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
+// this has become a "god" view model and becoming unwieldy to manage.
 public partial class MainWindowViewModel : ViewModelBase
 {
-    internal TagDatabase? Database;
-
     [ObservableProperty] private HierarchyTreeViewModel? _hierarchyTreeViewModel;
 
     [ObservableProperty] private bool _isDbEnabled;
+
 
     private bool _isSwitching;
 
@@ -34,13 +31,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private string _statusBlockText = Resources.StatusBlockReady;
 
+    [ObservableProperty] private TagDatabaseService _tagDatabaseService;
+
     [ObservableProperty] private bool _unsavedChanges;
 
-    public int TotalTags => this.Database?.Tags.Count ?? 0;
+    public MainWindowViewModel(TagDatabaseService tagDatabaseService)
+    {
+        this.TagDatabaseService = tagDatabaseService;
+        this.TagDatabaseService.InitialisationComplete += this.TagDatabaseService_OnInitalisationComplete;
+        this.TagDatabaseService.TagAdded += this.TagDatabaseService_TagAdded;
+        this.TagDatabaseService.TagDeleted += this.TagDatabaseService_TagDeleted;
+    }
+
+    public int TotalTags => this.TagDatabaseService.TagCount;
 
     public string WindowTitle =>
-        this.Database is not null
-            ? string.Format(Resources.TitleWithDatabase, this.Database?.Name)
+        this.TagDatabaseService.IsDatabaseOpen
+            ? string.Format(Resources.TitleWithDatabase, this.TagDatabaseService.DatabaseName)
             : Resources.Title;
 
     public TagItemViewModel? SelectedTag
@@ -67,85 +74,29 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public async Task CreateNewDatabase(string filePath, string? templateFilePath = null)
+    public async Task NewTag()
     {
-        if (this.Database != null)
-            this.UninitialiseDatabase();
+        var userWantsToSave = await this.ShowUnsavedChangesDialog();
+        if (userWantsToSave is null) return;
 
-        Dictionary<string, ImportedTag>? tagsToImport = null;
-        TagDatabase db = new();
-        db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
-
-        try
-        {
-            if (string.IsNullOrWhiteSpace(filePath)) return;
-
-            if (templateFilePath is not null && File.Exists(templateFilePath))
-            {
-                var importer = this.PickImporterFromFileExt(templateFilePath);
-                tagsToImport = await importer.ImportFromFileAsync(templateFilePath);
-            }
-
-            // overwrite is set to true here for now since the OS should handle the overwrite request.
-            // will need to remove once Terminal.Gui is fully replaced.
-            await Task.Run(() => db.CreateAsync(filePath, true, tagsToImport));
-        }
-        catch (Exception ex)
-        {
-            db.InitialisationComplete -= this.TagDatabase_OnInitalisationComplete;
-            if (templateFilePath is null) this.ShowErrorDialog(ex.Message);
-            else throw;
-        }
-    }
-
-    public async Task ExportAsync(string path)
-    {
-        if (this.Database is null || string.IsNullOrWhiteSpace(path)) return;
-        this.IsDbEnabled = false;
-        var exporter = PickExporterFromFileExt(path);
-        this.StatusBlockText = Resources.StatusBlockExportInProgress;
-        var exportContent = await Task.Run(() => exporter.ExportDatabase(this.Database!));
-        await File.WriteAllTextAsync(path, exportContent);
-        this.IsDbEnabled = true;
-        this.StatusBlockText = string.Format(Resources.StatusBlockExportSuccessful, path);
-    }
-
-    public async Task LoadDatabase(string filePath)
-    {
-        try
-        {
-            if (this.Database != null)
-                this.UninitialiseDatabase();
-
-            TagDatabase db = new();
-            db.InitialisationComplete += this.TagDatabase_OnInitalisationComplete;
-            await Task.Run(() => db.LoadAsync(filePath));
-        }
-        catch (Exception ex)
-        {
-            this.ShowErrorDialog(ex.Message);
-        }
-    }
-
-    public void NewTag()
-    {
         this.SelectedTag = new TagItemViewModel(
             new Tag
             {
                 Name = string.Empty,
                 IsTopLevel = true,
-                TagBindings = this.Database!.DefaultTagBindings
+                TagBindings = this.TagDatabaseService.DefaultTagBindings
             }
         );
         this.UnsavedChanges = true;
     }
 
+    [RelayCommand]
     public async Task SaveSelectedTagAsync()
     {
-        if (this.SelectedTag is null || this.Database is null) return;
+        if (this.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen || !this.IsDbEnabled) return;
 
         this.SelectedTag.CommitEdit();
-        await this.Database.WriteTagToDatabase(this.SelectedTag.Tag);
+        await this.TagDatabaseService.WriteTagsToDatabase([this.SelectedTag.Tag]);
         this.SelectedTag.RefreshParentsString();
         this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
         this.UnsavedChanges = false;
@@ -200,42 +151,57 @@ public partial class MainWindowViewModel : ViewModelBase
         return result;
     }
 
+    public async Task<bool?> ShowUnsavedChangesDialog()
+    {
+        if (!this.UnsavedChanges) return true;
+        var result = await this.ShowNullableBoolDialog(new UnsavedChangesDialog());
+        return result;
+    }
+
     public void StartSearch(string searchQuery, TagDatabaseSearchMode mode, bool searchAliases)
     {
         this.SearchViewModel?.Search(searchQuery, mode, searchAliases);
     }
 
-    public async Task StartTagDeletion()
+    [RelayCommand]
+    private async Task CancelTagEditAsync()
     {
-        var result = await this.ShowNullableBoolDialog(new DeleteTagDialog());
-        if (result == null)
-            return;
+        if (this.UnsavedChanges)
+        {
+            var userWantsToOverwrite = await this.ShowNullableBoolDialog(new UnsavedCancelDialog());
+            if (userWantsToOverwrite is not null && (bool)!userWantsToOverwrite) return;
+        }
 
-        if (result == true) await this.DeleteSelectedTagAsync();
+        this.SelectedTag?.BeginEdit();
+        this.UnsavedChanges = false;
     }
 
-    private static IExporter PickExporterFromFileExt(string path)
+    private void CloseDatabase()
     {
-        var fileExt = Path.GetExtension(path);
-
-        // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension) return new MusicBeeTagHierarchyExporter();
-
-        throw new NotSupportedException($"File extension '{fileExt}' is not supported.");
+        this.SelectedTag = null;
+        this.IsDbEnabled = false;
+        this.HierarchyTreeViewModel = null;
+        this.SearchViewModel = null;
+        this.OnPropertyChanged(nameof(this.TotalTags));
+        this.OnPropertyChanged(nameof(this.WindowTitle));
+        this.TagDatabaseService.CloseDatabase();
     }
 
     private async Task DeleteSelectedTagAsync()
     {
-        if (this.SelectedTag is null || this.Database is null) return;
+        var oldTag = this.SelectedTag;
+        if (this.SelectedTag is null || this.TagDatabaseService.IsDatabaseOpen) return;
         try
         {
-            await this.Database.DeleteTag(this.SelectedTag.Tag.Id);
+            await this.TagDatabaseService.DeleteTag(this.SelectedTag.Tag.Id);
             this._selectedTag = null;
             this.HierarchyTreeViewModel?.SelectedTag = null;
             this.OnPropertyChanged(nameof(this.SelectedTag));
         }
         catch (Exception ex)
         {
+            this._selectedTag = oldTag;
+            // TODO invoke deleting/delete error so hierarchy tree can recover
             this.ShowErrorDialog(ex.Message);
         }
     }
@@ -247,18 +213,23 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var result = await this.ShowNullableBoolDialog(new UnsavedChangesDialog());
 
-            if (result == null)
+            switch (result)
             {
-                this._selectedTag = oldTag;
-                this.HierarchyTreeViewModel?.SelectedTag = oldTag;
-                this.OnPropertyChanged(nameof(this.SelectedTag));
-                return;
+                case null:
+                    this._selectedTag = oldTag;
+                    this.HierarchyTreeViewModel?.SelectedTag = oldTag;
+                    this.OnPropertyChanged(nameof(this.SelectedTag));
+                    return;
+                case false:
+                    break;
+                case true:
+                    await this.SaveSelectedTagAsync();
+                    break;
             }
 
-            if (result == true)
-                await this.SaveSelectedTagAsync();
-
-
+            // do not set this to the generated public variable from Avalonia.
+            // OnPropertyChanged must be handled manually here to prevent tag changes firing
+            // twice.
             this._selectedTag = newTag;
             this.HierarchyTreeViewModel?.SelectedTag = newTag;
             this._selectedTag?.BeginEdit();
@@ -272,21 +243,74 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+
+    [RelayCommand]
+    private async Task NewDatabaseAsync()
+    {
+        try
+        {
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
+                desktop.MainWindow is null) return;
+
+            var userWantsToSave = await this.ShowUnsavedChangesDialog();
+            if (userWantsToSave is null) return;
+
+            var storageProvider = desktop.MainWindow?.StorageProvider;
+            if (storageProvider is null) return;
+
+            var file = await storageProvider.SaveFilePickerAsync(
+                new FilePickerSaveOptions
+                {
+                    Title = Resources.DialogTitleSaveDatabaseAs,
+                    FileTypeChoices = [Common.TagDatabaseFileType]
+                });
+            var path = file?.TryGetLocalPath();
+            if (path == null) return;
+            await this.TagDatabaseService.CreateNewDatabase(path);
+        }
+        catch (Exception ex)
+        {
+            var error = new ErrorDialogViewModel(ex.Message);
+            error.ShowDialog();
+        }
+    }
+
     private void OnUserEditedTag(object? sender, EventArgs e)
     {
         this.UnsavedChanges = true;
     }
 
-    private Importer PickImporterFromFileExt(string path)
+    [RelayCommand]
+    private async Task OpenDatabase()
     {
-        var fileExt = Path.GetExtension(path);
+        try
+        {
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
+                desktop.MainWindow is null) return;
 
-        // if more importers are added, convert this to a switch statement based on file extension.
-        // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension)
-            return new MusicBeeTagHierarchyImporter();
+            var userWantsToSave = await this.ShowUnsavedChangesDialog();
+            if (userWantsToSave is null) return;
 
-        throw new NotSupportedException(string.Format(Resources.ErrorImportFileTypeNotSupported, fileExt));
+            var storageProvider = desktop.MainWindow?.StorageProvider;
+            if (storageProvider is null) return;
+
+            var files = await storageProvider.OpenFilePickerAsync(
+                new FilePickerOpenOptions
+                {
+                    AllowMultiple = false,
+                    Title = Resources.DialogTitleOpenDatabase,
+                    FileTypeFilter = [Common.TagDatabaseFileType]
+                });
+            if (files.Count == 0) return;
+            var path = files[0].TryGetLocalPath();
+            if (path == null) return;
+            await this.TagDatabaseService.LoadDatabase(path);
+        }
+        catch (Exception ex)
+        {
+            var error = new ErrorDialogViewModel(ex.Message);
+            error.ShowDialog();
+        }
     }
 
     private void ShowErrorDialog(string message)
@@ -295,9 +319,63 @@ public partial class MainWindowViewModel : ViewModelBase
         error.ShowDialog();
     }
 
-    private void TagDatabase_OnInitalisationComplete(object? sender, EventArgs e)
+    [RelayCommand]
+    private async Task StartExportAsync()
     {
-        if (sender is not TagDatabase db) return;
+        if (!this.TagDatabaseService.IsDatabaseOpen ||
+            Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
+            desktop.MainWindow is null) return;
+
+        var userWantsToSave = await this.ShowUnsavedChangesDialog();
+        if (userWantsToSave is null) return;
+
+        var storageProvider = desktop.MainWindow?.StorageProvider;
+        if (storageProvider is null) return;
+
+        try
+        {
+            var file = await storageProvider.SaveFilePickerAsync(
+                new FilePickerSaveOptions
+                {
+                    Title = Resources.DialogTitleExportTagDatabase,
+                    FileTypeChoices = [Common.MusicBeeTagHierarchy],
+                    SuggestedFileName = this.TagDatabaseService.DatabaseName
+                });
+            var path = file?.TryGetLocalPath();
+            if (path == null) return;
+            this.IsDbEnabled = false;
+            this.StatusBlockText = Resources.StatusBlockExportInProgress;
+            await this.TagDatabaseService.ExportAsync(path);
+            this.IsDbEnabled = true;
+            this.StatusBlockText = string.Format(Resources.StatusBlockExportSuccessful, path);
+        }
+        catch (Exception ex)
+        {
+            this.IsDbEnabled = true;
+            var error = new ErrorDialogViewModel(ex.Message);
+            error.ShowDialog();
+        }
+    }
+
+    [RelayCommand]
+    private async Task StartTagDeletionAsync()
+    {
+        if (this.SelectedTag is null || this.SelectedTag.HasChildren) return;
+        var result = await this.ShowNullableBoolDialog(new DeleteTagDialog());
+        switch (result)
+        {
+            case null:
+            case false:
+                return;
+            case true:
+                await this.DeleteSelectedTagAsync();
+                break;
+        }
+    }
+
+    private void TagDatabaseService_OnInitalisationComplete(object? sender, EventArgs e)
+    {
+        if (sender is not TagDatabaseService tdb) return;
         Dispatcher.UIThread.Post(async void () =>
         {
             try
@@ -305,59 +383,36 @@ public partial class MainWindowViewModel : ViewModelBase
                 (this.HierarchyTreeViewModel as IDisposable)?.Dispose();
                 (this.SearchViewModel as IDisposable)?.Dispose();
 
-                if (this.Database != null)
-                {
-                    this.Database.TagAdded -= this.TagDatabase_TagAdded;
-                    this.Database.TagDeleted -= this.TagDatabase_TagDeleted;
-                }
-
-                this.Database = db;
                 this.SelectedTag = null;
 
                 this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this);
                 this.SearchViewModel = new SearchViewModel(this);
-                this.Database.TagAdded += this.TagDatabase_TagAdded;
-                this.Database.TagDeleted += this.TagDatabase_TagDeleted;
+
                 await this.HierarchyTreeViewModel.InitializeAsync();
                 this.OnPropertyChanged(nameof(this.TotalTags));
                 this.OnPropertyChanged(nameof(this.WindowTitle));
                 this.IsDbEnabled = true;
-                this.Database.InitialisationComplete -= this.TagDatabase_OnInitalisationComplete;
 
                 this.UnsavedChanges = false;
-                this.StatusBlockText = string.Format(Resources.StatusBlockDbLoadSuccessful, this.Database.Name);
+                this.StatusBlockText = string.Format(Resources.StatusBlockDbLoadSuccessful,
+                    this.TagDatabaseService.DatabaseName);
             }
             catch (Exception ex)
             {
-                this.UninitialiseDatabase();
+                this.CloseDatabase();
                 this.ShowErrorDialog(ex.Message);
             }
         });
-        Debug.WriteLine($"Database loaded on UI - name: {db.Name}, version: {db.Version}");
     }
 
-    private void TagDatabase_TagAdded(object? sender, Tag _)
+    private void TagDatabaseService_TagAdded(object? sender, Tag _)
     {
         this.OnPropertyChanged(nameof(this.TotalTags));
         this.SelectedTag!.SyncId();
     }
 
-    private void TagDatabase_TagDeleted(object? sender, (int id, string name) _)
+    private void TagDatabaseService_TagDeleted(object? sender, (int id, string name) _)
     {
         this.OnPropertyChanged(nameof(this.TotalTags));
-    }
-
-    private void UninitialiseDatabase()
-    {
-        if (this.Database == null) return;
-        this.SelectedTag = null;
-        this.IsDbEnabled = false;
-        this.Database.TagAdded -= this.TagDatabase_TagAdded;
-        this.Database.TagDeleted -= this.TagDatabase_TagDeleted;
-        this.Database = null;
-        this.HierarchyTreeViewModel = null;
-        this.SearchViewModel = null;
-        this.OnPropertyChanged(nameof(this.TotalTags));
-        this.OnPropertyChanged(nameof(this.WindowTitle));
     }
 }

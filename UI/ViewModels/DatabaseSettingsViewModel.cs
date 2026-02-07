@@ -1,12 +1,12 @@
-﻿using System;
-using System.Linq;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.UI.Assets;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class DatabaseSettingsViewModel : ViewModelBase
 {
+    private readonly MainWindowViewModel _mainWindow;
+
     [ObservableProperty] private string _databaseVersion;
     [ObservableProperty] private string _defaultTagBindings;
     [ObservableProperty] private string _tagRowsCount;
@@ -15,21 +15,20 @@ public partial class DatabaseSettingsViewModel : ViewModelBase
 
     public DatabaseSettingsViewModel(MainWindowViewModel mainWindow)
     {
-        this.MainWindow = mainWindow;
+        this._mainWindow = mainWindow;
 
-        this.WindowTitle = mainWindow.Database!.Name;
-        this.DatabaseVersion = string.Format(Resources.DatabaseSettingsDbVersion, mainWindow.Database!.Version);
-        var tagRelationshipCount = mainWindow.Database!.GetTagRelationshipCount();
+        this.WindowTitle = mainWindow.TagDatabaseService.DatabaseName;
+        this.DatabaseVersion = string.Format(Resources.DatabaseSettingsDbVersion,
+            mainWindow.TagDatabaseService.DatabaseVersion);
+        var tagRelationshipCount = mainWindow.TagDatabaseService.TagRelationshipCount;
         this.TagRowsCount = string.Format(Resources.DatabaseSettingsTagCount,
-            mainWindow.Database!.Tags.Count, tagRelationshipCount);
-        this.DefaultTagBindings = string.Join("; ", mainWindow.Database!.DefaultTagBindings);
+            mainWindow.TagDatabaseService.TagCount, tagRelationshipCount);
+        this.DefaultTagBindings = string.Join("; ", mainWindow.TagDatabaseService.DefaultTagBindings);
     }
 
-    private MainWindowViewModel MainWindow { get; }
 
     public void SaveSettings()
     {
-        this.MainWindow.Database!.DefaultTagBindings = this.DefaultTagBindings.Split(";",
-            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        this._mainWindow.TagDatabaseService.SetDefaultTagBindings(this.DefaultTagBindings);
     }
 }

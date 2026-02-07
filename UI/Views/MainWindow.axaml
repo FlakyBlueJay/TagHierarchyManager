@@ -12,14 +12,15 @@
     <DockPanel Name="Top">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="{x:Static assets:Resources.MenuFile}">
-                <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}" Click="MenuItemNew_Click" />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}"
+                          Command="{Binding NewDatabaseCommand}" />
                 <MenuItem Header="{x:Static assets:Resources.MenuItemImport}" Click="MenuItemImport_Click" />
                 <Separator />
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}"
-                          Click="MenuItemOpen_Click" />
+                          Command="{Binding OpenDatabaseCommand}" />
                 <Separator />
                 <MenuItem IsEnabled="{Binding IsDbEnabled}"
-                          Header="{x:Static assets:Resources.MenuItemExport}" Click="MenuItemExport_Click" />
+                          Header="{x:Static assets:Resources.MenuItemExport}" Command="{Binding StartExportCommand}" />
                 <MenuItem Header="{x:Static assets:Resources.MenuItemQuit}" Click="MenuItemQuit_Click" />
             </MenuItem>
             <MenuItem IsEnabled="{Binding IsDbEnabled}"
@@ -43,7 +44,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition MinWidth="300" Width="300" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition MinWidth="500" Width="*" />
             </Grid.ColumnDefinitions>
 
             <TabControl Grid.Column="0" Margin="0 0 5 0 " Theme="{StaticResource CardTabControl}">
@@ -142,8 +143,9 @@
                               Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"
                               VerticalAlignment="Center" />
                     <Button Grid.Column="1" Margin="0 0 5 0"
-                            Content="{x:Static assets:Resources.ButtonDelete}" Click="ButtonDelete_Click"
-                            Theme="{StaticResource OutlineButton}" Classes="Danger">
+                            Content="{x:Static assets:Resources.ButtonDelete}"
+                            Theme="{StaticResource OutlineButton}" Classes="Danger"
+                            Command="{Binding StartTagDeletionCommand}">
                         <Button.IsEnabled>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
                                 <Binding Path="SelectedTag.OnDatabase" FallbackValue="False" />
@@ -152,13 +154,17 @@
                         </Button.IsEnabled>
                     </Button>
                     <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}"
-                            Click="ButtonCancel_Click" Theme="{StaticResource OutlineButton}" />
+                            Theme="{StaticResource OutlineButton}" Command="{Binding CancelTagEditCommand}" />
                     <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}"
-                            Theme="{StaticResource SolidButton}" Click="ButtonSave_Click" />
+                            Theme="{StaticResource SolidButton}" Command="{Binding SaveSelectedTagCommand}" />
                 </Grid>
             </Grid>
         </Grid>
     </DockPanel>
-
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveSelectedTagCommand}" />
+        <KeyBinding Gesture="Delete" Command="{Binding StartTagDeletionCommand}" />
+        <KeyBinding Gesture="Ctrl+E" Command="{Binding StartExportCommand}" />
+    </Window.KeyBindings>
 
 </Window>

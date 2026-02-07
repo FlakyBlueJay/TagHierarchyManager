@@ -11,6 +11,8 @@ public partial class MusicBeeTagHierarchyImporter : Importer
     private const int IndentSize = 4; // MusicBee is strict about having an indent size of 4 spaces.
     private const string TagBindingSeparator = "::";
 
+    private static readonly string[] CommentSymbols = [";", "//"];
+    
     /// <summary>
     ///     Initializes a new instance of the <see cref="MusicBeeTagHierarchyImporter" /> class.
     /// </summary>
@@ -63,7 +65,10 @@ public partial class MusicBeeTagHierarchyImporter : Importer
 
     private static bool IsEmptyOrComment(string line)
     {
-        return string.IsNullOrEmpty(line) || string.IsNullOrWhiteSpace(line) || line.StartsWith(CommentSymbol);
+        if (CommentSymbols.Any(symbol => line.StartsWith(symbol, StringComparison.Ordinal)))
+            return true;
+
+        return string.IsNullOrEmpty(line) || string.IsNullOrWhiteSpace(line);
     }
 
     private static void UpdateParentStack(List<string> parentStack, TagHierarchyLine currentLine, int previousIndent,
