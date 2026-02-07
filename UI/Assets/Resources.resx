@@ -262,4 +262,7 @@
     <data name="MessageUnsavedCancel" xml:space="preserve">
         <value>You have unsaved changes to the currently loaded tag. Are you sure you want to cancel?</value>
     </data>
+    <data name="BulkAddExceptionTemplate" xml:space="preserve">
+        <value>{0} (on row {1})</value>
+    </data>
 </root>

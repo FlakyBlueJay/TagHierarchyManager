@@ -8,7 +8,8 @@
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="450"
         Width="1100" Height="450"
         x:Class="TagHierarchyManager.UI.Views.BulkAddWindow"
-        Title="{Binding WindowTitle}">
+        Title="{Binding WindowTitle}"
+        KeyDown="BulkAddWindow_OnKeyDown">
     <Grid
         RowDefinitions="*, Auto"
         Margin="20">
@@ -18,11 +19,13 @@
                 Name="TagTable"
                 CanUserResizeColumns="True"
                 ItemsSource="{Binding Tags}"
+                SelectionChanged="TagTable_OnSelectionChanged"
                 CanUserSortColumns="False">
                 <DataGrid.ContextFlyout>
                     <MenuFlyout>
                         <MenuItem Header="{x:Static assets:Resources.BulkAddButtonDeleteRow}"
-                                  Click="ButtonDelete_OnClick" />
+                                  Command="{Binding RemoveTagsCommand}"
+                                  IsEnabled="{Binding CanDeleteRows}" />
                     </MenuFlyout>
                 </DataGrid.ContextFlyout>
                 <DataGrid.Columns>
@@ -39,28 +42,26 @@
                     <!-- TODO add custom cell for handling multi-line note editing -->
                     <DataGridTextColumn Header="{x:Static assets:Resources.HeaderNotes}" Binding="{Binding Notes}"
                                         MinWidth="200" />
-
                 </DataGrid.Columns>
-
-
             </DataGrid>
-
         </Grid>
 
         <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, *, Auto, Auto" Margin="0 15 0 0">
             <Button Grid.Column="0" Margin="0 0 5 0"
                     Content="{x:Static assets:Resources.BulkAddButtonAddRow}" Theme="{StaticResource OutlineButton}"
-                    Click="ButtonAdd_OnClick" />
+                    Command="{Binding AddTagCommand}"
+                    HotKey="Ctrl+E" />
             <Button Grid.Column="1" Margin="0 0 5 0"
                     Content="{x:Static assets:Resources.BulkAddButtonDeleteRow}" Theme="{StaticResource OutlineButton}"
-                    Classes="Danger" Click="ButtonDelete_OnClick" />
+                    Classes="Danger" Command="{Binding RemoveTagsCommand}" IsEnabled="{Binding CanDeleteRows}" />
             <Button Grid.Column="3" Margin="0 0 5 0"
                     Content="{x:Static assets:Resources.ButtonCancel}"
                     Click="ButtonCancel_Click" />
             <Button Grid.Column="4" Content="{x:Static assets:Resources.ButtonOk}"
                     Theme="{StaticResource SolidButton}"
                     IsEnabled="{Binding CanSave}"
-                    Click="ButtonSave_OnClick" />
+                    Command="{Binding SaveTagsCommand}"
+                    HotKey="Ctrl+S" />
         </Grid>
     </Grid>
 </Window>
