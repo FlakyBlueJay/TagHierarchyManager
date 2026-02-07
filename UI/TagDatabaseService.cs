@@ -15,7 +15,6 @@ namespace TagHierarchyManager.UI;
 
 public class TagDatabaseService : ObservableObject
 {
-    public event EventHandler DatabaseClosing;
     public event EventHandler InitialisationComplete;
 
     public event EventHandler<Tag> TagAdded;
@@ -37,9 +36,8 @@ public class TagDatabaseService : ObservableObject
     public void CloseDatabase()
     {
         if (this.Database == null) return;
-        this.DatabaseClosing.Invoke(this, EventArgs.Empty);
-        this.Database = null;
         this.UnsubscribeFromEvents();
+        this.Database = null;
         this.NotifyDatabasePropertiesChanged();
     }
 
