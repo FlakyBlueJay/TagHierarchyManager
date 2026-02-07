@@ -27,7 +27,8 @@ public partial class BulkAddWindow : Window
 
     private BulkAddViewModel? ViewModel => this.DataContext as BulkAddViewModel;
 
-    public void ButtonCancel_Click(object? sender, RoutedEventArgs e) => this.Close();
+    public void ButtonCancel_Click(object? sender, RoutedEventArgs e) =>
+        this.Close();
 
     private void BulkAddWindow_OnKeyDown(object? sender, KeyEventArgs e)
     {

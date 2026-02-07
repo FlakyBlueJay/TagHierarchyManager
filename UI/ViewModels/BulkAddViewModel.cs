@@ -17,7 +17,7 @@ public partial class BulkAddViewModel : ViewModelBase
 
     [ObservableProperty] private ObservableCollection<TagRow> _selectedRows = [];
 
-    [ObservableProperty] private ObservableCollection<TagRow> _tags = [new() { Name = "", IsTopLevel = false }];
+    [ObservableProperty] private ObservableCollection<TagRow> _tags;
 
     [ObservableProperty] private string _windowTitle;
 
@@ -27,6 +27,14 @@ public partial class BulkAddViewModel : ViewModelBase
 
         this.WindowTitle = string.Format("{0} - " + Resources.ButtonBulkAdd,
             this._mainWindow.TagDatabaseService.DatabaseName);
+        
+        this._tags =
+        [new TagRow
+        {
+            Name = "",
+            IsTopLevel = false,
+            TagBindings = string.Join("; ", this._mainWindow.TagDatabaseService.DefaultTagBindings)
+        }];
 
         this.OnSelectedRowsChanged(null, this.SelectedRows);
     }
@@ -40,7 +48,12 @@ public partial class BulkAddViewModel : ViewModelBase
     [RelayCommand]
     private void AddTag()
     {
-        this.Tags.Add(new TagRow());
+        this.Tags.Add(new TagRow
+        {
+            Name = "",
+            IsTopLevel = false,
+            TagBindings = string.Join("; ", this._mainWindow.TagDatabaseService.DefaultTagBindings)
+        });
     }
 
     partial void OnSelectedRowsChanged(ObservableCollection<TagRow>? oldValue, ObservableCollection<TagRow> newValue)
