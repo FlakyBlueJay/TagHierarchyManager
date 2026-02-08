@@ -6,6 +6,7 @@ namespace TagHierarchyManager.Models;
 
 public partial class TagDatabase
 {
+    // DEPRECATED: move to WriteTagsToDatabase.
     /// <summary>
     ///     Saves the tag object to the database.
     /// </summary>

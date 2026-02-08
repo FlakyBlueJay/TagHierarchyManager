@@ -40,8 +40,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         this.TagDatabaseService = tagDatabaseService;
         this.TagDatabaseService.InitialisationComplete += this.TagDatabaseService_OnInitalisationComplete;
-        this.TagDatabaseService.TagAdded += this.TagDatabaseService_TagAdded;
-        this.TagDatabaseService.TagDeleted += this.TagDatabaseService_TagDeleted;
+        this.TagDatabaseService.TagsWritten += this.TagDatabaseService_TagsWritten;
         this.TagDatabaseService.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName == nameof(this.TagDatabaseService.TagCount))
@@ -437,14 +436,14 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
-    private void TagDatabaseService_TagAdded(object? sender, Tag _)
+    private void TagDatabaseService_TagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
     {
-        this.OnPropertyChanged(nameof(this.TotalTags));
-        this.SelectedTag!.SyncId();
-    }
-
-    private void TagDatabaseService_TagDeleted(object? sender, (int id, string name) _)
-    {
-        this.OnPropertyChanged(nameof(this.TotalTags));
+        if (result.Added.Count > 0)
+        {
+            this.SelectedTag?.SyncId();
+            this.OnPropertyChanged(nameof(this.TotalTags));
+        }
+        
+        if (result.Deleted.Count > 0) this.OnPropertyChanged(nameof(this.TotalTags));
     }
 }

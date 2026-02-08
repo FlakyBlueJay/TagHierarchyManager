@@ -21,12 +21,12 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
     {
         this._mainWindow = mainWindow;
         this._getParentNamesById = mainWindow.TagDatabaseService.GetParentNamesByIds;
-        mainWindow.TagDatabaseService.TagDeleted += this.TagDatabase_OnTagDeleted;
+        mainWindow.TagDatabaseService.TagsWritten += this.TagDatabase_OnTagsWritten;
     }
 
     public void Dispose()
     {
-        this._mainWindow.TagDatabaseService.TagDeleted -= this.TagDatabase_OnTagDeleted;
+        this._mainWindow.TagDatabaseService.TagsWritten -= this.TagDatabase_OnTagsWritten;
     }
 
     public void Search(string searchQuery, TagDatabaseSearchMode mode, bool searchAliases)
@@ -60,10 +60,17 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
         this._mainWindow.SelectedTag = value;
     }
 
-    private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) deletedTag)
+    private void TagDatabase_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
     {
-        var deletedTagItemVm = this.SearchResults.FirstOrDefault(item => item.Tag.Id == deletedTag.id);
-        if (deletedTagItemVm is null) return;
-        this.SearchResults.Remove(deletedTagItemVm);
+        if (sender is not TagDatabaseService { IsDatabaseOpen: true }) return;
+        if (result.Deleted.Count == 0) return;
+
+        foreach (var deletedTag in result.Deleted)
+        {
+            var deletedTagItemVm = this.SearchResults.FirstOrDefault(item => item.Tag.Id == deletedTag.id);
+            if (deletedTagItemVm is null) return;
+            this.SearchResults.Remove(deletedTagItemVm);
+        }
+        
     }
 }

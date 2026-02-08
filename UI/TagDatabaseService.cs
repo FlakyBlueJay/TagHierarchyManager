@@ -17,10 +17,8 @@ public class TagDatabaseService : ObservableObject
 {
     public event EventHandler? InitialisationComplete;
 
-    public event EventHandler<Tag>? TagAdded;
-    public event EventHandler<(int id, string name)>? TagDeleted;
-    public event EventHandler<List<Tag>>? TagsAdded;
-    public event EventHandler<List<Tag>>? TagsUpdated;
+
+    public event EventHandler<TagWriteResult>? TagsWritten;
 
     public string DatabaseName => this.Database?.Name ?? string.Empty;
     public int DatabaseVersion => this.Database?.Version ?? 0;
@@ -30,6 +28,12 @@ public class TagDatabaseService : ObservableObject
 
     public int TagCount => this.Database?.Tags.Count ?? 0;
     public int TagRelationshipCount => this.Database?.GetTagRelationshipCount() ?? 0;
+
+    public sealed record TagWriteResult(
+        IReadOnlyList<Tag> Added,
+        IReadOnlyList<Tag> Updated,
+        IReadOnlyList<(int id, string name)> Deleted
+    );
 
     private TagDatabase? Database { get; set; }
 
@@ -210,25 +214,25 @@ public class TagDatabaseService : ObservableObject
 
     private void TagDatabase_OnTagAdded(object? sender, Tag newTag)
     {
-        this.TagAdded?.Invoke(this, newTag);
+        this.TagsWritten?.Invoke(this, new TagWriteResult(new List<Tag> {newTag}, [], []));
         this.NotifyDatabasePropertiesChanged();
     }
 
     private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) deletedTag)
     {
-        this.TagDeleted?.Invoke(this, deletedTag);
+        this.TagsWritten?.Invoke(this, new TagWriteResult([], [], [deletedTag]));
         this.NotifyDatabasePropertiesChanged();
     }
 
     private void TagDatabase_OnTagsAdded(object? sender, List<Tag> newTags)
     {
-        this.TagsAdded?.Invoke(this, newTags);
+        this.TagsWritten?.Invoke(this, new TagWriteResult(newTags, [], []));
         this.NotifyDatabasePropertiesChanged();
     }
 
     private void TagDatabase_OnTagsUpdated(object? sender, List<Tag> updatedTags)
     {
-        this.TagsUpdated?.Invoke(this, updatedTags);
+        this.TagsWritten?.Invoke(this, new TagWriteResult([], updatedTags, []));
         this.NotifyDatabasePropertiesChanged();
     }
 

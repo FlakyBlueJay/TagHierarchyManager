@@ -33,10 +33,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
 
-        this._mainWindow.TagDatabaseService.TagsUpdated -= this.TagDatabase_OnTagsUpdated;
-        this._mainWindow.TagDatabaseService.TagAdded -= this.TagDatabase_OnTagAdded;
-        this._mainWindow.TagDatabaseService.TagDeleted -= this.TagDatabase_OnTagDeleted;
-        this._mainWindow.TagDatabaseService.TagsAdded -= this.TagDatabase_OnTagsAdded;
+        this._mainWindow.TagDatabaseService.TagsWritten -= this.TagDatabaseService_OnTagsWritten;
         GC.SuppressFinalize(this);
     }
 
@@ -191,7 +188,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         this._mainWindow.SelectedTag = value;
     }
 
-    private async Task ProcessTagAdditions(List<Tag> newTags)
+    private async Task ProcessTagAdditions(IReadOnlyList<Tag> newTags)
     {
         foreach (var newTag in newTags)
         {
@@ -207,66 +204,31 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     private void SubscribeToEvents()
     {
         if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
-        this._mainWindow.TagDatabaseService.TagsUpdated += this.TagDatabase_OnTagsUpdated;
-        this._mainWindow.TagDatabaseService.TagAdded += this.TagDatabase_OnTagAdded;
-        this._mainWindow.TagDatabaseService.TagDeleted += this.TagDatabase_OnTagDeleted;
-        this._mainWindow.TagDatabaseService.TagsAdded += this.TagDatabase_OnTagsAdded;
+        this._mainWindow.TagDatabaseService.TagsWritten += this.TagDatabaseService_OnTagsWritten;
     }
 
-    private async void TagDatabase_OnTagAdded(object? sender, Tag newTag)
+    private async void TagDatabaseService_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
     {
         try
         {
-            await Dispatcher.UIThread.InvokeAsync(async () => await this.ProcessTagAdditions([newTag]));
+            if (sender is not TagDatabaseService { IsDatabaseOpen: true }) return;
+        
+            if (result.Updated.Count > 0)
+                foreach (var updatedTag in result.Updated)
+                    await Dispatcher.UIThread.InvokeAsync(async () => await this.HandleTagUpdate(updatedTag));
+        
+            if (result.Added.Count > 0)
+                await Dispatcher.UIThread.InvokeAsync(async () => await this.ProcessTagAdditions(result.Added));
+
+            if (result.Deleted.Count > 0)
+                foreach (var deletedTag in result.Deleted)
+                    await Dispatcher.UIThread.InvokeAsync(async () => await this.WipeTagNodes(deletedTag.id));
         }
         catch (Exception e)
         {
             var error = new ErrorDialogViewModel(e.Message);
             error.ShowDialog();
         }
-    }
-
-    private async void TagDatabase_OnTagDeleted(object? sender, (int id, string name) deletedTag)
-    {
-        try
-        {
-            await Dispatcher.UIThread.InvokeAsync(async () => await this.WipeTagNodes(deletedTag.id));
-        }
-        catch (Exception e)
-        {
-            var error = new ErrorDialogViewModel(e.Message);
-            error.ShowDialog();
-        }
-    }
-
-    private async void TagDatabase_OnTagsAdded(object? sender, List<Tag> newTags)
-    {
-        try
-        {
-            await this.ProcessTagAdditions(newTags);
-        }
-        catch (Exception e)
-        {
-            var error = new ErrorDialogViewModel(e.Message);
-            error.ShowDialog();
-        }
-    }
-
-    private void TagDatabase_OnTagsUpdated(object? sender, List<Tag> updatedTags)
-    {
-            Dispatcher.UIThread.Post(async void () =>
-            {
-                try
-                {
-                    foreach (var updatedTag in updatedTags)
-                        await this.HandleTagUpdate(updatedTag);
-                }
-                catch (Exception e)
-                {
-                    var error = new ErrorDialogViewModel(e.Message);
-                    error.ShowDialog();
-                }
-            });
     }
 
     private async Task HandleTagUpdate(Tag updatedTag)
