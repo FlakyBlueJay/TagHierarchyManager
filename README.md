@@ -9,10 +9,14 @@ An application for managing tree hierarchies for music tags, focusing on the Mus
   - tested on Windows 11 25H2, on may work on other OSes supported by .NET 10.0, you're on your own there.
 
 ## Development
-JetBrains Rider is strongly recommended for developing for this project, but Visual Studio Code/VS Codium should work too. Generally, anything that allows you to work with Visual Studio solutions.
+JetBrains Rider is strongly recommended for developing for this project, Visual Studio may work.
+
+Visual Studio Code is not recommended by upstream (Avalonia UI) due to limitations, but might work too.
 
 ### Dependencies
-- Avalonia
+- Avalonia (UI framework)
+  - Semi.Avalonia (theme)
+    - Semi.Avalonia.DataGrid (bulk-add table)
 - Serilog (for logging/debugging)
 - NUnit (for tests)
 
