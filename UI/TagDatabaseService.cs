@@ -15,16 +15,16 @@ namespace TagHierarchyManager.UI;
 
 public class TagDatabaseService : ObservableObject
 {
-    public event EventHandler InitialisationComplete;
+    public event EventHandler? InitialisationComplete;
 
-    public event EventHandler<Tag> TagAdded;
-    public event EventHandler<(int id, string name)> TagDeleted;
-    public event EventHandler<List<Tag>> TagsAdded;
-    public event EventHandler<Tag> TagUpdated;
+    public event EventHandler<Tag>? TagAdded;
+    public event EventHandler<(int id, string name)>? TagDeleted;
+    public event EventHandler<List<Tag>>? TagsAdded;
+    public event EventHandler<Tag>? TagUpdated;
 
     public string DatabaseName => this.Database?.Name ?? string.Empty;
     public int DatabaseVersion => this.Database?.Version ?? 0;
-    public List<string> DefaultTagBindings => this.Database.DefaultTagBindings;
+    public List<string> DefaultTagBindings => this.Database?.DefaultTagBindings ?? [];
 
     public bool IsDatabaseOpen => this.Database != null;
 
@@ -64,7 +64,7 @@ public class TagDatabaseService : ObservableObject
             // will need to remove once Terminal.Gui is fully replaced.
             await Task.Run(() => db.CreateAsync(filePath, true, tagsToImport));
         }
-        catch (Exception ex)
+        catch
         {
             db.InitialisationComplete -= this.TagDatabase_OnInitialisationComplete;
             throw;
@@ -111,18 +111,19 @@ public class TagDatabaseService : ObservableObject
 
     public async Task LoadDatabase(string filePath)
     {
+        TagDatabase db = new();
         try
         {
             if (this.Database != null)
                 this.CloseDatabase();
-
-            TagDatabase db = new();
+            
             db.InitialisationComplete += this.TagDatabase_OnInitialisationComplete;
             await Task.Run(() => db.LoadAsync(filePath));
         }
-        catch (Exception ex)
+        catch
         {
-            // this.ShowErrorDialog(ex.Message);
+            db.InitialisationComplete -= this.TagDatabase_OnInitialisationComplete;
+            throw;
         }
     }
 
@@ -195,33 +196,33 @@ public class TagDatabaseService : ObservableObject
     private void TagDatabase_OnInitialisationComplete(object? sender, EventArgs e)
     {
         this.Database = sender as TagDatabase;
-        this.Database.InitialisationComplete -= this.TagDatabase_OnInitialisationComplete;
+        this.Database!.InitialisationComplete -= this.TagDatabase_OnInitialisationComplete;
         this.SubscribeToEvents();
         this.NotifyDatabasePropertiesChanged();
-        this.InitialisationComplete.Invoke(this, e);
+        this.InitialisationComplete?.Invoke(this, e);
     }
 
     private void TagDatabase_OnTagAdded(object? sender, Tag newTag)
     {
-        this.TagAdded.Invoke(this, newTag);
+        this.TagAdded?.Invoke(this, newTag);
         this.NotifyDatabasePropertiesChanged();
     }
 
     private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) deletedTag)
     {
-        this.TagDeleted.Invoke(this, deletedTag);
+        this.TagDeleted?.Invoke(this, deletedTag);
         this.NotifyDatabasePropertiesChanged();
     }
 
     private void TagDatabase_OnTagsAdded(object? sender, List<Tag> newTags)
     {
-        this.TagsAdded.Invoke(this, newTags);
+        this.TagsAdded?.Invoke(this, newTags);
         this.NotifyDatabasePropertiesChanged();
     }
 
     private void TagDatabase_OnTagUpdated(object? sender, Tag updatedTag)
     {
-        this.TagUpdated.Invoke(this, updatedTag);
+        this.TagUpdated?.Invoke(this, updatedTag);
         this.NotifyDatabasePropertiesChanged();
     }
 
