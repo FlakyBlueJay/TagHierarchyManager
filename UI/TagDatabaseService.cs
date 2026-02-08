@@ -20,7 +20,7 @@ public class TagDatabaseService : ObservableObject
     public event EventHandler<Tag>? TagAdded;
     public event EventHandler<(int id, string name)>? TagDeleted;
     public event EventHandler<List<Tag>>? TagsAdded;
-    public event EventHandler<Tag>? TagUpdated;
+    public event EventHandler<List<Tag>>? TagsUpdated;
 
     public string DatabaseName => this.Database?.Name ?? string.Empty;
     public int DatabaseVersion => this.Database?.Version ?? 0;
@@ -142,6 +142,12 @@ public class TagDatabaseService : ObservableObject
         this.NotifyDatabasePropertiesChanged();
     }
 
+    public async Task WriteTagToDatabase(List<Tag> tag)
+    {
+        if (this.Database is null) return;
+        await this.Database.WriteTagsToDatabase(tag);
+    }
+    
     public async Task WriteTagsToDatabase(List<Tag> tags)
     {
         if (this.Database is null) return;
@@ -189,7 +195,7 @@ public class TagDatabaseService : ObservableObject
         if (this.Database is null) return;
         this.Database.TagAdded += this.TagDatabase_OnTagAdded;
         this.Database.TagsAdded += this.TagDatabase_OnTagsAdded;
-        this.Database.TagUpdated += this.TagDatabase_OnTagUpdated;
+        this.Database.TagsUpdated += this.TagDatabase_OnTagsUpdated;
         this.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
     }
     
@@ -220,9 +226,9 @@ public class TagDatabaseService : ObservableObject
         this.NotifyDatabasePropertiesChanged();
     }
 
-    private void TagDatabase_OnTagUpdated(object? sender, Tag updatedTag)
+    private void TagDatabase_OnTagsUpdated(object? sender, List<Tag> updatedTags)
     {
-        this.TagUpdated?.Invoke(this, updatedTag);
+        this.TagsUpdated?.Invoke(this, updatedTags);
         this.NotifyDatabasePropertiesChanged();
     }
 
@@ -231,7 +237,7 @@ public class TagDatabaseService : ObservableObject
         if (this.Database is null) return;
         this.Database.TagAdded -= this.TagDatabase_OnTagAdded;
         this.Database.TagsAdded -= this.TagDatabase_OnTagsAdded;
-        this.Database.TagUpdated -= this.TagDatabase_OnTagUpdated;
+        this.Database.TagsUpdated -= this.TagDatabase_OnTagsUpdated;
         this.Database.TagDeleted -= this.TagDatabase_OnTagDeleted;
     }
 }

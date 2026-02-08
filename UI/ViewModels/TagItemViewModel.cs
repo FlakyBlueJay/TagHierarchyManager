@@ -50,7 +50,7 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
 
     public ObservableCollection<TagItemViewModel> Children { get; set; } = [];
 
-    internal Tag Tag { get; } = tag;
+    internal Tag Tag { get; set;  } = tag;
 
     private bool IsTopLevel => this.Tag.IsTopLevel;
 

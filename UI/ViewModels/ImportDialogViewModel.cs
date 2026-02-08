@@ -39,6 +39,9 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : Vie
     [RelayCommand]
     private async Task InitiateImport()
     {
+        var userWantsToSave = await this.MainWindow.ShowUnsavedChangesDialog();
+        if (userWantsToSave is null) return;
+        
         try
         {
             if (string.IsNullOrEmpty(this.DatabaseFilePath) || string.IsNullOrEmpty(this.TemplateFilePath)) return;
@@ -62,9 +65,6 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : Vie
         {
             if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
                 desktop.MainWindow is null) return;
-
-            var userWantsToSave = await this.MainWindow.ShowUnsavedChangesDialog();
-            if (userWantsToSave is null) return;
 
             var storageProvider = desktop.MainWindow?.StorageProvider;
             if (storageProvider is null) return;
@@ -94,10 +94,7 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : Vie
         {
             if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
                 desktop.MainWindow is null) return;
-
-            var userWantsToSave = await this.MainWindow.ShowUnsavedChangesDialog();
-            if (userWantsToSave is null) return;
-
+            
             var storageProvider = desktop.MainWindow?.StorageProvider;
             if (storageProvider is null) return;
 

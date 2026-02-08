@@ -100,19 +100,26 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public async Task SaveSelectedTagAsync()
+    private async Task SaveSelectedTagAsync()
     {
-        if (this.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen || !this.IsDbEnabled) return;
+        try
+        {
+            if (this.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen || !this.IsDbEnabled) return;
 
-        this.SelectedTag.CommitEdit();
-        await this.TagDatabaseService.WriteTagsToDatabase([this.SelectedTag.Tag]);
-        this.SelectedTag.RefreshParentsString();
-        this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
-        this.UnsavedChanges = false;
+            this.SelectedTag.CommitEdit();
+            await this.TagDatabaseService.WriteTagsToDatabase([this.SelectedTag.Tag]);
+            this.SelectedTag.RefreshParentsString();
+            this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
+            this.UnsavedChanges = false;
+        }
+        catch (Exception ex)
+        {
+            this.ShowErrorDialog(ex.Message);
+        }
     }
 
     [RelayCommand]
-    public void ShowBulkAddDialog()
+    private void ShowBulkAddDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return;
@@ -126,7 +133,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void ShowDatabaseSettings()
+    private void ShowDatabaseSettings()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return;
@@ -140,7 +147,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void ShowImportDialog()
+    private void ShowImportDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return;
@@ -153,7 +160,7 @@ public partial class MainWindowViewModel : ViewModelBase
         dialog.ShowDialog(desktop.MainWindow!);
     }
 
-    public async Task<bool?> ShowNullableBoolDialog(Window dialog)
+    private async Task<bool?> ShowNullableBoolDialog(Window dialog)
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             return null;

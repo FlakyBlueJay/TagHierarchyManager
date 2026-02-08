@@ -11,7 +11,6 @@ public partial class TagDatabase
     /// </summary>
     /// <param name="tag">The tag object.</param>
     /// <param name="transaction">The SqliteTransaction to execute queries on, will make its own if null.</param>
-    /// <returns>true if the tag has been saved.</returns>
     /// <exception cref="ArgumentException">Thrown if the tag already existed in the database.</exception>
     public async Task WriteTagToDatabase(Tag tag, SqliteTransaction? transaction = null)
     {
@@ -43,12 +42,12 @@ public partial class TagDatabase
             if (index != -1)
             {
                 this.Tags[index] = tag;
-                TagUpdated?.Invoke(this, tag);
+                TagUpdated.Invoke(this, tag);
             }
             else
             {
                 this.Tags.Add(tag);
-                TagAdded?.Invoke(this, tag);
+                TagAdded.Invoke(this, tag);
             }
         }
         catch (SqliteException)
@@ -62,6 +61,12 @@ public partial class TagDatabase
         }
     }
     
+    /// <summary>
+    ///     Saves all tag objects to the database.
+    /// </summary>
+    /// <param name="tags">The List of Tag objects.</param>
+    /// <param name="transaction">The SqliteTransaction to execute queries on, will make its own if null.</param>
+    /// <exception cref="ArgumentException">Thrown if the tag already existed in the database.</exception>
     public async Task WriteTagsToDatabase(List<Tag> tags, SqliteTransaction? transaction = null)
     {
         this.CheckInitialisation();

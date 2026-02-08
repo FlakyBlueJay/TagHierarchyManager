@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
 
@@ -32,7 +33,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
 
-        this._mainWindow.TagDatabaseService.TagUpdated -= this.TagDatabase_OnTagUpdated;
+        this._mainWindow.TagDatabaseService.TagsUpdated -= this.TagDatabase_OnTagsUpdated;
         this._mainWindow.TagDatabaseService.TagAdded -= this.TagDatabase_OnTagAdded;
         this._mainWindow.TagDatabaseService.TagDeleted -= this.TagDatabase_OnTagDeleted;
         this._mainWindow.TagDatabaseService.TagsAdded -= this.TagDatabase_OnTagsAdded;
@@ -42,23 +43,34 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     public async Task InitializeAsync()
     {
         if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
-        this.ViewModelMap.Clear();
-        this.TopLevelTagNodes.Clear();
-        await Task.Run(() =>
+        
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var topLevelTags = this._mainWindow.TagDatabaseService.GetAllTags(true);
+            this.ViewModelMap.Clear();
+            this.ChildNodeMap.Clear();
+            this.TopLevelTagNodes.Clear();
+        });
+        
+        
+        var topLevelTags = await Task.Run(() => this._mainWindow.TagDatabaseService.GetAllTags(true));
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
             var buildingTopLevelNodes = new List<TagItemViewModel>();
             foreach (var tagNode in
-                     topLevelTags!.Select(tag => new TagItemViewModel(tag, this._getParentNamesById)))
+                     topLevelTags.Select(tag => new TagItemViewModel(tag, this._getParentNamesById)))
             {
                 buildingTopLevelNodes.Add(tagNode);
                 this.AddTagNodeToViewModelMap(tagNode);
                 this.AddAllChildrenAsync(tagNode);
             }
-
+            
             foreach (var tagNode in buildingTopLevelNodes)
                 this.TopLevelTagNodes.Add(tagNode);
         });
+        
+        
+        await Task.CompletedTask;
     }
 
     private void AddAllChildrenAsync(TagItemViewModel tag, bool beingUpdated = false)
@@ -72,8 +84,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
         var childTags =
             this._mainWindow.TagDatabaseService.GetAllTagChildren(tag.Id);
-
-        if (childTags is null) return;
+        
         foreach (var childNode in childTags.Select(child =>
                      new TagItemViewModel(child, this._getParentNamesById)))
         {
@@ -96,7 +107,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         {
             if (parent.Children.Any(c => c.Id == tag.Id)) continue;
 
-            await Task.Run(() =>
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var tagNode = new TagItemViewModel(tag, this._getParentNamesById);
                 this.AddAllChildrenAsync(tagNode);
@@ -124,7 +135,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         }
         else
         {
-            if (beingUpdated) tagNodeSet.Clear();
+            // if (beingUpdated) tagNodeSet.Clear();
             tagNodeSet.Add(tagNode);
         }
     }
@@ -132,21 +143,22 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     private async Task AddTopLevelNode(Tag tag)
     {
         if (this.TopLevelTagNodes.Any(t => t.Id == tag.Id)) return;
-        await Task.Run(() =>
-        {
-            var newTopLevelTag = new TagItemViewModel(tag, this._getParentNamesById);
-            // this does create considerable delay, would be nice to speed it up somehow.
-            this.AddAllChildrenAsync(newTopLevelTag);
 
-            var index = 0;
-            while (index < this.TopLevelTagNodes.Count
-                   && string.Compare(this.TopLevelTagNodes[index].Name, newTopLevelTag.Name,
-                       StringComparison.CurrentCultureIgnoreCase) < 0)
-                index++;
+        var newTopLevelTag = new TagItemViewModel(tag, this._getParentNamesById);
+        // this does create considerable delay, would be nice to speed it up somehow.
+        this.AddAllChildrenAsync(newTopLevelTag);
 
-            this.TopLevelTagNodes.Insert(index, newTopLevelTag);
-            this.AddTagNodeToViewModelMap(newTopLevelTag);
-        });
+        var index = 0;
+        while (index < this.TopLevelTagNodes.Count
+               && string.Compare(this.TopLevelTagNodes[index].Name, newTopLevelTag.Name,
+                   StringComparison.CurrentCultureIgnoreCase) < 0)
+            index++;
+
+        this.TopLevelTagNodes.Insert(index, newTopLevelTag);
+        this.AddTagNodeToViewModelMap(newTopLevelTag);
+        
+        await Task.CompletedTask;
+
     }
 
     private async Task DeleteChildNode(int parentId, int idToDelete)
@@ -154,22 +166,24 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         if (!this.ViewModelMap.TryGetValue(parentId, out var parentViewModels)) return;
 
         foreach (var parentTag in parentViewModels)
-            await Task.Run(() =>
-            {
-                var foundChild =
-                    parentTag.Children.FirstOrDefault(t => t.Id == idToDelete)!;
-                parentTag.Children.Remove(foundChild);
-            });
+        {
+            var foundChild =
+                parentTag.Children.FirstOrDefault(t => t.Id == idToDelete)!;
+            parentTag.Children.Remove(foundChild);
+        }
+                
 
         if (!this.ChildNodeMap.TryGetValue(idToDelete, out var parentSet)) return;
         parentSet.Remove(parentId);
+        await Task.CompletedTask;
     }
 
     private async Task DeleteTopLevelNode(int idToDelete)
     {
         var topLevelNode = this.TopLevelTagNodes.FirstOrDefault(t => t.Id == idToDelete);
         if (topLevelNode is null) return;
-        await Task.Run(() => { this.TopLevelTagNodes.Remove(topLevelNode); });
+        this.TopLevelTagNodes.Remove(topLevelNode);
+        await Task.CompletedTask;
     }
 
     partial void OnSelectedTagChanged(TagItemViewModel? value)
@@ -193,7 +207,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     private void SubscribeToEvents()
     {
         if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
-        this._mainWindow.TagDatabaseService.TagUpdated += this.TagDatabase_OnTagUpdated;
+        this._mainWindow.TagDatabaseService.TagsUpdated += this.TagDatabase_OnTagsUpdated;
         this._mainWindow.TagDatabaseService.TagAdded += this.TagDatabase_OnTagAdded;
         this._mainWindow.TagDatabaseService.TagDeleted += this.TagDatabase_OnTagDeleted;
         this._mainWindow.TagDatabaseService.TagsAdded += this.TagDatabase_OnTagsAdded;
@@ -203,7 +217,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            await this.ProcessTagAdditions([newTag]);
+            await Dispatcher.UIThread.InvokeAsync(async () => await this.ProcessTagAdditions([newTag]));
         }
         catch (Exception e)
         {
@@ -216,7 +230,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            await this.WipeTagNodes(deletedTag.id);
+            await Dispatcher.UIThread.InvokeAsync(async () => await this.WipeTagNodes(deletedTag.id));
         }
         catch (Exception e)
         {
@@ -238,48 +252,60 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async void TagDatabase_OnTagUpdated(object? sender, Tag updatedTag)
+    private void TagDatabase_OnTagsUpdated(object? sender, List<Tag> updatedTags)
     {
-        try
+            Dispatcher.UIThread.Post(async void () =>
+            {
+                try
+                {
+                    foreach (var updatedTag in updatedTags)
+                        await this.HandleTagUpdate(updatedTag);
+                }
+                catch (Exception e)
+                {
+                    var error = new ErrorDialogViewModel(e.Message);
+                    error.ShowDialog();
+                }
+            });
+    }
+
+    private async Task HandleTagUpdate(Tag updatedTag)
+    {
+        if (!this.ViewModelMap.TryGetValue(updatedTag.Id, out var tagViewModels)) return;
+        
+        
+        foreach (var tag in tagViewModels)
         {
-            if (!this.ViewModelMap.TryGetValue(updatedTag.Id, out var tagViewModels)) return;
-
-            HashSet<int> oldParents = [];
-            HashSet<int> newParents = new(updatedTag.ParentIds);
-
-            // grab old parents if they exist
-            if (this.ChildNodeMap.TryGetValue(updatedTag.Id, out var parentList))
-                oldParents = [..parentList];
-
-            // add/remove parents as necessary
-            var removedParents = oldParents.Except(newParents);
-            var addedParents = newParents.Except(oldParents);
-
-            foreach (var parentId in removedParents)
-                await this.DeleteChildNode(parentId, updatedTag.Id);
-
-            foreach (var parentId in addedParents)
-                await this.AddChildNode(updatedTag, parentId);
-
-            // refresh all tagViewModels
-            foreach (var tag in tagViewModels)
-                tag.RefreshSelf();
-
-            // add/remove top level nodes as necessary
-            if (updatedTag.IsTopLevel)
-                await this.AddTopLevelNode(updatedTag);
-            else
-                await this.DeleteTopLevelNode(updatedTag.Id);
-
-            // clear child node map if tag has no parents
-            if (newParents.Count == 0)
-                this.ChildNodeMap.Remove(updatedTag.Id);
+            tag.Tag = updatedTag;
+            tag.RefreshSelf(); tag.RefreshParentsString();
         }
-        catch (Exception e)
-        {
-            var error = new ErrorDialogViewModel(e.Message);
-            error.ShowDialog();
-        }
+            
+        HashSet<int> oldParents = [];
+        HashSet<int> newParents = new(updatedTag.ParentIds);
+
+        // grab old parents if they exist
+        if (this.ChildNodeMap.TryGetValue(updatedTag.Id, out var parentList))
+            oldParents = [..parentList];
+
+        // add/remove parents as necessary
+        var removedParents = oldParents.Except(newParents);
+        var addedParents = newParents.Except(oldParents);
+
+        foreach (var parentId in removedParents)
+            await this.DeleteChildNode(parentId, updatedTag.Id);
+
+        foreach (var parentId in addedParents)
+            await this.AddChildNode(updatedTag, parentId);
+
+        // add/remove top level nodes as necessary
+        if (updatedTag.IsTopLevel)
+            await this.AddTopLevelNode(updatedTag);
+        else
+            await this.DeleteTopLevelNode(updatedTag.Id);
+
+        // clear child node map if tag has no parents
+        if (newParents.Count == 0)
+            this.ChildNodeMap.Remove(updatedTag.Id);
     }
 
     private async Task WipeTagNodes(int idToDelete)
