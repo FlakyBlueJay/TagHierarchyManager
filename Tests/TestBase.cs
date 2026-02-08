@@ -11,11 +11,6 @@ namespace TagHierarchyManager.Tests;
 public abstract class TestBase
 {
     /// <summary>
-    ///     The expected version value in the database.
-    /// </summary>
-    public const int ExpectedVersion = 1;
-
-    /// <summary>
     ///     The expected default tag binding key in the database.
     /// </summary>
     protected const string ExpectedTagBindKey = "default_tag_bind";
@@ -68,7 +63,7 @@ public abstract class TestBase
 
         List<Tag> sampleTags = TestSampleTags.AllTags();
         this.Database.ClearTags();
-        foreach (Tag inputTag in sampleTags) await this.Database.WriteTagToDatabase(inputTag);
+        await this.Database.WriteTagsToDatabase(sampleTags);
     }
 
     // do not use in Test1_Init. That needs to be tested at a lower level.

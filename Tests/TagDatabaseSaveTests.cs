@@ -26,8 +26,7 @@ public class TagDatabaseWriteTests : TestBase
     public async Task ClearDatabaseAndAddSampleData()
     {
         this.Database.ClearTags();
-        await this.Database.WriteTagToDatabase(TestSampleTags.Ambient);
-        await this.Database.WriteTagToDatabase(TestSampleTags.Electronic);
+        await this.Database.WriteTagsToDatabase([TestSampleTags.Ambient, TestSampleTags.Electronic]);
     }
 
     /// <summary>
@@ -43,7 +42,7 @@ public class TagDatabaseWriteTests : TestBase
             Name = "DELETE ME",
             IsTopLevel = true,
         };
-        await this.Database.WriteTagToDatabase(deletedTag);
+        await this.Database.WriteTagsToDatabase([deletedTag]);
 
         // Act
         await this.Database.DeleteTag(deletedTag.Id);
@@ -94,9 +93,7 @@ public class TagDatabaseWriteTests : TestBase
             TagBindings = ["genre"],
             Parents = ["Test parent tag 1"],
         };
-        await this.Database.WriteTagToDatabase(firstParentTag);
-        await this.Database.WriteTagToDatabase(secondParentTag);
-        await this.Database.WriteTagToDatabase(childTag);
+        await this.Database.WriteTagsToDatabase([firstParentTag, secondParentTag, childTag]);
         int childTagId = childTag.Id;
         List<int> expectedParents = [firstParentTag.Id, secondParentTag.Id];
 
@@ -115,7 +112,7 @@ public class TagDatabaseWriteTests : TestBase
         childTag.Parents.Add(addedParentName);
         childTag.Notes = newNotes;
         childTag.Aliases = newAliases;
-        await this.Database.WriteTagToDatabase(childTag);
+        await this.Database.WriteTagsToDatabase([childTag]);
 
         // Assert
         Tag? editedChildTag = await this.Database.SelectTagFromDatabase(childTagId);
@@ -143,7 +140,7 @@ public class TagDatabaseWriteTests : TestBase
 
         // Act/Assert
         ArgumentException? ex =
-            Assert.ThrowsAsync<ArgumentException>(async () => await this.Database.WriteTagToDatabase(ambient));
+            Assert.ThrowsAsync<ArgumentException>(async () => await this.Database.WriteTagsToDatabase([ambient]));
         Assert.That(ex!.Message, Does.EndWith("already exists in the database."));
     }
 
@@ -160,7 +157,7 @@ public class TagDatabaseWriteTests : TestBase
         bool tagValidated = inputTag.Validate();
 
         // Act
-        await this.Database.WriteTagToDatabase(inputTag);
+        await this.Database.WriteTagsToDatabase([inputTag]);
         Tag? savedTag = await this.Database.SelectTagFromDatabase(inputTag.Name);
 
         // Assert
@@ -193,7 +190,7 @@ public class TagDatabaseWriteTests : TestBase
         // Arrange
         HashSet<Tag> eventExpectedTags = [];
         List<Tag> testTags = [TestSampleTags.Ambient, TestSampleTags.Electronic, TestSampleTags.SpaceAmbient];
-        this.Database.TagsAdded += (_, tags) => eventExpectedTags.UnionWith(tags);
+        this.Database.TagsWritten += (_, tags) => eventExpectedTags.UnionWith(tags.Added);
         this.Database.ClearTags();
         
         // Act

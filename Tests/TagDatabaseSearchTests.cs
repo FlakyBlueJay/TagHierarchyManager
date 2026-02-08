@@ -124,7 +124,7 @@ public class TagDatabaseSearchTests : TestBase
             Parents = ["Ambient", "Electronic"],
             Aliases = ["áéíóúçýỷủ"],
         };
-        await this.Database.WriteTagToDatabase(normalisedTest);
+        await this.Database.WriteTagsToDatabase([normalisedTest]);
 
         // Act
         List<Tag> tags = this.Database.SearchWithAliases(query, mode);

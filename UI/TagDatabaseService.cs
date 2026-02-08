@@ -145,12 +145,6 @@ public class TagDatabaseService : ObservableObject
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         this.NotifyDatabasePropertiesChanged();
     }
-
-    public async Task WriteTagToDatabase(List<Tag> tag)
-    {
-        if (this.Database is null) return;
-        await this.Database.WriteTagsToDatabase(tag);
-    }
     
     public async Task WriteTagsToDatabase(List<Tag> tags)
     {
@@ -197,9 +191,7 @@ public class TagDatabaseService : ObservableObject
     private void SubscribeToEvents()
     {
         if (this.Database is null) return;
-        this.Database.TagAdded += this.TagDatabase_OnTagAdded;
-        this.Database.TagsAdded += this.TagDatabase_OnTagsAdded;
-        this.Database.TagsUpdated += this.TagDatabase_OnTagsUpdated;
+        this.Database.TagsWritten += this.TagDatabase_OnTagsWritten;
         this.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
     }
     
@@ -212,10 +204,10 @@ public class TagDatabaseService : ObservableObject
         this.InitialisationComplete?.Invoke(this, e);
     }
 
-    private void TagDatabase_OnTagAdded(object? sender, Tag newTag)
+    private void TagDatabase_OnTagsWritten(object? sender, TagDatabase.DatabaseEditResult editResult)
     {
-        this.TagsWritten?.Invoke(this, new TagWriteResult(new List<Tag> {newTag}, [], []));
-        this.NotifyDatabasePropertiesChanged();
+        var resultConverted = new TagWriteResult(editResult.Added, editResult.Updated, []);
+        this.TagsWritten?.Invoke(this, resultConverted);
     }
 
     private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) deletedTag)
@@ -224,24 +216,10 @@ public class TagDatabaseService : ObservableObject
         this.NotifyDatabasePropertiesChanged();
     }
 
-    private void TagDatabase_OnTagsAdded(object? sender, List<Tag> newTags)
-    {
-        this.TagsWritten?.Invoke(this, new TagWriteResult(newTags, [], []));
-        this.NotifyDatabasePropertiesChanged();
-    }
-
-    private void TagDatabase_OnTagsUpdated(object? sender, List<Tag> updatedTags)
-    {
-        this.TagsWritten?.Invoke(this, new TagWriteResult([], updatedTags, []));
-        this.NotifyDatabasePropertiesChanged();
-    }
-
     private void UnsubscribeFromEvents()
     {
         if (this.Database is null) return;
-        this.Database.TagAdded -= this.TagDatabase_OnTagAdded;
-        this.Database.TagsAdded -= this.TagDatabase_OnTagsAdded;
-        this.Database.TagsUpdated -= this.TagDatabase_OnTagsUpdated;
+        this.Database.TagsWritten -= this.TagDatabase_OnTagsWritten;
         this.Database.TagDeleted -= this.TagDatabase_OnTagDeleted;
     }
 }

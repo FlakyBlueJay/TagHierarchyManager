@@ -6,62 +6,6 @@ namespace TagHierarchyManager.Models;
 
 public partial class TagDatabase
 {
-    // DEPRECATED: move to WriteTagsToDatabase.
-    /// <summary>
-    ///     Saves the tag object to the database.
-    /// </summary>
-    /// <param name="tag">The tag object.</param>
-    /// <param name="transaction">The SqliteTransaction to execute queries on, will make its own if null.</param>
-    /// <exception cref="ArgumentException">Thrown if the tag already existed in the database.</exception>
-    public async Task WriteTagToDatabase(Tag tag, SqliteTransaction? transaction = null)
-    {
-        this.CheckInitialisation();
-        bool isTransactionOwner = transaction == null;
-        transaction ??= (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
-
-        // a database-associated tag will have an ID, and the program will know to edit it.
-        bool alreadyOnDatabase = tag.Id != 0;
-
-        try
-        {
-            SqliteCommand addCommand = this.currentConnection.CreateCommand();
-            addCommand.Transaction = transaction;
-            QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
-
-            if (await this.SelectTagFromDatabase(tag.Name) is not null && !alreadyOnDatabase)
-                throw new ArgumentException(ErrorMessages.TagAlreadyExists(tag.Name));
-
-            tag.Id = Convert.ToInt32(await addCommand.ExecuteScalarAsync().ConfigureAwait(false),
-                CultureInfo.InvariantCulture);
-
-            await this.SaveTagAliases(transaction, tag.Id, tag.Aliases).ConfigureAwait(false);
-            await this.SaveTagParents(transaction, tag.Id, tag.Parents, tag).ConfigureAwait(false);
-
-            if (isTransactionOwner) await transaction.CommitAsync().ConfigureAwait(false);
-
-            int index = this.Tags.FindIndex(t => t.Id == tag.Id);
-            if (index != -1)
-            {
-                this.Tags[index] = tag;
-                TagUpdated.Invoke(this, tag);
-            }
-            else
-            {
-                this.Tags.Add(tag);
-                TagAdded.Invoke(this, tag);
-            }
-        }
-        catch (SqliteException)
-        {
-            await transaction.RollbackAsync().ConfigureAwait(false);
-            throw;
-        }
-        finally
-        {
-            if (isTransactionOwner) await transaction.DisposeAsync().ConfigureAwait(false);
-        }
-    }
-    
     /// <summary>
     ///     Saves all tag objects to the database.
     /// </summary>
@@ -79,7 +23,6 @@ public partial class TagDatabase
 
         try
         {
-            // technically, this supports bulk tag updates as well, but i ain't doing that rn.
             foreach (var tag in tags)
             {
                 bool alreadyOnDatabase = tag.Id != 0;
@@ -112,15 +55,7 @@ public partial class TagDatabase
             
             if (isTransactionOwner) await transaction.CommitAsync().ConfigureAwait(false);
 
-            if (updatedTags.Count > 0)
-            {
-                this.TagsUpdated.Invoke(this, updatedTags);
-            }
-            
-            if (newlyAddedTags.Count > 0)
-            {
-                this.TagsAdded.Invoke(this, newlyAddedTags);
-            }
+            TagsWritten?.Invoke(this, new DatabaseEditResult(newlyAddedTags, updatedTags, []));
         }
         catch (SqliteException)
         {
