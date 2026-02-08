@@ -39,9 +39,24 @@
                                         Binding="{Binding TagBindings}" />
                     <DataGridTextColumn Header="{x:Static assets:Resources.HeaderAliases}" Binding="{Binding Aliases}"
                                         MinWidth="200" />
-                    <!-- TODO add custom cell for handling multi-line note editing -->
-                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderNotes}" Binding="{Binding Notes}"
-                                        MinWidth="200" />
+                    <!-- maybe have another window to edit notes in? but for now, this is cromulent. -->
+                    <DataGridTemplateColumn Header="{x:Static assets:Resources.HeaderNotes}" MinWidth="200">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="vm:BulkAddViewModel+TagRow">
+                                <TextBlock Text="{Binding Notes}" TextWrapping="NoWrap" Margin="10 10"
+                                           VerticalAlignment="Center"/>
+                        </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding Notes}"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         Classes="TextArea ClearButton"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                        
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>

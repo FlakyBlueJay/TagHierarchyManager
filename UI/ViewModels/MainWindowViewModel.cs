@@ -228,7 +228,6 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             this._selectedTag = oldTag;
-            // TODO invoke deleting/delete error so hierarchy tree can recover
             this.ShowErrorDialog(ex.Message);
         }
     }
