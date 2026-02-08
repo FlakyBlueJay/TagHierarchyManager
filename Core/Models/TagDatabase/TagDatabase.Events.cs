@@ -7,13 +7,9 @@ public partial class TagDatabase
     /// </summary>
     public event EventHandler InitialisationComplete = delegate { };
     
-    public sealed record DatabaseEditResult(List<Tag> Added, List<Tag> Updated, List<(int id, string name)> Deleted);
+    public sealed record DatabaseEditResult(IReadOnlyList<Tag> Added, IReadOnlyList<Tag> Updated, IReadOnlyList<(int id, string name)> Deleted);
     
     public event EventHandler<DatabaseEditResult>? TagsWritten;
-    
-    public event EventHandler<(int id, string name)> TagDeleted = delegate { };
-    
-    public event EventHandler<List<Tag>> TagsAdded = delegate { };
     
     private void OnInitialisationComplete(EventArgs e)
     {

@@ -192,7 +192,6 @@ public class TagDatabaseService : ObservableObject
     {
         if (this.Database is null) return;
         this.Database.TagsWritten += this.TagDatabase_OnTagsWritten;
-        this.Database.TagDeleted += this.TagDatabase_OnTagDeleted;
     }
     
     private void TagDatabase_OnInitialisationComplete(object? sender, EventArgs e)
@@ -206,20 +205,13 @@ public class TagDatabaseService : ObservableObject
 
     private void TagDatabase_OnTagsWritten(object? sender, TagDatabase.DatabaseEditResult editResult)
     {
-        var resultConverted = new TagWriteResult(editResult.Added, editResult.Updated, []);
+        var resultConverted = new TagWriteResult(editResult.Added, editResult.Updated, editResult.Deleted);
         this.TagsWritten?.Invoke(this, resultConverted);
-    }
-
-    private void TagDatabase_OnTagDeleted(object? sender, (int id, string name) deletedTag)
-    {
-        this.TagsWritten?.Invoke(this, new TagWriteResult([], [], [deletedTag]));
-        this.NotifyDatabasePropertiesChanged();
     }
 
     private void UnsubscribeFromEvents()
     {
         if (this.Database is null) return;
         this.Database.TagsWritten -= this.TagDatabase_OnTagsWritten;
-        this.Database.TagDeleted -= this.TagDatabase_OnTagDeleted;
     }
 }
