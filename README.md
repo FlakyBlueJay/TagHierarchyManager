@@ -1,7 +1,8 @@
 # Tag Hierarchy Manager
 An application for managing tree hierarchies for music tags, focusing on the MusicBee tag hierarchy template format.
 
-<img width="2126" height="1620" alt="image" src="https://github.com/user-attachments/assets/4f004620-ab60-4bc2-b8c8-bfa22fad5be1" />
+<img width="2858" height="1696" alt="image" src="https://github.com/user-attachments/assets/bb6ca23c-932a-4ce6-8e06-005a1515b42e" />
+
 
 ## Requirements
 - .NET 10.0
