@@ -6,10 +6,6 @@ using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Views;
 
-/*
- * TODO:
- * add "recently added" functionality.
- */
 public partial class MainWindow : Window
 {
     private bool _userWantsToQuit;
@@ -20,28 +16,26 @@ public partial class MainWindow : Window
     }
 
     private MainWindowViewModel? ViewModel => this.DataContext as MainWindowViewModel;
-    
-    public void MenuItemQuit_Click(object? sender, RoutedEventArgs e)
-    {
-        this.Close();
-    }
-    
+
     public void MenuItemAbout_Click(object? sender, RoutedEventArgs e)
     {
         new AboutWindow().ShowDialog(this);
     }
 
+    public void MenuItemQuit_Click(object? sender, RoutedEventArgs e) =>
+        this.Close();
+
     public void SearchTextBox_OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter) return;
-        
-        var args = new object[] 
-        { 
-            this.SearchTextBox.Text ?? "", 
-            this.SearchModeComboBox.SelectedIndex, 
-            this.SearchAliasesCheckBox.IsChecked ?? false 
+
+        var args = new object[]
+        {
+            this.SearchTextBox.Text ?? "",
+            this.SearchModeComboBox.SelectedIndex,
+            this.SearchAliasesCheckBox.IsChecked ?? false
         };
-        
+
         if (this.ViewModel?.StartSearchCommand.CanExecute(args) != true) return;
         this.ViewModel.StartSearchCommand.Execute(args);
         e.Handled = true;
@@ -52,7 +46,6 @@ public partial class MainWindow : Window
         try
         {
             if (this._userWantsToQuit) return;
-            
             
             if (this.ViewModel is not null && this.ViewModel.UnsavedChanges)
             {

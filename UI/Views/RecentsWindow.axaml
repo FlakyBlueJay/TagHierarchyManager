@@ -1,0 +1,43 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+        xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
+        Width="500" Height="600"
+        x:Class="TagHierarchyManager.UI.Views.RecentsWindow"
+        x:DataType="vm:RecentsViewModel"
+        Title="{x:Static assets:Resources.TitleRecents}">
+    <TabControl Margin="15">
+        <TabItem Header="{x:Static assets:Resources.TabRecentlyAdded}">
+            <Grid RowDefinitions="*, Auto">
+                <DataGrid Grid.Row="0" ItemsSource="{Binding RecentAdded}"
+                          DoubleTapped="DataGrid_DoubleTapped">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="{x:Static assets:Resources.HeaderName}" Width="*"
+                                            Binding="{Binding Name}" />
+                        <DataGridTextColumn Header="{x:Static assets:Resources.HeaderDateAdded}"
+                                            Binding="{Binding DateTime}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock DockPanel.Dock="Bottom" Grid.Row="1"
+                           Text="{x:Static assets:Resources.RecentsNoteAddedTimestampedOnly}"
+                           TextWrapping="Wrap" Margin="0 5 0 0 " />
+            </Grid>
+        </TabItem>
+        <TabItem Header="{x:Static assets:Resources.TabRecentlyEdited}">
+            <DataGrid
+                ItemsSource="{Binding RecentEdited}"
+                DoubleTapped="DataGrid_DoubleTapped">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderName}"
+                                        Binding="{Binding Name}" Width="*" />
+                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderDateModified}"
+                                        Binding="{Binding DateTime}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </TabItem>
+    </TabControl>
+
+</Window>

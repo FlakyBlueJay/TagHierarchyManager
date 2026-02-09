@@ -29,12 +29,6 @@ public class TagDatabaseService : ObservableObject
     public int TagCount => this.Database?.Tags.Count ?? 0;
     public int TagRelationshipCount => this.Database?.GetTagRelationshipCount() ?? 0;
 
-    public sealed record TagWriteResult(
-        IReadOnlyList<Tag> Added,
-        IReadOnlyList<Tag> Updated,
-        IReadOnlyList<(int id, string name)> Deleted
-    );
-
     private TagDatabase? Database { get; set; }
 
     public void CloseDatabase()
@@ -113,6 +107,20 @@ public class TagDatabaseService : ObservableObject
             .ToList();
     }
 
+    public List<Tag> GetRecentTags(bool recentlyAdded)
+    {
+        if (this.Database is null) return [];
+        return recentlyAdded
+            ? this.Database.Tags.Where(t => t.CreatedAt is not null).OrderByDescending(t => t.CreatedAt).Take(50)
+                .ToList()
+            : this.Database.Tags.OrderByDescending(t => t.UpdatedAt).Take(50).ToList();
+    }
+
+    public Tag? GetTagById(int id)
+    {
+        return this.Database?.Tags.FirstOrDefault(t => t.Id == id);
+    }
+
     public async Task LoadDatabase(string filePath)
     {
         TagDatabase db = new();
@@ -120,7 +128,7 @@ public class TagDatabaseService : ObservableObject
         {
             if (this.Database != null)
                 this.CloseDatabase();
-            
+
             db.InitialisationComplete += this.TagDatabase_OnInitialisationComplete;
             await Task.Run(() => db.LoadAsync(filePath));
         }
@@ -145,7 +153,7 @@ public class TagDatabaseService : ObservableObject
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         this.NotifyDatabasePropertiesChanged();
     }
-    
+
     public async Task WriteTagsToDatabase(List<Tag> tags)
     {
         if (this.Database is null) return;
@@ -193,7 +201,7 @@ public class TagDatabaseService : ObservableObject
         if (this.Database is null) return;
         this.Database.TagsWritten += this.TagDatabase_OnTagsWritten;
     }
-    
+
     private void TagDatabase_OnInitialisationComplete(object? sender, EventArgs e)
     {
         this.Database = sender as TagDatabase;
@@ -214,4 +222,10 @@ public class TagDatabaseService : ObservableObject
         if (this.Database is null) return;
         this.Database.TagsWritten -= this.TagDatabase_OnTagsWritten;
     }
+
+    public sealed record TagWriteResult(
+        IReadOnlyList<Tag> Added,
+        IReadOnlyList<Tag> Updated,
+        IReadOnlyList<(int id, string name)> Deleted
+    );
 }

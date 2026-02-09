@@ -1,10 +1,7 @@
-using System.Xml.XPath;
 using NUnit.Framework;
 using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager.Tests;
-
-// todo catch events here.
 
 /// <summary>
 ///     Tests relating to saving of <see cref="Tag" /> objects to a <see cref="TagDatabase" />.

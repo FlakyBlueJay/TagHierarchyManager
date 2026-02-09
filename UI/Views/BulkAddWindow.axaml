@@ -8,7 +8,7 @@
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="450"
         Width="1100" Height="450"
         x:Class="TagHierarchyManager.UI.Views.BulkAddWindow"
-        Title="{Binding WindowTitle}"
+        Title="{x:Static assets:Resources.TitleBulkAdd}"
         KeyDown="BulkAddWindow_OnKeyDown">
     <Grid
         RowDefinitions="*, Auto"
@@ -44,18 +44,18 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate DataType="vm:BulkAddViewModel+TagRow">
                                 <TextBlock Text="{Binding Notes}" TextWrapping="NoWrap" Margin="10 10"
-                                           VerticalAlignment="Center"/>
-                        </DataTemplate>
+                                           VerticalAlignment="Center" />
+                            </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                         <DataGridTemplateColumn.CellEditingTemplate>
                             <DataTemplate>
                                 <TextBox Text="{Binding Notes}"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
-                                         Classes="TextArea ClearButton"/>
+                                         Classes="TextArea ClearButton" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellEditingTemplate>
-                        
+
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>

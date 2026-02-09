@@ -208,7 +208,7 @@
     <data name="ImportNoFilePicked" xml:space="preserve">
         <value>No file picked.</value>
     </data>
-    <data name="ImportDialogTitle" xml:space="preserve">
+    <data name="TitlemportDialog" xml:space="preserve">
         <value>Import...</value>
     </data>
     <data name="ErrorDialogTitleBarTitle" xml:space="preserve">
@@ -264,5 +264,29 @@
     </data>
     <data name="BulkAddExceptionTemplate" xml:space="preserve">
         <value>{0} (on row {1})</value>
+    </data>
+    <data name="HeaderDateAdded" xml:space="preserve">
+        <value>Date added</value>
+    </data>
+    <data name="HeaderDateModified" xml:space="preserve">
+        <value>Date modified</value>
+    </data>
+    <data name="TabRecentlyAdded" xml:space="preserve">
+        <value>Recently Added</value>
+    </data>
+    <data name="TabRecentlyEdited" xml:space="preserve">
+        <value>Recently Edited</value>
+    </data>
+    <data name="RecentsNoteAddedTimestampedOnly" xml:space="preserve">
+        <value>NOTE: Only newly added tags will show up on this table. If you have recently migrated, you will not see any tags here.</value>
+    </data>
+    <data name="MenuItemRecents" xml:space="preserve">
+        <value>Recently added/edited tags</value>
+    </data>
+    <data name="TitleRecents" xml:space="preserve">
+        <value>Recently Added/Edited Tags</value>
+    </data>
+    <data name="TitleBulkAdd" xml:space="preserve">
+        <value>Bulk Add Tags...</value>
     </data>
 </root>

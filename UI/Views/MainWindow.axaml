@@ -19,7 +19,7 @@
                 <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}"
                           Command="{Binding NewDatabaseCommand}" />
                 <MenuItem Header="{x:Static assets:Resources.MenuItemImport}"
-                          Command="{Binding ShowImportDialogCommand}"/>
+                          Command="{Binding ShowImportDialogCommand}" />
                 <Separator />
                 <MenuItem Name="MenuItemOpen" Header="{x:Static assets:Resources.MenuItemOpen}"
                           Command="{Binding OpenDatabaseCommand}" />
@@ -32,6 +32,8 @@
                       Header="{x:Static assets:Resources.MenuDatabase}">
                 <MenuItem Header="{x:Static assets:Resources.MenuItemDatabaseSettings}"
                           Command="{Binding ShowDatabaseSettingsCommand}" />
+                <MenuItem Header="{x:Static assets:Resources.MenuItemRecents}"
+                          Command="{Binding ShowRecentsWindowCommand}" />
                 <Separator />
                 <MenuItem IsEnabled="False"
                           Header="{Binding TotalTags,
@@ -52,7 +54,7 @@
                 <ColumnDefinition MinWidth="500" Width="*" />
             </Grid.ColumnDefinitions>
 
-            <TabControl Grid.Column="0" Margin="0 0 5 0 " Theme="{StaticResource CardTabControl}">
+            <TabControl Grid.Column="0" Margin="0 0 5 0 ">
                 <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
                     <Grid RowDefinitions="*, Auto">
                         <TreeView Grid.Row="0"
@@ -101,9 +103,9 @@
                                 Command="{Binding StartSearchCommand}">
                             <Button.CommandParameter>
                                 <MultiBinding Converter="{StaticResource SearchParametersConverter}">
-                                    <Binding ElementName="SearchTextBox" Path="Text"/>
-                                    <Binding ElementName="SearchModeComboBox" Path="SelectedIndex"/>
-                                    <Binding ElementName="SearchAliasesCheckBox" Path="IsChecked"/>
+                                    <Binding ElementName="SearchTextBox" Path="Text" />
+                                    <Binding ElementName="SearchModeComboBox" Path="SelectedIndex" />
+                                    <Binding ElementName="SearchAliasesCheckBox" Path="IsChecked" />
                                 </MultiBinding>
                             </Button.CommandParameter>
                         </Button>
@@ -175,7 +177,7 @@
         </Grid>
     </DockPanel>
     <Window.KeyBindings>
-        <KeyBinding Gesture="Ctrl+B" Command="{Binding ShowBulkAddDialogCommand}"></KeyBinding>
+        <KeyBinding Gesture="Ctrl+B" Command="{Binding ShowBulkAddDialogCommand}" />
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveSelectedTagCommand}" />
         <KeyBinding Gesture="Delete" Command="{Binding StartTagDeletionCommand}" />
         <KeyBinding Gesture="Ctrl+E" Command="{Binding StartExportCommand}" />

@@ -22,7 +22,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _isDbEnabled;
 
-
     private bool _isSwitching;
 
     [ObservableProperty] private SearchViewModel? _searchViewModel;
@@ -44,9 +43,7 @@ public partial class MainWindowViewModel : ViewModelBase
         this.TagDatabaseService.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName == nameof(this.TagDatabaseService.TagCount))
-            {
                 this.OnPropertyChanged(nameof(this.TotalTags));
-            }
         };
     }
 
@@ -81,119 +78,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand(AllowConcurrentExecutions = false)]
-    private async Task NewTag()
-    {
-        var userWantsToSave = await this.ShowUnsavedChangesDialog();
-        if (userWantsToSave is null) return;
-
-        this.SelectedTag = new TagItemViewModel(
-            new Tag
-            {
-                Name = string.Empty,
-                IsTopLevel = true,
-                TagBindings = this.TagDatabaseService.DefaultTagBindings
-            }
-        );
-        this.UnsavedChanges = true;
-    }
-
-    [RelayCommand]
-    private async Task SaveSelectedTagAsync()
-    {
-        try
-        {
-            if (this.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen || !this.IsDbEnabled) return;
-
-            this.SelectedTag.CommitEdit();
-            await this.TagDatabaseService.WriteTagsToDatabase([this.SelectedTag.Tag]);
-            this.SelectedTag.RefreshParentsString();
-            this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
-            this.UnsavedChanges = false;
-        }
-        catch (Exception ex)
-        {
-            this.ShowErrorDialog(ex.Message);
-        }
-    }
-
-    [RelayCommand]
-    private void ShowBulkAddDialog()
-    {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return;
-
-        var dialog = new BulkAddWindow
-        {
-            DataContext = new BulkAddViewModel(this)
-        };
-
-        dialog.ShowDialog(desktop.MainWindow!);
-    }
-
-    [RelayCommand]
-    private void ShowDatabaseSettings()
-    {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return;
-
-        var dialog = new DatabaseSettingsWindow
-        {
-            DataContext = new DatabaseSettingsViewModel(this)
-        };
-
-        dialog.ShowDialog(desktop.MainWindow!);
-    }
-
-    [RelayCommand]
-    private void ShowImportDialog()
-    {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return;
-
-        var dialog = new ImportDialog
-        {
-            DataContext = new ImportDialogViewModel(this)
-        };
-
-        dialog.ShowDialog(desktop.MainWindow!);
-    }
-
-    private async Task<bool?> ShowNullableBoolDialog(Window dialog)
-    {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return null;
-
-        var mainWindow = desktop.MainWindow;
-        var result = await dialog.ShowDialog<bool?>(mainWindow!);
-        return result;
-    }
-
     public async Task<bool?> ShowUnsavedChangesDialog()
     {
         if (!this.UnsavedChanges) return true;
         var result = await this.ShowNullableBoolDialog(new UnsavedChangesDialog());
         return result;
-    }
-
-    [RelayCommand]
-    private void StartSearch(object? parameter)
-    {
-        if (parameter is not object[] values || values.Length < 3) return;
-        
-        var query = values[0] as string ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(query)) return;
-        var mode = (TagDatabaseSearchMode)values[1];
-        var searchAliases = (bool)values[2];
-
-        try
-        {
-            this.SearchViewModel?.Search(query, mode, searchAliases);
-        }
-        catch (Exception ex)
-        {
-            this.ShowErrorDialog(ex.Message);
-        }
     }
 
     [RelayCommand]
@@ -306,6 +195,23 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task NewTag()
+    {
+        var userWantsToSave = await this.ShowUnsavedChangesDialog();
+        if (userWantsToSave is null) return;
+
+        this.SelectedTag = new TagItemViewModel(
+            new Tag
+            {
+                Name = string.Empty,
+                IsTopLevel = true,
+                TagBindings = this.TagDatabaseService.DefaultTagBindings
+            }
+        );
+        this.UnsavedChanges = true;
+    }
+
     private void OnUserEditedTag(object? sender, EventArgs e)
     {
         this.UnsavedChanges = true;
@@ -344,10 +250,95 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
+    private async Task SaveSelectedTagAsync()
+    {
+        try
+        {
+            if (this.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen || !this.IsDbEnabled) return;
+
+            this.SelectedTag.CommitEdit();
+            await this.TagDatabaseService.WriteTagsToDatabase([this.SelectedTag.Tag]);
+            this.SelectedTag.RefreshParentsString();
+            this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
+            this.UnsavedChanges = false;
+        }
+        catch (Exception ex)
+        {
+            this.ShowErrorDialog(ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private void ShowBulkAddDialog()
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var dialog = new BulkAddWindow
+        {
+            DataContext = new BulkAddViewModel(this)
+        };
+
+        dialog.ShowDialog(desktop.MainWindow!);
+    }
+
+    [RelayCommand]
+    private void ShowDatabaseSettings()
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var dialog = new DatabaseSettingsWindow
+        {
+            DataContext = new DatabaseSettingsViewModel(this)
+        };
+
+        dialog.ShowDialog(desktop.MainWindow!);
+    }
+
     private void ShowErrorDialog(string message)
     {
         var error = new ErrorDialogViewModel(message);
         error.ShowDialog();
+    }
+
+    [RelayCommand]
+    private void ShowImportDialog()
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var dialog = new ImportDialog
+        {
+            DataContext = new ImportDialogViewModel(this)
+        };
+
+        dialog.ShowDialog(desktop.MainWindow!);
+    }
+
+    private async Task<bool?> ShowNullableBoolDialog(Window dialog)
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return null;
+
+        var mainWindow = desktop.MainWindow;
+        var result = await dialog.ShowDialog<bool?>(mainWindow!);
+        return result;
+    }
+
+    [RelayCommand]
+    private void ShowRecentsWindow()
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var dialog = new RecentsWindow
+        {
+            DataContext = new RecentsViewModel(this)
+        };
+
+        dialog.ShowDialog(desktop.MainWindow!);
     }
 
     [RelayCommand]
@@ -385,6 +376,26 @@ public partial class MainWindowViewModel : ViewModelBase
             this.IsDbEnabled = true;
             var error = new ErrorDialogViewModel(ex.Message);
             error.ShowDialog();
+        }
+    }
+
+    [RelayCommand]
+    private void StartSearch(object? parameter)
+    {
+        if (parameter is not object[] values || values.Length < 3) return;
+
+        var query = values[0] as string ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(query)) return;
+        var mode = (TagDatabaseSearchMode)values[1];
+        var searchAliases = (bool)values[2];
+
+        try
+        {
+            this.SearchViewModel?.Search(query, mode, searchAliases);
+        }
+        catch (Exception ex)
+        {
+            this.ShowErrorDialog(ex.Message);
         }
     }
 
@@ -443,7 +454,7 @@ public partial class MainWindowViewModel : ViewModelBase
             this.SelectedTag?.SyncId();
             this.OnPropertyChanged(nameof(this.TotalTags));
         }
-        
+
         if (result.Deleted.Count > 0) this.OnPropertyChanged(nameof(this.TotalTags));
     }
 }

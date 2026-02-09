@@ -8,7 +8,7 @@
         Width="600" Height="200" CanResize="False" ShowInTaskbar="False"
         x:Class="TagHierarchyManager.UI.Views.ImportDialog"
         x:DataType="vm:ImportDialogViewModel"
-        Title="{x:Static assets:Resources.ImportDialogTitle}">
+        Title="{x:Static assets:Resources.TitlemportDialog}">
     <StackPanel Margin="10">
         <TextBlock Text="{x:Static assets:Resources.ImportFileToImport}" />
         <Grid ColumnDefinitions="*, Auto" Margin="0 0 0 20">
