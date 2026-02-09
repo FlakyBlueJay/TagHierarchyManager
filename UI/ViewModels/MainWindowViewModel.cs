@@ -29,6 +29,8 @@ public partial class MainWindowViewModel : ViewModelBase
     // Since multiple view models will be using this tag, best to store it here as the authoritative source.
     private TagItemViewModel? _selectedTag;
 
+    [ObservableProperty] private int? _selectedTagId;
+
     [ObservableProperty] private string _statusBlockText = Resources.StatusBlockReady;
 
     [ObservableProperty] private TagDatabaseService _tagDatabaseService;
@@ -248,6 +250,16 @@ public partial class MainWindowViewModel : ViewModelBase
             var error = new ErrorDialogViewModel(ex.Message);
             error.ShowDialog();
         }
+    }
+
+    partial void OnSelectedTagIdChanged(int? id)
+    {
+        if (id is null) return;
+        var tag = this.TagDatabaseService.GetTagById(id.Value);
+        this.SelectedTag =
+            tag is null 
+                ? null
+                : new TagItemViewModel(tag, this.TagDatabaseService.GetParentNamesByIds);
     }
 
     [RelayCommand]

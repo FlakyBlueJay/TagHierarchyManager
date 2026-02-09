@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,7 +9,6 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class SearchViewModel : ViewModelBase, IDisposable
 {
-    private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
 
     [ObservableProperty] private ObservableCollection<TagItemViewModel> _searchResults = [];
@@ -20,7 +18,6 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
     public SearchViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
-        this._getParentNamesById = mainWindow.TagDatabaseService.GetParentNamesByIds;
         mainWindow.TagDatabaseService.TagsWritten += this.TagDatabase_OnTagsWritten;
     }
 
@@ -44,7 +41,7 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
         }
 
         results.Select(tag =>
-                new TagItemViewModel(tag, this._getParentNamesById))
+                new TagItemViewModel(tag))
             .OrderBy(tag => tag.Name)
             .ToList()
             .ForEach(this.SearchResults.Add);
@@ -56,8 +53,8 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
 
     partial void OnSelectedSearchResultChanged(TagItemViewModel? value)
     {
-        if (value is null) return;
-        this._mainWindow.SelectedTag = value;
+        if (value is null || this._mainWindow.SelectedTagId == value.Id) return;
+        this._mainWindow.SelectedTagId = value.Id;
     }
 
     private void TagDatabase_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult result)

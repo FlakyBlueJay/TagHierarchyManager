@@ -89,7 +89,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
                 this.ChildNodeMap.Add(childNode.Tag.Id, []);
             this.ChildNodeMap[childNode.Tag.Id].Add(tag.Id);
 
-            this.AddTagNodeToViewModelMap(childNode, beingUpdated);
+            this.AddTagNodeToViewModelMap(childNode);
 
             tag.Children.Add(childNode);
             this.AddAllChildrenAsync(childNode);
@@ -124,7 +124,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             set.Add(parentId);
     }
 
-    private void AddTagNodeToViewModelMap(TagItemViewModel tagNode, bool beingUpdated = false)
+    private void AddTagNodeToViewModelMap(TagItemViewModel tagNode)
     {
         if (!this.ViewModelMap.TryGetValue(tagNode.Id, out var tagNodeSet))
         {
@@ -185,7 +185,8 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
     partial void OnSelectedTagChanged(TagItemViewModel? value)
     {
-        this._mainWindow.SelectedTag = value;
+        if (value is null || this._mainWindow.SelectedTagId == value.Id) return;
+        this._mainWindow.SelectedTagId = value.Id;
     }
 
     private async Task ProcessTagAdditions(IReadOnlyList<Tag> newTags)
