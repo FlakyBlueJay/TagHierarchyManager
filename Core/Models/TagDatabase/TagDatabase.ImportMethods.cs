@@ -27,8 +27,6 @@ public partial class TagDatabase
                                   ?? await this.SelectTagFromDatabase(tag.Name).ConfigureAwait(false);
                 if (currentTag is null)
                     throw new InvalidOperationException(ErrorMessages.TagNotFound);
-
-                await this.SaveTagAliases(transaction, currentTag.Id, tag.Aliases).ConfigureAwait(false);
                 await this.SaveTagParents(transaction, currentTag.Id, tag.Parents, currentTag).ConfigureAwait(false);
             }
 
@@ -50,8 +48,8 @@ public partial class TagDatabase
         SqliteCommand addCommand = this.currentConnection.CreateCommand();
         addCommand.Transaction = transaction;
         addCommand.CommandText = """
-                                 INSERT INTO tag (name, notes, top_level, tags_to_bind, also_known_as)
-                                 VALUES (@name, @notes, @is_top_level, @tags_to_bind, @aliases)
+                                 INSERT INTO tag (name, notes, top_level, tags_to_bind, also_known_as, date_modified)
+                                 VALUES (@name, @notes, @is_top_level, @tags_to_bind, @aliases, CURRENT_TIMESTAMP)
                                  """;
         addCommand.Parameters.AddWithValue("@name", tag.Name);
         addCommand.Parameters.AddWithValue("@name_normalised", StringNormaliser.FormatStringForSearch(tag.Name));

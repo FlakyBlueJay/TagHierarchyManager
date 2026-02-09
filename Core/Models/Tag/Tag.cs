@@ -52,6 +52,17 @@ public partial class Tag
     /// </summary>
     public List<string> TagBindings { get; set; } = [];
 
+    /// <summary>
+    ///     Gets or sets the date the tag was created.
+    ///     Defaults to null to cater to migrated databases to prevent inaccurate information.
+    /// </summary>
+    public DateTime? CreatedAt { get; set; } = null;
+    
+    /// <summary>
+    ///     Gets or sets the date the tag was modified.
+    /// </summary>
+    public DateTime UpdatedAt { get; set; }
+
     /// <inheritdoc />
     public override string ToString()
     {

@@ -16,6 +16,9 @@ public partial class TagDatabase
     private const string ParentIdsColumnName = "parent_ids";
     private const string TagBindingsColumnName = "tags_to_bind";
     private const string TopLevelColumnName = "top_level";
+    private const string DateCreatedColumnName = "date_created";
+    private const string DateModifiedColumnName = "date_modified";
+    private const int LatestVersion = 2;
     private SqliteConnection? currentConnection;
 
     private List<string> defaultBindings = ["genre"];

@@ -96,28 +96,22 @@ public partial class TagDatabase
             
             command.CommandText = """
                                   CREATE TABLE "tag" (
-                                      "id"                INTEGER NOT NULL,
+                                      "id"                INTEGER PRIMARY KEY AUTOINCREMENT,
                                       "name"              TEXT NOT NULL UNIQUE,
                                       "notes"             TEXT DEFAULT '',
                                       "top_level"         INTEGER NOT NULL DEFAULT 0,
                                       "tags_to_bind"      TEXT,
                                       "also_known_as"     TEXT DEFAULT '',
-                                      PRIMARY KEY("id" AUTOINCREMENT)
-                                  );
-
-                                  CREATE TABLE "alias" (
-                                      "id"                INTEGER NOT NULL,
-                                      "tag_id"            INTEGER NOT NULL,
-                                      "name"              TEXT,
-                                      PRIMARY KEY("id" AUTOINCREMENT),
-                                      FOREIGN KEY("tag_id") REFERENCES "tag"("id") ON DELETE CASCADE
+                                      "date_created"      DATETIME,
+                                      "date_modified"     DATETIME
                                   );
 
                                   CREATE TABLE "tag_parent_link" (
                                       "target_tag_id" INT NOT NULL,
-                                      "parent_tag_id" INT NOT NULL CHECK("parent_tag_id" != "target_tag_id"),
+                                      "parent_tag_id" INT NOT NULL,
                                       FOREIGN KEY("parent_tag_id") REFERENCES "tag"("id") ON DELETE CASCADE,
-                                      FOREIGN KEY("target_tag_id") REFERENCES "tag"("id") ON DELETE CASCADE
+                                      FOREIGN KEY("target_tag_id") REFERENCES "tag"("id") ON DELETE CASCADE,
+                                      CHECK("parent_tag_id" != "target_tag_id")
                                   );
 
                                   CREATE TABLE "settings" (
@@ -125,13 +119,13 @@ public partial class TagDatabase
                                       "value" TEXT NOT NULL
                                   );
 
-                                  INSERT INTO "main"."settings" ("key", "value") VALUES ('version', '1');
+                                  INSERT INTO "main"."settings" ("key", "value") VALUES ('version', '2');
                                   INSERT INTO "main"."settings" ("key", "value") VALUES ('default_tag_bind', 'genre');
 
                                   CREATE TRIGGER DoNotChangeRequiredKeys BEFORE UPDATE ON settings
                                   FOR EACH ROW
                                   WHEN OLD.key IN ('version', 'default_tag_bind') AND OLD.key != NEW.key
-                                  BEGIN      
+                                  BEGIN
                                   SELECT RAISE(ABORT,'CANNOT_CHANGE_REQUIRED_KEY'); 
                                   END;
 
@@ -143,7 +137,16 @@ public partial class TagDatabase
                                   SELECT RAISE(ABORT, 'CANNOT_DELETE_REQUIRED_KEY');
                                   END;
                                   """;
-            await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+            try
+            {
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                this.Logger.Error(ex, "SQLite failed executing statement:\n{SqlStatement}", command.CommandText);
+                throw;
+            }
+            
             await this.FinishInitialisationAsync(tagsToImport).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -183,14 +186,15 @@ public partial class TagDatabase
                     }
                 }
             }
-
+            
             this.FilePath = this.currentConnection.DataSource;
             this.Name = this.currentConnection.DataSource != InMemoryDbPath
                 ? Path.GetFileNameWithoutExtension(this.currentConnection.DataSource)
                 : InMemoryDbName;
+            
+            this.PerformNeededMigrations();
 
             this.Initialised = true;
-
 
             if (tagsToImport is not null)
                 try
@@ -202,9 +206,11 @@ public partial class TagDatabase
                     this.Close();
                     throw;
                 }
-
+            
             if (tagsToImport is null)
                 this.Tags = await this.GetAllTagsFromDatabase();
+            
+            
 
             this.OnInitialisationComplete(EventArgs.Empty);
             Debug.WriteLine(

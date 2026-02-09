@@ -16,7 +16,9 @@ public partial class TagDatabase
                                                                      parent.top_level,
                                                                      parent.notes,
                                                                      parent.tags_to_bind,
-                                                                     parent.also_known_as
+                                                                     parent.also_known_as,
+                                                                     parent.date_created,
+                                                                     parent.date_modified
                                                                  FROM tag_parent_link
                                                                  LEFT JOIN tag parent
                                                                  ON tag_parent_link.parent_tag_id = parent.id
@@ -44,8 +46,8 @@ public partial class TagDatabase
             {
                 // if tag.Id is null, it's assumed it's a new tag to be added.
                 command.CommandText = """
-                                          INSERT INTO tag (name, notes, top_level, tags_to_bind, also_known_as)
-                                          VALUES (@name, @notes, @is_top_level, @tags_to_bind, @aliases)
+                                          INSERT INTO tag (name, notes, top_level, tags_to_bind, also_known_as, date_created, date_modified)
+                                          VALUES (@name, @notes, @is_top_level, @tags_to_bind, @aliases, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                                           RETURNING id;
                                       """;
             }
@@ -59,7 +61,8 @@ public partial class TagDatabase
                                               notes = @notes,
                                               top_level = @is_top_level,
                                               tags_to_bind = @tags_to_bind,
-                                              also_known_as = @aliases
+                                              also_known_as = @aliases,
+                                              date_modified = CURRENT_TIMESTAMP
                                           WHERE id = @target_id
                                           RETURNING id;
                                       """;

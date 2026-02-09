@@ -37,7 +37,6 @@ public partial class TagDatabase
                 tag.Id = Convert.ToInt32(await addCommand.ExecuteScalarAsync().ConfigureAwait(false),
                     CultureInfo.InvariantCulture);
                 
-                await this.SaveTagAliases(transaction, tag.Id, tag.Aliases).ConfigureAwait(false);
                 await this.SaveTagParents(transaction, tag.Id, tag.Parents, tag).ConfigureAwait(false);
 
                 int index = this.Tags.FindIndex(t => t.Id == tag.Id);
@@ -65,29 +64,6 @@ public partial class TagDatabase
         finally
         {
             if (isTransactionOwner) await transaction.DisposeAsync().ConfigureAwait(false);
-        }
-    }
-
-    private async Task SaveTagAliases(SqliteTransaction transaction, int id, IReadOnlyCollection<string> aliases)
-    {
-        if (aliases.Count == 0) return;
-        this.CheckInitialisation();
-        
-        SqliteCommand command = this.currentConnection.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText =
-            "INSERT INTO alias (tag_id, name) VALUES (@tag_id, @name)";
-        command.Parameters.Clear();
-        command.Parameters.AddWithValue("@tag_id", id);
-        command.Parameters.Add("@name", SqliteType.Text);
-        command.Parameters.Add("@name_normalised", SqliteType.Text);
-        await command.PrepareAsync();
-
-        foreach (string alias in aliases)
-        {
-            command.Parameters["@name"].Value = alias;
-            command.Parameters["@name_normalised"].Value = StringNormaliser.FormatStringForSearch(alias);
-            await command.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
     }
     

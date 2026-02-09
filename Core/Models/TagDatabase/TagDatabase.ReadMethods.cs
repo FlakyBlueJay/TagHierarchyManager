@@ -28,6 +28,8 @@ public partial class TagDatabase
                                       tag.notes,
                                       tag.tags_to_bind,
                                       tag.also_known_as,
+                                      tag.date_created,
+                                      tag.date_modified,
                                       GROUP_CONCAT(tag_parent_link.parent_tag_id, ';') AS parent_ids
                                   FROM tag
                                   LEFT JOIN tag_parent_link ON tag.id = tag_parent_link.target_tag_id
@@ -102,6 +104,8 @@ public partial class TagDatabase
                                     tag.notes,
                                     tag.tags_to_bind,
                                     tag.also_known_as,
+                                    tag.date_created,
+                                    tag.date_modified,
                                     GROUP_CONCAT(tag_parent_link.parent_tag_id, ';') AS parent_ids
                                 FROM tag
                                 LEFT JOIN tag_parent_link ON tag.id = tag_parent_link.target_tag_id
@@ -142,6 +146,8 @@ public partial class TagDatabase
                                   tag.notes,
                                   tag.tags_to_bind,
                                   tag.also_known_as,
+                                  tag.date_created,
+                                  tag.date_modified,
                                   GROUP_CONCAT(tag_parent_link.parent_tag_id, ';') AS parent_ids
                               FROM tag
                               LEFT JOIN tag_parent_link ON tag.id = tag_parent_link.target_tag_id
@@ -196,6 +202,14 @@ public partial class TagDatabase
                 string altNameList = reader.GetString(reader.GetOrdinal(AliasesColumnName));
                 if (!string.IsNullOrEmpty(altNameList)) addedTag.Aliases = altNameList.Split(';').ToList();
 
+                if (!reader.IsDBNull(reader.GetOrdinal(DateCreatedColumnName)))
+                {
+                    var dbCreatedAt = reader.GetDateTime(reader.GetOrdinal(DateCreatedColumnName));
+                    addedTag.CreatedAt = dbCreatedAt;
+                }
+                
+                var dbUpdatedAt = reader.GetDateTime(reader.GetOrdinal(DateModifiedColumnName));
+                addedTag.UpdatedAt = dbUpdatedAt;
 
                 if (fetchParents && !reader.IsDBNull(reader.GetOrdinal(ParentIdsColumnName)))
                 {
