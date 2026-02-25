@@ -207,9 +207,13 @@ public partial class TagDatabase
                     var dbCreatedAt = reader.GetDateTime(reader.GetOrdinal(DateCreatedColumnName));
                     addedTag.CreatedAt = dbCreatedAt;
                 }
+
+                if (!reader.IsDBNull(reader.GetOrdinal(DateModifiedColumnName)))
+                {
+                    var dbUpdatedAt = reader.GetDateTime(reader.GetOrdinal(DateModifiedColumnName));
+                    addedTag.UpdatedAt = dbUpdatedAt;
+                }
                 
-                var dbUpdatedAt = reader.GetDateTime(reader.GetOrdinal(DateModifiedColumnName));
-                addedTag.UpdatedAt = dbUpdatedAt;
 
                 if (fetchParents && !reader.IsDBNull(reader.GetOrdinal(ParentIdsColumnName)))
                 {
