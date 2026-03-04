@@ -20,7 +20,6 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-*.Designer.cs
 
 # .NET Core
 project.lock.json
