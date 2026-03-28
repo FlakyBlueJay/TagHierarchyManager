@@ -192,7 +192,7 @@ public partial class TagDatabase
                 ? Path.GetFileNameWithoutExtension(this.currentConnection.DataSource)
                 : InMemoryDbName;
             
-            this.PerformNeededMigrations();
+            await this.PerformNeededMigrations();
 
             this.Initialised = true;
 

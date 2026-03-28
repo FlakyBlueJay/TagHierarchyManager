@@ -11,19 +11,22 @@
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" Exclude="Assets\*.resx;Assets\*.Designer.cs" />
         <EmbeddedResource Update="Assets\Resources.resx">
-            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
             <Generator>PublicResXFileCodeGenerator</Generator>
+            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+            
         </EmbeddedResource>
-
-        <Compile Update="Assets\Resources.Designer.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>Resources.resx</DependentUpon>
-        </Compile>
 
         <Compile Update="Views\UnsavedCancelDialog.axaml.cs">
           <DependentUpon>UnsavedCancelDialog.axaml</DependentUpon>
           <SubType>Code</SubType>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="Resources.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Resources.resx</DependentUpon>
         </Compile>
     </ItemGroup>
 
