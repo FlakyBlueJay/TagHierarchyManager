@@ -254,7 +254,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSelectedTagIdChanged(int? id)
     {
-        if (id is null) return;
+        if (id is null or 0) return;
         var tag = this.TagDatabaseService.GetTagById(id.Value);
         this.SelectedTag =
             tag is null 
