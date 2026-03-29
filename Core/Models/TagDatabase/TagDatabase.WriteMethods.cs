@@ -21,6 +21,9 @@ public partial class TagDatabase
         List<Tag> updatedTags = [];
         List<Tag> newlyAddedTags = [];
 
+        List<(int index, Tag tag)> pendingUpdates = [];
+        List<Tag> pendingAdditions = [];
+        
         try
         {
             foreach (var tag in tags)
@@ -42,21 +45,26 @@ public partial class TagDatabase
                 int index = this.Tags.FindIndex(t => t.Id == tag.Id);
                 if (index != -1)
                 {
-                    this.Tags[index] = tag;
+                    pendingUpdates.Add((index, tag));
                     updatedTags.Add(tag);
                 }
                 else
                 {
-                    this.Tags.Add(tag);
+                    pendingAdditions.Add(tag);
                     newlyAddedTags.Add(tag);
                 }
             }
             
             if (isTransactionOwner) await transaction.CommitAsync().ConfigureAwait(false);
+            
+            foreach (var (index, tag) in pendingUpdates)
+                this.Tags[index] = tag;
+            foreach (var tag in pendingAdditions)
+                this.Tags.Add(tag);
 
             TagsWritten?.Invoke(this, new DatabaseEditResult(newlyAddedTags, updatedTags, []));
         }
-        catch (SqliteException)
+        catch (Exception)
         {
             await transaction.RollbackAsync().ConfigureAwait(false);
             throw;
