@@ -97,10 +97,10 @@ public partial class TagDatabase
             command.CommandText = """
                                   CREATE TABLE "tag" (
                                       "id"                INTEGER PRIMARY KEY AUTOINCREMENT,
-                                      "name"              TEXT NOT NULL UNIQUE,
+                                      "name"              TEXT NOT NULL,
                                       "notes"             TEXT DEFAULT '',
                                       "top_level"         INTEGER NOT NULL DEFAULT 0,
-                                      "tags_to_bind"      TEXT,
+                                      "tags_to_bind"      TEXT DEFAULT '',
                                       "also_known_as"     TEXT DEFAULT '',
                                       "date_created"      DATETIME,
                                       "date_modified"     DATETIME

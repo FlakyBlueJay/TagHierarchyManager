@@ -39,16 +39,52 @@ public partial class TagDatabase
             deleteOldTableCommand.CommandText =
                 "DROP TABLE alias;";
             deleteOldTableCommand.ExecuteNonQuery();
-
-            var versionBumpCommand = this.currentConnection.CreateCommand();
-            versionBumpCommand.Transaction = transaction;
-            versionBumpCommand.CommandText = "UPDATE settings SET value = 2 WHERE key = 'version'";
-            versionBumpCommand.ExecuteNonQuery();
-            transaction.Commit();
+            break;
+        case < 3:
+            // version 3 removes the unique constraint on the name column in the tag table.
+            // disable foreign keys first
+            var disableForeignKeysCommand = this.currentConnection.CreateCommand();
+            disableForeignKeysCommand.CommandText = "PRAGMA foreign_keys=OFF;";
+            disableForeignKeysCommand.ExecuteNonQuery();
             
+            // recreate tag table with non-unique constraints.
+            var nonUniqueTransaction =
+                (SqliteTransaction)
+                await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
+            var nonUniqueCommand = this.currentConnection.CreateCommand();
+            nonUniqueCommand.Transaction = nonUniqueTransaction;
+            nonUniqueCommand.CommandText =
+                $"""
+                 CREATE TABLE "tag_new" (
+                     "id"                INTEGER PRIMARY KEY AUTOINCREMENT,
+                     "name"              TEXT NOT NULL,
+                     "notes"             TEXT DEFAULT '',
+                     "top_level"         INTEGER NOT NULL DEFAULT 0,
+                     "tags_to_bind"      TEXT DEFAULT '',
+                     "also_known_as"     TEXT DEFAULT '',
+                     "date_created"      DATETIME,
+                     "date_modified"     DATETIME
+                 );
+
+                 INSERT INTO tag_new SELECT * FROM tag;
+
+                 DROP TABLE tag;
+
+                 ALTER TABLE tag_new RENAME TO tag;
+                 PRAGMA foreign_keys=ON;
+                 """;
+            nonUniqueCommand.ExecuteNonQuery();
+            nonUniqueTransaction.Commit();
+            var enableForeignKeysCommand = this.currentConnection.CreateCommand();
+            enableForeignKeysCommand.CommandText = "PRAGMA foreign_keys=ON;";
+            enableForeignKeysCommand.ExecuteNonQuery();
             break;
         }
-
+        
+        var versionBumpCommand = this.currentConnection.CreateCommand();
+        versionBumpCommand.CommandText = "UPDATE settings SET value = @newVersion WHERE key = 'version'";
+        versionBumpCommand.Parameters.AddWithValue("@newVersion", LatestVersion);
+        versionBumpCommand.ExecuteNonQuery();
         this.Version = LatestVersion;
     }
 }
