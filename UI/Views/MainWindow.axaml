@@ -122,7 +122,16 @@
                                  SelectedItem="{Binding SelectedSearchResult}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" />
+                                        <TextBlock
+                                            IsVisible="{Binding TagBindings, 
+                                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                            FontStyle="Italic"
+                                            Foreground="{DynamicResource SemiColorTertiary}">
+                                            <Run Text=" (" /><Run Text="{Binding TagBindings}" /><Run Text=")" />
+                                        </TextBlock>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
