@@ -289,4 +289,7 @@
     <data name="TitleBulkAdd" xml:space="preserve">
         <value>Bulk Add Tags...</value>
     </data>
+    <data name="DialogBodyDeleteTag" xml:space="preserve">
+        <value>Are you sure you want to delete this tag?</value>
+    </data>
 </root>

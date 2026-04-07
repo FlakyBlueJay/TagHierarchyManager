@@ -33,6 +33,8 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
             ? string.Join("; ", this.Tag.Aliases)
             : string.Empty;
 
+    public bool CanBeDeleted => !this.HasChildren;
+
     public bool HasChildren => this.Children.Count > 0;
 
     public int Id => this.Tag.Id;

@@ -29,7 +29,7 @@ public partial class MainWindowViewModel : ViewModelBase
     // Since multiple view models will be using this tag, best to store it here as the authoritative source.
     private TagItemViewModel? _selectedTag;
 
-    [ObservableProperty] private int? _selectedTagId;
+    [ObservableProperty] private int _selectedTagId;
 
     [ObservableProperty] private string _statusBlockText = Resources.StatusBlockReady;
 
@@ -48,6 +48,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 this.OnPropertyChanged(nameof(this.TotalTags));
         };
     }
+
+    public bool CanDeleteSelectedTag => this.SelectedTag is not null
+                                        && this.TagDatabaseService.GetAllTagChildren(this.SelectedTag.Id).Count == 0;
 
     public int TotalTags => this.TagDatabaseService.TagCount;
 
@@ -76,6 +79,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 this.OnPropertyChanged();
                 this.UnsavedChanges = false;
                 this._selectedTag?.UserEditedTag += this.OnUserEditedTag;
+                this.OnPropertyChanged(nameof(this.CanDeleteSelectedTag));
             }
         }
     }
@@ -111,20 +115,23 @@ public partial class MainWindowViewModel : ViewModelBase
         this.TagDatabaseService.CloseDatabase();
     }
 
-    private async Task DeleteSelectedTagAsync()
+    private async Task DeleteTagAsync(int id)
     {
-        var oldTag = this.SelectedTag;
-        if (this.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen) return;
+        var oldSelectedTag = this.SelectedTag;
+        if (!this.TagDatabaseService.IsDatabaseOpen) return;
         try
         {
-            await this.TagDatabaseService.DeleteTag(this.SelectedTag.Tag.Id);
-            this._selectedTag = null;
-            this.HierarchyTreeViewModel?.SelectedTag = null;
-            this.OnPropertyChanged(nameof(this.SelectedTag));
+            await this.TagDatabaseService.DeleteTag(id);
+            if (oldSelectedTag is not null && oldSelectedTag.Tag.Id == id)
+            {
+                this._selectedTag = null;
+                this.HierarchyTreeViewModel?.SelectedTag = null;
+                this.OnPropertyChanged(nameof(this.SelectedTag));
+            }
         }
         catch (Exception ex)
         {
-            this._selectedTag = oldTag;
+            this._selectedTag = oldSelectedTag;
             this.ShowErrorDialog(ex.Message);
         }
     }
@@ -214,6 +221,16 @@ public partial class MainWindowViewModel : ViewModelBase
         this.UnsavedChanges = true;
     }
 
+    partial void OnSelectedTagIdChanged(int id)
+    {
+        if (id is 0) return;
+        var tag = this.TagDatabaseService.GetTagById(id);
+        this.SelectedTag =
+            tag is null
+                ? null
+                : new TagItemViewModel(tag, this.TagDatabaseService.GetParentNamesByIds);
+    }
+
     private void OnUserEditedTag(object? sender, EventArgs e)
     {
         this.UnsavedChanges = true;
@@ -250,16 +267,6 @@ public partial class MainWindowViewModel : ViewModelBase
             var error = new ErrorDialogViewModel(ex.Message);
             error.ShowDialog();
         }
-    }
-
-    partial void OnSelectedTagIdChanged(int? id)
-    {
-        if (id is null or 0) return;
-        var tag = this.TagDatabaseService.GetTagById(id.Value);
-        this.SelectedTag =
-            tag is null 
-                ? null
-                : new TagItemViewModel(tag, this.TagDatabaseService.GetParentNamesByIds);
     }
 
     [RelayCommand]
@@ -412,9 +419,10 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task StartTagDeletionAsync()
+    private async Task StartTagDeletionAsync(int? id)
     {
-        if (this.SelectedTag is null || this.SelectedTag.HasChildren) return;
+        if (id is null or 0) return;
+        if (id == this.SelectedTag.Id && !this.CanDeleteSelectedTag) return;
         var result = await this.ShowNullableBoolDialog(new DeleteTagDialog());
         switch (result)
         {
@@ -422,7 +430,7 @@ public partial class MainWindowViewModel : ViewModelBase
             case false:
                 return;
             case true:
-                await this.DeleteSelectedTagAsync();
+                await this.DeleteTagAsync(id.Value);
                 break;
         }
     }

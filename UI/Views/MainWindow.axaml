@@ -59,9 +59,25 @@
                     <Grid RowDefinitions="*, Auto">
                         <TreeView Grid.Row="0"
                                   Name="TagTree"
+                                  ContextRequested="TagTree_ContextRequested"
                                   VerticalAlignment="Stretch"
                                   ItemsSource="{Binding HierarchyTreeViewModel.TopLevelTagNodes, FallbackValue={x:Null}}"
                                   SelectedItem="{Binding HierarchyTreeViewModel.SelectedTag, Mode=TwoWay, FallbackValue={x:Null}}">
+                            <TreeView.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem
+                                              Command="{Binding StartTagDeletionCommand}"
+                                              CommandParameter="{Binding HierarchyTreeViewModel.ContextMenuTag.Id, FallbackValue=0}"
+                                              IsEnabled="{Binding HierarchyTreeViewModel.ContextMenuTag.CanBeDeleted, FallbackValue=False}">
+                                        <MenuItem.Header>
+                                            <MultiBinding StringFormat="{}{0} {1}">
+                                                <Binding Source="{x:Static assets:Resources.ButtonDelete}" />
+                                                <Binding Path="HierarchyTreeViewModel.ContextMenuTag.Name" FallbackValue="" />
+                                            </MultiBinding>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </TreeView.ContextMenu>
                             <TreeView.ItemTemplate>
                                 <TreeDataTemplate ItemsSource="{Binding Children}">
                                     <StackPanel Orientation="Horizontal">
@@ -116,7 +132,9 @@
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeEndsWith}" />
                             <ComboBoxItem Content="{x:Static assets:Resources.SearchModeExactMatch}" />
                         </ComboBox>
-                        <ListBox Grid.Row="4" SelectionMode="Single"
+                        <ListBox Name="SearchResultsListBox"
+                                 Grid.Row="4" 
+                                 SelectionMode="Single"
                                  DataContext="{Binding SearchViewModel}"
                                  ItemsSource="{Binding SearchResults}"
                                  SelectedItem="{Binding SelectedSearchResult}">
@@ -169,14 +187,9 @@
                     <Button Grid.Column="1" Margin="0 0 5 0"
                             Content="{x:Static assets:Resources.ButtonDelete}"
                             Theme="{StaticResource OutlineButton}" Classes="Danger"
-                            Command="{Binding StartTagDeletionCommand}">
-                        <Button.IsEnabled>
-                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                <Binding Path="SelectedTag.OnDatabase" FallbackValue="False" />
-                                <Binding Path="!SelectedTag.HasChildren" FallbackValue="False" />
-                            </MultiBinding>
-                        </Button.IsEnabled>
-                    </Button>
+                            Command="{Binding StartTagDeletionCommand}"
+                            CommandParameter="{Binding SelectedTag.Id, FallbackValue={x:Null}}"
+                            IsEnabled="{Binding CanDeleteSelectedTag}"/>
                     <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}"
                             Theme="{StaticResource OutlineButton}" Command="{Binding CancelTagEditCommand}" />
                     <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}"
@@ -188,7 +201,7 @@
     <Window.KeyBindings>
         <KeyBinding Gesture="Ctrl+B" Command="{Binding ShowBulkAddDialogCommand}" />
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveSelectedTagCommand}" />
-        <KeyBinding Gesture="Delete" Command="{Binding StartTagDeletionCommand}" />
+        <KeyBinding Gesture="Delete" Command="{Binding StartTagDeletionCommand}" CommandParameter="{Binding SelectedTag.Id, FallbackValue={x:Null}}"/>
         <KeyBinding Gesture="Ctrl+E" Command="{Binding StartExportCommand}" />
     </Window.KeyBindings>
 

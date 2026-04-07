@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Views;
@@ -13,7 +14,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         this.InitializeComponent();
+
+        this.TagTree.AddHandler(PointerPressedEvent, OnTagTreeItemRightClick, RoutingStrategies.Tunnel);
     }
+
 
     private MainWindowViewModel? ViewModel => this.DataContext as MainWindowViewModel;
 
@@ -22,8 +26,10 @@ public partial class MainWindow : Window
         new AboutWindow().ShowDialog(this);
     }
 
-    public void MenuItemQuit_Click(object? sender, RoutedEventArgs e) =>
+    public void MenuItemQuit_Click(object? sender, RoutedEventArgs e)
+    {
         this.Close();
+    }
 
     public void SearchTextBox_OnKeyDown(object? sender, KeyEventArgs e)
     {
@@ -46,7 +52,7 @@ public partial class MainWindow : Window
         try
         {
             if (this._userWantsToQuit) return;
-            
+
             if (this.ViewModel is not null && this.ViewModel.UnsavedChanges)
             {
                 e.Cancel = true;
@@ -78,5 +84,23 @@ public partial class MainWindow : Window
             var error = new ErrorDialogViewModel(ex.Message);
             error.ShowDialog();
         }
+    }
+
+    private static void OnTagTreeItemRightClick(object sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(null).Properties.IsRightButtonPressed) return;
+        if (e.Source is not Control source) return;
+
+        var treeItem = source.FindAncestorOfType<TreeViewItem>();
+        if (treeItem is null) return;
+        e.Handled = true; // prevents right-click selection change
+        treeItem.ContextMenu?.Open(treeItem);
+    }
+
+    private void TagTree_ContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (e.Source is Control { DataContext: TagItemViewModel tag }
+            && this.DataContext is MainWindowViewModel { HierarchyTreeViewModel: not null } vm)
+            vm.HierarchyTreeViewModel.ContextMenuTag = tag;
     }
 }
