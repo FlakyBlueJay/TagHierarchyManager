@@ -7,7 +7,7 @@ An application for managing tree hierarchies for music tags, focusing on the Mus
 ## Requirements
 - .NET 10.0
 - Windows
-  - tested on Windows 11 25H2, on may work on other OSes supported by .NET 10.0, you're on your own there.
+  - tested on Windows 11 25H2, may work on other OSes supported by .NET 10.0, but you're on your own there.
 
 ## Development
 JetBrains Rider is strongly recommended for developing for this project, Visual Studio may work.
@@ -29,7 +29,3 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 ```
 
 Should work on Linux and Mac too (just replace win-x64 with the equivalent for whichever OS) but it's untested on those operating systems.
-
-## TODO
-### Low priority
-- Refactoring of hierarchy view to make things snappier
