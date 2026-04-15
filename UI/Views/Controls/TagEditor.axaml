@@ -1,0 +1,48 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
+             xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="TagHierarchyManager.UI.Views.Controls.TagEditor"
+             x:DataType="vm:TagEditorViewModel">
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, *, Auto"
+          IsEnabled="{Binding SelectedTag, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName, FallbackValue=''}"
+                 Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch"
+                 Margin="0 0 0 5 " />
+        <TextBox Grid.Row="1" Name="ParentsTextBox"
+                 Text="{Binding SelectedTag.EditingParents, FallbackValue=''}"
+                 Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch"
+                 Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
+        <TextBox Grid.Row="2" Name="BindingsTextBox"
+                 Text="{Binding SelectedTag.EditingTagBindings, FallbackValue=''}"
+                 Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch"
+                 Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
+        <TextBox Grid.Row="3" Name="AliasesTextBox"
+                 Text="{Binding SelectedTag.EditingAliases, FallbackValue=''}"
+                 Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch"
+                 Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
+        <TextBox Grid.Row="4" Name="NotesTextBox" Classes="TextArea ClearButton"
+                 Text="{Binding SelectedTag.EditingNotes, FallbackValue=''}"
+                 Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch"
+                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0 0 0 5 "
+                 TextChanged="OnTagTextboxEdited" />
+        <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="0">
+            <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel, FallbackValue=''}"
+                      Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"
+                      VerticalAlignment="Center" IsCheckedChanged="OnTagCheckboxChanged" />
+            <Button Grid.Column="1" Margin="0 0 5 0"
+                    Content="{x:Static assets:Resources.ButtonDelete}"
+                    Theme="{StaticResource OutlineButton}" Classes="Danger"
+                    Command="{Binding StartTagDeletionCommand}"
+                    CommandParameter="{Binding SelectedTag.Id, FallbackValue={x:Null}}"
+                    IsEnabled="{Binding CanDeleteSelectedTag}" />
+            <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}"
+                    Theme="{StaticResource OutlineButton}" Command="{Binding CancelTagEditCommand}" />
+            <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}"
+                    Theme="{StaticResource SolidButton}" Command="{Binding SaveSelectedTagCommand}" />
+        </Grid>
+    </Grid>
+</UserControl>

@@ -27,7 +27,7 @@ public partial class DatabaseSettingsViewModel : ViewModelBase
             mainWindow.TagDatabaseService.TagCount, tagRelationshipCount);
         this.DefaultTagBindings = string.Join("; ", mainWindow.TagDatabaseService.DefaultTagBindings);
     }
-    
+
     public event Action? RequestClose;
 
     [RelayCommand]

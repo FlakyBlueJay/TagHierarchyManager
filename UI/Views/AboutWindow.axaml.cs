@@ -13,5 +13,8 @@ public partial class AboutWindow : Window
 
     public Uri ProjectUri { get; } = new(Assets.Resources.URL);
 
-    public void OnOKClick(object? sender, RoutedEventArgs e) => this.Close();
+    public void OnOKClick(object? sender, RoutedEventArgs e)
+    {
+        this.Close();
+    }
 }

@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.Common;
 using TagHierarchyManager.UI.Assets;
 
@@ -26,7 +27,13 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
         this._mainWindow.TagDatabaseService.TagsWritten -= this.TagDatabase_OnTagsWritten;
     }
 
-    public void Search(string searchQuery, TagDatabaseSearchMode mode, bool searchAliases)
+    partial void OnSelectedSearchResultChanged(TagItemViewModel? value)
+    {
+        if (value is null || this._mainWindow.SelectedTagId == value.Id) return;
+        this._mainWindow.SelectedTagId = value.Id;
+    }
+
+    private void Search(string searchQuery, TagDatabaseSearchMode mode, bool searchAliases)
     {
         if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen || string.IsNullOrWhiteSpace(searchQuery)) return;
 
@@ -51,10 +58,25 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
             : Resources.SearchOneResultFound;
     }
 
-    partial void OnSelectedSearchResultChanged(TagItemViewModel? value)
+
+    [RelayCommand]
+    private void StartSearch(object? parameter)
     {
-        if (value is null || this._mainWindow.SelectedTagId == value.Id) return;
-        this._mainWindow.SelectedTagId = value.Id;
+        if (parameter is not object[] values || values.Length < 3) return;
+
+        var query = values[0] as string ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(query)) return;
+        var mode = (TagDatabaseSearchMode)values[1];
+        var searchAliases = (bool)values[2];
+
+        try
+        {
+            this.Search(query, mode, searchAliases);
+        }
+        catch (Exception ex)
+        {
+            this._mainWindow.ShowErrorDialog(ex.Message);
+        }
     }
 
     private void TagDatabase_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
@@ -68,6 +90,5 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
             if (deletedTagItemVm is null) return;
             this.SearchResults.Remove(deletedTagItemVm);
         }
-        
     }
 }

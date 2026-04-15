@@ -27,14 +27,16 @@ public partial class BulkAddViewModel : ViewModelBase
 
         this.WindowTitle = string.Format("{0} - " + Resources.ButtonBulkAdd,
             this._mainWindow.TagDatabaseService.DatabaseName);
-        
+
         this._tags =
-        [new TagRow
-        {
-            Name = "",
-            IsTopLevel = false,
-            TagBindings = string.Join("; ", this._mainWindow.TagDatabaseService.DefaultTagBindings)
-        }];
+        [
+            new TagRow
+            {
+                Name = "",
+                IsTopLevel = false,
+                TagBindings = string.Join("; ", this._mainWindow.TagDatabaseService.DefaultTagBindings)
+            }
+        ];
 
         this.OnSelectedRowsChanged(null, this.SelectedRows);
     }

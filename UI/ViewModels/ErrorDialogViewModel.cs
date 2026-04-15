@@ -27,7 +27,7 @@ public partial class ErrorDialogViewModel : ViewModelBase
             Title = Resources.ErrorDialogTitle
         };
         error.Closed += (_, _) => error.DataContext = null;
-        
+
         var ownerWindow = desktop.Windows.FirstOrDefault(w => w.IsActive) ?? desktop.MainWindow;
         if (ownerWindow == null) error.Show();
         else error.ShowDialog(ownerWindow);

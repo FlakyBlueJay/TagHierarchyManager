@@ -9,6 +9,9 @@ public partial class ErrorDialog : Window
     {
         this.InitializeComponent();
     }
-    
-    public void OnOkClick(object? sender, RoutedEventArgs e) => this.Close();
+
+    public void OnOkClick(object? sender, RoutedEventArgs e)
+    {
+        this.Close();
+    }
 }

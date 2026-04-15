@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager.UI.ViewModels;
@@ -29,6 +31,10 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         this._getParentNamesById = mainWindow.TagDatabaseService.GetParentNamesByIds;
         this.SubscribeToEvents();
     }
+
+    public ICommand NewTagCommand => this._mainWindow.StartNewTagCommand;
+
+    public ICommand ShowBulkAddDialogCommand => this._mainWindow.ShowBulkAddDialogCommand;
 
     public void Dispose()
     {
@@ -219,6 +225,12 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             this.ChildNodeMap.Remove(updatedTag.Id);
     }
 
+    // public ICommand NewTagCommand => this._mainWindow.NewTagCommand;
+    partial void OnSelectedTagChanged(TagItemViewModel? oldValue, TagItemViewModel? newValue)
+    {
+        this._mainWindow.SelectedTag = newValue;
+    }
+
     partial void OnSelectedTagChanged(TagItemViewModel? value)
     {
         if (value is null || this._mainWindow.SelectedTagId == value.Id) return;
@@ -236,6 +248,13 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             foreach (var parentId in newTag.ParentIds)
                 await this.AddChildNode(newTag, parentId);
         }
+    }
+
+    [RelayCommand]
+    private async Task StartContextMenuTagDeletion()
+    {
+        if (this.ContextMenuTag is null) return;
+        await this._mainWindow.StartTagDeletionAsync(this.ContextMenuTag.Id);
     }
 
     private void SubscribeToEvents()

@@ -1,8 +1,6 @@
 using System;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.VisualTree;
 using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Views;
@@ -14,8 +12,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         this.InitializeComponent();
-
-        this.TagTree.AddHandler(PointerPressedEvent, OnTagTreeItemRightClick, RoutingStrategies.Tunnel);
     }
 
 
@@ -31,22 +27,6 @@ public partial class MainWindow : Window
         this.Close();
     }
 
-    public void SearchTextBox_OnKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key != Key.Enter) return;
-
-        var args = new object[]
-        {
-            this.SearchTextBox.Text ?? "",
-            this.SearchModeComboBox.SelectedIndex,
-            this.SearchAliasesCheckBox.IsChecked ?? false
-        };
-
-        if (this.ViewModel?.StartSearchCommand.CanExecute(args) != true) return;
-        this.ViewModel.StartSearchCommand.Execute(args);
-        e.Handled = true;
-    }
-
     public async void WindowClosing(object? sender, WindowClosingEventArgs e)
     {
         try
@@ -60,8 +40,8 @@ public partial class MainWindow : Window
                 switch (result)
                 {
                     case true:
-                        if (this.ViewModel?.SaveSelectedTagCommand.CanExecute(null) != true) return;
-                        this.ViewModel.SaveSelectedTagCommand.Execute(null);
+                        if (this.ViewModel?.StartTagSaveCommand.CanExecute(null) != true) return;
+                        this.ViewModel.StartTagSaveCommand.Execute(null);
                         this._userWantsToQuit = true;
                         this.Close();
                         break;
@@ -84,23 +64,5 @@ public partial class MainWindow : Window
             var error = new ErrorDialogViewModel(ex.Message);
             error.ShowDialog();
         }
-    }
-
-    private static void OnTagTreeItemRightClick(object sender, PointerPressedEventArgs e)
-    {
-        if (!e.GetCurrentPoint(null).Properties.IsRightButtonPressed) return;
-        if (e.Source is not Control source) return;
-
-        var treeItem = source.FindAncestorOfType<TreeViewItem>();
-        if (treeItem is null) return;
-        e.Handled = true; // prevents right-click selection change
-        treeItem.ContextMenu?.Open(treeItem);
-    }
-
-    private void TagTree_ContextRequested(object? sender, ContextRequestedEventArgs e)
-    {
-        if (e.Source is Control { DataContext: TagItemViewModel tag }
-            && this.DataContext is MainWindowViewModel { HierarchyTreeViewModel: not null } vm)
-            vm.HierarchyTreeViewModel.ContextMenuTag = tag;
     }
 }

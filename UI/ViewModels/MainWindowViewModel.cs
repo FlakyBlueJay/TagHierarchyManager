@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -7,8 +8,6 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TagHierarchyManager.Common;
-using TagHierarchyManager.Models;
 using TagHierarchyManager.UI.Assets;
 using TagHierarchyManager.UI.Views;
 
@@ -21,12 +20,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private HierarchyTreeViewModel? _hierarchyTreeViewModel;
 
     [ObservableProperty] private bool _isDbEnabled;
-
     private bool _isSwitching;
 
     [ObservableProperty] private SearchViewModel? _searchViewModel;
-
-    // Since multiple view models will be using this tag, best to store it here as the authoritative source.
     private TagItemViewModel? _selectedTag;
 
     [ObservableProperty] private int _selectedTagId;
@@ -34,6 +30,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _statusBlockText = Resources.StatusBlockReady;
 
     [ObservableProperty] private TagDatabaseService _tagDatabaseService;
+    [ObservableProperty] private TagEditorViewModel? _tagEditorViewModel;
 
     [ObservableProperty] private bool _unsavedChanges;
 
@@ -49,9 +46,6 @@ public partial class MainWindowViewModel : ViewModelBase
         };
     }
 
-    public bool CanDeleteSelectedTag => this.SelectedTag is not null
-                                        && this.TagDatabaseService.GetAllTagChildren(this.SelectedTag.Id).Count == 0;
-
     public int TotalTags => this.TagDatabaseService.TagCount;
 
     public string WindowTitle =>
@@ -64,25 +58,23 @@ public partial class MainWindowViewModel : ViewModelBase
         get => this._selectedTag;
         set
         {
-            if (this._selectedTag == value || this._isSwitching) return;
+            if (this._selectedTag == value || this.TagEditorViewModel is null || this._isSwitching) return;
             if (value == null) this._selectedTag = value;
-            if (this._selectedTag != null && this.UnsavedChanges)
+            if (this._selectedTag != null && this.TagEditorViewModel.UnsavedChanges)
             {
                 _ = this.HandleTagSwitchAsync(this._selectedTag, value);
             }
             else
             {
-                this._selectedTag?.UserEditedTag -= this.OnUserEditedTag;
+                if (this._selectedTag == value) return;
+
                 this._selectedTag = value;
-                this.HierarchyTreeViewModel?.SelectedTag = value;
-                this._selectedTag?.BeginEdit();
                 this.OnPropertyChanged();
-                this.UnsavedChanges = false;
-                this._selectedTag?.UserEditedTag += this.OnUserEditedTag;
-                this.OnPropertyChanged(nameof(this.CanDeleteSelectedTag));
+                this.TagEditorViewModel?.SelectedTag = value;
             }
         }
     }
+
 
     public async Task<bool?> ShowUnsavedChangesDialog()
     {
@@ -91,23 +83,43 @@ public partial class MainWindowViewModel : ViewModelBase
         return result;
     }
 
-    [RelayCommand]
-    private async Task CancelTagEditAsync()
+    internal void ShowErrorDialog(string message)
     {
-        if (this.UnsavedChanges)
-        {
-            var userWantsToOverwrite = await this.ShowNullableBoolDialog(new UnsavedCancelDialog());
-            if (userWantsToOverwrite is not null && (bool)!userWantsToOverwrite) return;
-        }
+        var error = new ErrorDialogViewModel(message);
+        error.ShowDialog();
+    }
 
-        this.SelectedTag?.BeginEdit();
-        this.UnsavedChanges = false;
+    internal async Task<bool?> ShowNullableBoolDialog(Window dialog)
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return null;
+
+        var mainWindow = desktop.MainWindow;
+        var result = await dialog.ShowDialog<bool?>(mainWindow!);
+        return result;
+    }
+
+    [RelayCommand]
+    internal async Task StartTagDeletionAsync(int id)
+    {
+        var result = await this.ShowNullableBoolDialog(new DeleteTagDialog());
+        switch (result)
+        {
+            case null:
+            case false:
+                return;
+            case true:
+                await this.DeleteTagAsync(id);
+                break;
+        }
     }
 
     private void CloseDatabase()
     {
-        this.SelectedTag = null;
+        this.TagEditorViewModel?.SelectedTag = null;
+        this.UnhookTagEditor(this.TagEditorViewModel);
         this.IsDbEnabled = false;
+        this.TagEditorViewModel = null;
         this.HierarchyTreeViewModel = null;
         this.SearchViewModel = null;
         this.OnPropertyChanged(nameof(this.TotalTags));
@@ -117,27 +129,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task DeleteTagAsync(int id)
     {
-        var oldSelectedTag = this.SelectedTag;
+        var oldSelectedTag = this.TagEditorViewModel?.SelectedTag;
         if (!this.TagDatabaseService.IsDatabaseOpen) return;
         try
         {
             await this.TagDatabaseService.DeleteTag(id);
             if (oldSelectedTag is not null && oldSelectedTag.Tag.Id == id)
             {
-                this._selectedTag = null;
                 this.HierarchyTreeViewModel?.SelectedTag = null;
-                this.OnPropertyChanged(nameof(this.SelectedTag));
+                this.TagEditorViewModel?.SelectedTag = null;
+                this.OnPropertyChanged(nameof(this.TagEditorViewModel.SelectedTag));
             }
         }
         catch (Exception ex)
         {
-            this._selectedTag = oldSelectedTag;
+            this.TagEditorViewModel?.SelectedTag = oldSelectedTag;
             this.ShowErrorDialog(ex.Message);
         }
     }
 
     private async Task HandleTagSwitchAsync(TagItemViewModel? oldTag, TagItemViewModel? newTag)
     {
+        if (this.TagEditorViewModel is null) return;
         this._isSwitching = true;
         try
         {
@@ -147,13 +160,13 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 case null:
                     this._selectedTag = oldTag;
-                    this.HierarchyTreeViewModel?.SelectedTag = oldTag;
+                    // this.HierarchyTreeViewModel?.SelectedTag = oldTag;
                     this.OnPropertyChanged(nameof(this.SelectedTag));
                     return;
                 case false:
                     break;
                 case true:
-                    await this.SaveSelectedTagAsync();
+                    await this.TagEditorViewModel.SaveSelectedTagAsync();
                     break;
             }
 
@@ -161,16 +174,20 @@ public partial class MainWindowViewModel : ViewModelBase
             // OnPropertyChanged must be handled manually here to prevent tag changes firing
             // twice.
             this._selectedTag = newTag;
-            this.HierarchyTreeViewModel?.SelectedTag = newTag;
-            this._selectedTag?.BeginEdit();
-            this._selectedTag?.UserEditedTag += this.OnUserEditedTag;
             this.OnPropertyChanged(nameof(this.SelectedTag));
+            this.TagEditorViewModel.SelectedTag = newTag;
             this.UnsavedChanges = false;
         }
         finally
         {
             this._isSwitching = false;
         }
+    }
+
+    private void HookTagEditor(TagEditorViewModel tagEditor)
+    {
+        tagEditor.PropertyChanged += this.TagEditorOnPropertyChanged;
+        this.UnsavedChanges = tagEditor.UnsavedChanges;
     }
 
     [RelayCommand]
@@ -202,38 +219,6 @@ public partial class MainWindowViewModel : ViewModelBase
             var error = new ErrorDialogViewModel(ex.Message);
             error.ShowDialog();
         }
-    }
-
-    [RelayCommand(AllowConcurrentExecutions = false)]
-    private async Task NewTag()
-    {
-        var userWantsToSave = await this.ShowUnsavedChangesDialog();
-        if (userWantsToSave is null) return;
-
-        this.SelectedTag = new TagItemViewModel(
-            new Tag
-            {
-                Name = string.Empty,
-                IsTopLevel = true,
-                TagBindings = this.TagDatabaseService.DefaultTagBindings
-            }
-        );
-        this.UnsavedChanges = true;
-    }
-
-    partial void OnSelectedTagIdChanged(int id)
-    {
-        if (id is 0) return;
-        var tag = this.TagDatabaseService.GetTagById(id);
-        this.SelectedTag =
-            tag is null
-                ? null
-                : new TagItemViewModel(tag, this.TagDatabaseService.GetParentNamesByIds);
-    }
-
-    private void OnUserEditedTag(object? sender, EventArgs e)
-    {
-        this.UnsavedChanges = true;
     }
 
     [RelayCommand]
@@ -270,25 +255,6 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task SaveSelectedTagAsync()
-    {
-        try
-        {
-            if (this.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen || !this.IsDbEnabled) return;
-
-            this.SelectedTag.CommitEdit();
-            await this.TagDatabaseService.WriteTagsToDatabase([this.SelectedTag.Tag]);
-            this.SelectedTag.RefreshParentsString();
-            this.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful, this.SelectedTag.Name);
-            this.UnsavedChanges = false;
-        }
-        catch (Exception ex)
-        {
-            this.ShowErrorDialog(ex.Message);
-        }
-    }
-
-    [RelayCommand]
     private void ShowBulkAddDialog()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -316,12 +282,6 @@ public partial class MainWindowViewModel : ViewModelBase
         dialog.ShowDialog(desktop.MainWindow!);
     }
 
-    private void ShowErrorDialog(string message)
-    {
-        var error = new ErrorDialogViewModel(message);
-        error.ShowDialog();
-    }
-
     [RelayCommand]
     private void ShowImportDialog()
     {
@@ -334,16 +294,6 @@ public partial class MainWindowViewModel : ViewModelBase
         };
 
         dialog.ShowDialog(desktop.MainWindow!);
-    }
-
-    private async Task<bool?> ShowNullableBoolDialog(Window dialog)
-    {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return null;
-
-        var mainWindow = desktop.MainWindow;
-        var result = await dialog.ShowDialog<bool?>(mainWindow!);
-        return result;
     }
 
     [RelayCommand]
@@ -399,40 +349,16 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void StartSearch(object? parameter)
+    private void StartNewTag()
     {
-        if (parameter is not object[] values || values.Length < 3) return;
-
-        var query = values[0] as string ?? string.Empty;
-        if (string.IsNullOrWhiteSpace(query)) return;
-        var mode = (TagDatabaseSearchMode)values[1];
-        var searchAliases = (bool)values[2];
-
-        try
-        {
-            this.SearchViewModel?.Search(query, mode, searchAliases);
-        }
-        catch (Exception ex)
-        {
-            this.ShowErrorDialog(ex.Message);
-        }
+        this.TagEditorViewModel?.NewTag();
     }
 
     [RelayCommand]
-    private async Task StartTagDeletionAsync(int? id)
+    private async Task StartTagSaveAsync()
     {
-        if (id is null or 0) return;
-        if (id == this.SelectedTag.Id && !this.CanDeleteSelectedTag) return;
-        var result = await this.ShowNullableBoolDialog(new DeleteTagDialog());
-        switch (result)
-        {
-            case null:
-            case false:
-                return;
-            case true:
-                await this.DeleteTagAsync(id.Value);
-                break;
-        }
+        if (this.TagEditorViewModel is null) return;
+        await this.TagEditorViewModel.SaveSelectedTagAsync();
     }
 
     private void TagDatabaseService_OnInitalisationComplete(object? sender, EventArgs e)
@@ -444,11 +370,13 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 (this.HierarchyTreeViewModel as IDisposable)?.Dispose();
                 (this.SearchViewModel as IDisposable)?.Dispose();
-
-                this.SelectedTag = null;
+                (this.TagEditorViewModel as IDisposable)?.Dispose();
 
                 this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this);
                 this.SearchViewModel = new SearchViewModel(this);
+                this.TagEditorViewModel = new TagEditorViewModel(this);
+
+                this.HookTagEditor(this.TagEditorViewModel);
 
                 await this.HierarchyTreeViewModel.InitializeAsync();
                 this.OnPropertyChanged(nameof(this.TotalTags));
@@ -469,12 +397,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void TagDatabaseService_TagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
     {
-        if (result.Added.Count > 0)
-        {
-            this.SelectedTag?.SyncId();
-            this.OnPropertyChanged(nameof(this.TotalTags));
-        }
+        this.OnPropertyChanged(nameof(this.TotalTags));
+    }
 
-        if (result.Deleted.Count > 0) this.OnPropertyChanged(nameof(this.TotalTags));
+    private void TagEditorOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(this.TagEditorViewModel.UnsavedChanges)) return;
+        if (sender is not TagEditorViewModel tagEditor) return;
+        this.UnsavedChanges = tagEditor.UnsavedChanges;
+    }
+
+    private void UnhookTagEditor(TagEditorViewModel? tagEditor)
+    {
+        if (tagEditor is null) return;
+        tagEditor.PropertyChanged -= this.TagEditorOnPropertyChanged;
     }
 }

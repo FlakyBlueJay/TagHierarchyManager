@@ -1,0 +1,57 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+             xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="TagHierarchyManager.UI.Views.Controls.HierarchyTree"
+             x:DataType="vm:HierarchyTreeViewModel">
+    <Grid RowDefinitions="*, Auto">
+        <TreeView Grid.Row="0"
+                  Name="TagTree"
+                  ContextRequested="TagTree_ContextRequested"
+                  VerticalAlignment="Stretch"
+                  ItemsSource="{Binding TopLevelTagNodes, FallbackValue={x:Null}}"
+                  SelectedItem="{Binding SelectedTag, Mode=TwoWay, FallbackValue={x:Null}}">
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem
+                        Command="{Binding StartContextMenuTagDeletionCommand}"
+                        CommandParameter="{Binding ContextMenuTag.Id, FallbackValue=Null}"
+                        IsEnabled="{Binding ContextMenuTag.CanBeDeleted, FallbackValue=False}">
+                        <MenuItem.Header>
+                            <MultiBinding StringFormat="{}{0} {1}">
+                                <Binding Source="{x:Static assets:Resources.ButtonDelete}" />
+                                <Binding Path="ContextMenuTag.Name" FallbackValue="" />
+                            </MultiBinding>
+                        </MenuItem.Header>
+                    </MenuItem>
+                </ContextMenu>
+            </TreeView.ContextMenu>
+            <TreeView.ItemTemplate>
+                <TreeDataTemplate ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock
+                            IsVisible="{Binding TagBindings, 
+                                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            FontStyle="Italic"
+                            Foreground="{DynamicResource SemiColorTertiary}">
+                            <Run Text=" (" /><Run Text="{Binding TagBindings}" /><Run Text=")" />
+                        </TextBlock>
+                    </StackPanel>
+                </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+        <StackPanel Grid.Row="1" Orientation="Vertical">
+            <Button Content="{x:Static assets:Resources.ButtonBulkAdd}"
+                    HorizontalAlignment="Stretch"
+                    Margin="0 6 " Command="{Binding ShowBulkAddDialogCommand}"
+                    Theme="{StaticResource OutlineButton}" />
+            <Button HorizontalAlignment="Stretch"
+                    Content="{x:Static assets:Resources.ButtonAdd}"
+                    Command="{Binding NewTagCommand}" Theme="{StaticResource SolidButton}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

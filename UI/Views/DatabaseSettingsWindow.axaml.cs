@@ -9,7 +9,7 @@ public partial class DatabaseSettingsWindow : Window
     public DatabaseSettingsWindow()
     {
         this.InitializeComponent();
-        
+
         this.DataContextChanged += (_, _) =>
         {
             if (this.ViewModel != null) this.ViewModel.RequestClose += this.Close;
@@ -23,6 +23,9 @@ public partial class DatabaseSettingsWindow : Window
     }
 
     private DatabaseSettingsViewModel? ViewModel => this.DataContext as DatabaseSettingsViewModel;
-    
-    public void ButtonCancel_Click(object? sender, RoutedEventArgs e) => this.Close();
+
+    public void ButtonCancel_Click(object? sender, RoutedEventArgs e)
+    {
+        this.Close();
+    }
 }
