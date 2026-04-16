@@ -157,6 +157,12 @@ public class TagDatabaseService : ObservableObject
     public async Task WriteTagsToDatabase(List<Tag> tags)
     {
         if (this.Database is null) return;
+        foreach (var tag in tags)
+        {
+            tag.CreatedAt ??= DateTime.Now;
+            tag.UpdatedAt = DateTime.Now;
+        }
+            
         await this.Database.WriteTagsToDatabase(tags);
     }
 

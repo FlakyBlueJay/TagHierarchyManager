@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Avalonia;
@@ -17,8 +18,9 @@ namespace TagHierarchyManager.UI.ViewModels;
 // such as putting search functions and tag editor functions in their own viewmodels.
 public partial class MainWindowViewModel : ViewModelBase
 {
+    internal readonly Func<List<int>, List<string>> GetParentNamesById;
     [ObservableProperty] private HierarchyTreeViewModel? _hierarchyTreeViewModel;
-
+    
     [ObservableProperty] private bool _isDbEnabled;
     private bool _isSwitching;
 
@@ -44,6 +46,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (args.PropertyName == nameof(this.TagDatabaseService.TagCount))
                 this.OnPropertyChanged(nameof(this.TotalTags));
         };
+        this.GetParentNamesById = tagDatabaseService.GetParentNamesByIds;
     }
 
     public int TotalTags => this.TagDatabaseService.TagCount;
@@ -67,7 +70,7 @@ public partial class MainWindowViewModel : ViewModelBase
             else
             {
                 if (this._selectedTag == value) return;
-
+                value.RefreshParentsString();
                 this._selectedTag = value;
                 this.OnPropertyChanged();
                 this.TagEditorViewModel?.SelectedTag = value;

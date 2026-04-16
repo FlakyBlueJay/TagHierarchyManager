@@ -8,19 +8,24 @@ namespace TagHierarchyManager.UI.ViewModels;
 public partial class RecentsViewModel : ViewModelBase
 {
     private readonly MainWindowViewModel _mainWindow;
+    
     [ObservableProperty] private ObservableCollection<TagRow> _recentAdded = [];
     [ObservableProperty] private ObservableCollection<TagRow> _recentEdited = [];
 
     public RecentsViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
-        this.RecentAdded = new ObservableCollection<TagRow>();
+        this.RecentAdded = [];
         foreach (var tag in this._mainWindow.TagDatabaseService.GetRecentTags(true))
             if (tag.CreatedAt is not null)
                 this.RecentAdded.Add(new TagRow(tag, tag.CreatedAt.Value));
 
         foreach (var tag in this._mainWindow.TagDatabaseService.GetRecentTags(false))
+        {
+            if (Equals(tag.UpdatedAt, tag.CreatedAt)) continue;
             this.RecentEdited.Add(new TagRow(tag, tag.UpdatedAt));
+        }
+            
     }
 
     public event Action? RequestClose;
@@ -29,7 +34,7 @@ public partial class RecentsViewModel : ViewModelBase
     {
         var tag = this._mainWindow.TagDatabaseService.GetTagById(tagRow.Id);
         if (tag is null) return;
-        this._mainWindow.SelectedTagId = tagRow.Id;
+        this._mainWindow.SelectedTag = new TagItemViewModel(tag, this._mainWindow.GetParentNamesById);
         this.RequestClose?.Invoke();
     }
 
