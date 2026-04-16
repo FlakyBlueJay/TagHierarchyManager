@@ -5,9 +5,9 @@ namespace TagHierarchyManager.Importers;
 /// <summary>
 ///     Implements an importer for converting a MusicBee tag hierarchy template to a Dictionary of <see cref="ImportedTag"/>s.
 /// </summary>
+/// TODO add manual intervention for tags with duplicate names.
 public partial class MusicBeeTagHierarchyImporter : Importer
 {
-    private const char CommentSymbol = ';';
     private const int IndentSize = 4; // MusicBee is strict about having an indent size of 4 spaces.
     private const string TagBindingSeparator = "::";
 
