@@ -20,11 +20,6 @@
             <DependentUpon>UnsavedCancelDialog.axaml</DependentUpon>
             <SubType>Code</SubType>
         </Compile>
-
-        <Compile Update="Views\Controls\SearchPane.axaml.oldcs">
-            <DependentUpon>SearchPane.axaml</DependentUpon>
-            <SubType>Code</SubType>
-        </Compile>
     </ItemGroup>
 
     <ItemGroup>
@@ -76,6 +71,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Views\Windows\"/>
+      <AdditionalFiles Include="Controls\HierarchyTree.axaml" />
+      <AdditionalFiles Include="Controls\SearchPane.axaml" />
+      <AdditionalFiles Include="Controls\TagEditor.axaml" />
     </ItemGroup>
 </Project>

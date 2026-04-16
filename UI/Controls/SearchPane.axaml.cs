@@ -24,7 +24,7 @@ public partial class SearchPane : UserControl
             this.SearchAliasesCheckBox.IsChecked ?? false
         };
 
-        this.ViewModel.StartSearchCommand.Execute(args);
+        this.ViewModel?.StartSearchCommand.Execute(args);
         e.Handled = true;
     }
 }

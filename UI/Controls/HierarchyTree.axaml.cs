@@ -14,7 +14,7 @@ public partial class HierarchyTree : UserControl
         this.TagTree.AddHandler(PointerPressedEvent, OnTagTreeItemRightClick, RoutingStrategies.Tunnel);
     }
 
-    private static void OnTagTreeItemRightClick(object sender, PointerPressedEventArgs e)
+    private static void OnTagTreeItemRightClick(object? sender, PointerPressedEventArgs e)
     {
         if (!e.GetCurrentPoint(null).Properties.IsRightButtonPressed) return;
         if (e.Source is not Control source) return;
