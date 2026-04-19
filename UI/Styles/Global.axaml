@@ -1,0 +1,22 @@
+﻿<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Keep shadui here for now. -->
+    <Style Selector="Window">
+        <Setter Property="FontFamily" Value="{StaticResource ManropeFont}" />
+    </Style>
+    
+    <Style Selector="TextBlock.LucideIcon">
+        <Setter Property="FontFamily" Value="{StaticResource LucideFont}" />
+    </Style>
+    
+    <Style Selector="TreeView">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    
+    <Style Selector="TreeViewItem /template/ Border">
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+</Styles>

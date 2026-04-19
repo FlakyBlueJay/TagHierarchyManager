@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
              xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+             xmlns:shadUi="clr-namespace:ShadUI;assembly=ShadUI"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TagHierarchyManager.UI.Views.Controls.TagEditor"
              x:DataType="vm:TagEditorViewModel">
@@ -24,25 +25,42 @@
                  Text="{Binding SelectedTag.EditingAliases, FallbackValue=''}"
                  Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch"
                  Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
-        <TextBox Grid.Row="4" Name="NotesTextBox" Classes="TextArea ClearButton"
-                 Text="{Binding SelectedTag.EditingNotes, FallbackValue=''}"
-                 Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch"
-                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0 0 0 5 "
-                 TextChanged="OnTagTextboxEdited" />
-        <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="0">
+        <Border Grid.Row="4" Name="NotesTextBoxBorder" Padding="0 0 0 -40">
+            <TextBox Name="NotesTextBox" AcceptsReturn="True" 
+                     shadUi:ControlAssist.Height="{Binding #NotesTextBoxBorder.Bounds.Height}"
+                     Text="{Binding SelectedTag.EditingNotes, FallbackValue=''}"
+                     Watermark="{x:Static assets:Resources.WatermarkTagNotes}"
+                     TextWrapping="Wrap"
+                     TextChanged="OnTagTextboxEdited" />
+        </Border>
+        <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="0 5 0 0">
             <CheckBox Grid.Column="0" IsChecked="{Binding SelectedTag.EditingIsTopLevel, FallbackValue=''}"
                       Name="TopLevelCheckBox" Content="{x:Static assets:Resources.CheckBoxTopLevel}"
                       VerticalAlignment="Center" IsCheckedChanged="OnTagCheckboxChanged" />
             <Button Grid.Column="1" Margin="0 0 5 0"
                     Content="{x:Static assets:Resources.ButtonDelete}"
-                    Theme="{StaticResource OutlineButton}" Classes="Danger"
+                    Classes="Destructive"
                     Command="{Binding StartTagDeletionCommand}"
                     CommandParameter="{Binding SelectedTag.Id, FallbackValue={x:Null}}"
-                    IsEnabled="{Binding CanDeleteSelectedTag}" />
+                    IsEnabled="{Binding CanDeleteSelectedTag}">
+                <shadUi:ButtonAssist.Icon>
+                    <TextBlock
+                        Margin="0,0,6,0"
+                        Classes="LucideIcon"
+                        Text="&#57741;" />
+                </shadUi:ButtonAssist.Icon>
+            </Button>
             <Button Grid.Column="2" Margin="0 0 5 0" Content="{x:Static assets:Resources.ButtonCancel}"
-                    Theme="{StaticResource OutlineButton}" Command="{Binding CancelTagEditCommand}" />
+                    Classes="Outline" Command="{Binding CancelTagEditCommand}" />
             <Button Grid.Column="3" Content="{x:Static assets:Resources.ButtonSave}"
-                    Theme="{StaticResource SolidButton}" Command="{Binding SaveSelectedTagCommand}" />
+                    Classes="Primary" Command="{Binding SaveSelectedTagCommand}">
+                <shadUi:ButtonAssist.Icon>
+                    <TextBlock
+                        Margin="0,0,6,0"
+                        Classes="LucideIcon"
+                        Text="&#57677;" />
+                </shadUi:ButtonAssist.Icon>
+            </Button>
         </Grid>
     </Grid>
 </UserControl>

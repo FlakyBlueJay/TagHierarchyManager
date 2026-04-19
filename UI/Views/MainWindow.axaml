@@ -1,17 +1,19 @@
-<Window xmlns="https://github.com/avaloniaui"
+<shadui:Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
         xmlns:controls="clr-namespace:TagHierarchyManager.UI.Views.Controls"
+        xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TagHierarchyManager.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Closing="WindowClosing"
-        Title="{Binding WindowTitle}">
+        Title="{Binding WindowTitle}"
+        Background="{DynamicResource DialogBackgroundColor }">
     <DockPanel Name="Top">
-        <Menu DockPanel.Dock="Top">
+        <Menu DockPanel.Dock="Top" Padding="0 5">
             <MenuItem Header="{x:Static assets:Resources.MenuFile}">
                 <MenuItem Header="{x:Static assets:Resources.MenuItemNewDatabase}"
                           Command="{Binding NewDatabaseCommand}" />
@@ -40,7 +42,9 @@
                 <MenuItem Header="{x:Static assets:Resources.MenuItemAbout}" Click="MenuItemAbout_Click" />
             </MenuItem>
         </Menu>
-        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5" Text="{Binding StatusBlockText}" />
+        <TextBlock Name="StatusBlock" DockPanel.Dock="Bottom" Margin="5 5 0 5"
+                   Text="{Binding StatusBlockText}"
+                   FontSize="14"/>
         <Grid
             RowDefinitions="*"
             Margin="10 0"
@@ -75,4 +79,4 @@
         <KeyBinding Gesture="Ctrl+E" Command="{Binding StartExportCommand}" />
     </Window.KeyBindings>
 
-</Window>
+</shadui:Window>

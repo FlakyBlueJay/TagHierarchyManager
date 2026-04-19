@@ -7,7 +7,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TagHierarchyManager.UI.Views.Controls.HierarchyTree"
              x:DataType="vm:HierarchyTreeViewModel">
-    <Grid RowDefinitions="*, Auto">
+    <Grid RowDefinitions="*, Auto" VerticalAlignment="Stretch">
         <TreeView Grid.Row="0"
                   Name="TagTree"
                   ContextRequested="TagTree_ContextRequested"
@@ -48,10 +48,10 @@
             <Button Content="{x:Static assets:Resources.ButtonBulkAdd}"
                     HorizontalAlignment="Stretch"
                     Margin="0 6 " Command="{Binding ShowBulkAddDialogCommand}"
-                    Theme="{StaticResource OutlineButton}" />
+                    Classes="Secondary" />
             <Button HorizontalAlignment="Stretch"
                     Content="{x:Static assets:Resources.ButtonAdd}"
-                    Command="{Binding NewTagCommand}" Theme="{StaticResource SolidButton}" />
+                    Command="{Binding NewTagCommand}" Classes="Primary" />
         </StackPanel>
     </Grid>
 </UserControl>

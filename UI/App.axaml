@@ -2,16 +2,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TagHierarchyManager.UI.App"
              xmlns:local="using:TagHierarchyManager.UI"
-             xmlns:semi="https://irihi.tech/semi"
+             xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
              RequestedThemeVariant="Dark">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
+    
+    <Application.Resources>
+        <FontFamily x:Key="ManropeFont">avares://TagHierarchyManager.UI/Assets/Fonts#Manrope</FontFamily>
+        <FontFamily x:Key="LucideFont">avares://TagHierarchyManager.UI/Assets/Fonts#lucide</FontFamily>
+    </Application.Resources>
 
     <Application.Styles>
-        <semi:SemiTheme Locale="en-GB" />
-        <semi:DataGridSemiTheme />
+        <shadui:ShadTheme />
+        <StyleInclude Source="/Styles/Global.axaml" />
     </Application.Styles>
 </Application>
