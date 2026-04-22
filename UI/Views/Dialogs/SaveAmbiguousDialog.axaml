@@ -1,0 +1,48 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
+             x:Class="TagHierarchyManager.UI.Views.SaveAmbiguousDialog"
+             x:DataType="vm:SaveAmbiguousViewModel">
+    <Grid RowDefinitions="Auto, *, Auto">
+        <StackPanel Grid.Row="0">
+            <TextBlock Grid.Row="0" Classes="H1" Text="AmbiguousDetectedHeader" Theme="{StaticResource TitleTextBlock}"/>
+            <TextBlock Grid.Row="1">SaveAmbiguousDialogDescription</TextBlock>
+        </StackPanel>
+        <Border Grid.Row="1" Margin="5 15 0 0 "
+                BorderBrush="{DynamicResource SemiColorTertiary}"
+                BorderThickness="1" CornerRadius="5" >
+            <ListBox Name="TagListBox" ItemsSource="{Binding Tags}"
+                     SelectedItem="{Binding SelectedTag}"
+                     SelectionMode="AlwaysSelected">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding CurrentName}" />
+                            <TextBlock
+                                IsVisible="{Binding CurrentTagBindings, 
+                                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                FontStyle="Italic"
+                                Foreground="{DynamicResource SemiColorTertiary}">
+                                <Run Text=" (" />
+                                <Run Text="{Binding CurrentTagBindings, FallbackValue=No bindings}" />
+                                <Run Text=", ''" />
+                                <Run Text="{Binding CurrentNotes, FallbackValue=no notes}" />
+                                <Run Text="'')" />
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="{x:Static assets:Resources.ButtonOk}" Click="OnOkButtonClick" />
+            <Button Content="{x:Static assets:Resources.ButtonCancel}" Click="OnCancelButtonClick"
+                    Theme="{DynamicResource SolidButton}" Classes="Primary"/>
+        </StackPanel>
+        
+    </Grid>
+</Window>

@@ -46,13 +46,13 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding CurrentName}" />
                         <TextBlock
-                            IsVisible="{Binding TagBindings, 
+                            IsVisible="{Binding CurrentTagBindings, 
                                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             FontStyle="Italic"
                             Foreground="{DynamicResource SemiColorTertiary}">
-                            <Run Text=" (" /><Run Text="{Binding TagBindings}" /><Run Text=")" />
+                            <Run Text=" (" /><Run Text="{Binding CurrentTagBindings}" /><Run Text=")" />
                         </TextBlock>
                     </StackPanel>
                 </DataTemplate>

@@ -13,7 +13,8 @@
                   ContextRequested="TagTree_ContextRequested"
                   VerticalAlignment="Stretch"
                   ItemsSource="{Binding TopLevelTagNodes, FallbackValue={x:Null}}"
-                  SelectedItem="{Binding SelectedTag, Mode=TwoWay, FallbackValue={x:Null}}">
+                  SelectedItem="{Binding SelectedTag, Mode=TwoWay, FallbackValue={x:Null}}"
+                  Margin="2">
             <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem
@@ -23,22 +24,22 @@
                         <MenuItem.Header>
                             <MultiBinding StringFormat="{}{0} {1}">
                                 <Binding Source="{x:Static assets:Resources.ButtonDelete}" />
-                                <Binding Path="ContextMenuTag.Name" FallbackValue="" />
+                                <Binding Path="ContextMenuTag.CurrentName" FallbackValue="" />
                             </MultiBinding>
                         </MenuItem.Header>
                     </MenuItem>
                 </ContextMenu>
             </TreeView.ContextMenu>
             <TreeView.ItemTemplate>
-                <TreeDataTemplate ItemsSource="{Binding Children}">
+                <TreeDataTemplate ItemsSource="{Binding CurrentChildren}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding CurrentName}" />
                         <TextBlock
-                            IsVisible="{Binding TagBindings, 
+                            IsVisible="{Binding CurrentTagBindings, 
                                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             FontStyle="Italic"
                             Foreground="{DynamicResource SemiColorTertiary}">
-                            <Run Text=" (" /><Run Text="{Binding TagBindings}" /><Run Text=")" />
+                            <Run Text=" (" /><Run Text="{Binding CurrentTagBindings}" /><Run Text=")" />
                         </TextBlock>
                     </StackPanel>
                 </TreeDataTemplate>

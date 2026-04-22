@@ -81,7 +81,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         if (beingUpdated)
         {
-            tag.Children.Clear();
+            tag.CurrentChildren.Clear();
             if (this.ChildNodeMap.TryGetValue(tag.Id, out var existingParents))
                 existingParents.Clear();
         }
@@ -98,7 +98,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
             this.AddTagNodeToViewModelMap(childNode);
 
-            tag.Children.Add(childNode);
+            tag.CurrentChildren.Add(childNode);
             this.AddAllChildrenAsync(childNode);
         }
     }
@@ -109,7 +109,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
         foreach (var parent in parentViewModels)
         {
-            if (parent.Children.Any(c => c.Id == tag.Id)) continue;
+            if (parent.CurrentChildren.Any(c => c.Id == tag.Id)) continue;
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -117,10 +117,10 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
                 this.AddAllChildrenAsync(tagNode);
 
                 var index = 0;
-                while (index < parent.Children.Count && string.Compare(parent.Children[index].Name, tagNode.Name,
+                while (index < parent.CurrentChildren.Count && string.Compare(parent.CurrentChildren[index].CurrentName, tagNode.CurrentName,
                            StringComparison.CurrentCultureIgnoreCase) < 0) index++;
 
-                parent.Children.Insert(index, tagNode);
+                parent.CurrentChildren.Insert(index, tagNode);
                 this.AddTagNodeToViewModelMap(tagNode);
             });
         }
@@ -150,7 +150,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
         var index = 0;
         while (index < this.TopLevelTagNodes.Count
-               && string.Compare(this.TopLevelTagNodes[index].Name, newTopLevelTag.Name,
+               && string.Compare(this.TopLevelTagNodes[index].CurrentName, newTopLevelTag.CurrentName,
                    StringComparison.CurrentCultureIgnoreCase) < 0)
             index++;
 
@@ -167,8 +167,8 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         foreach (var parentTag in parentViewModels)
         {
             var foundChild =
-                parentTag.Children.FirstOrDefault(t => t.Id == idToDelete)!;
-            parentTag.Children.Remove(foundChild);
+                parentTag.CurrentChildren.FirstOrDefault(t => t.Id == idToDelete)!;
+            parentTag.CurrentChildren.Remove(foundChild);
         }
 
 
@@ -244,7 +244,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             if (newTag.IsTopLevel)
                 await this.AddTopLevelNode(newTag);
 
-            if (newTag.ParentIds.Count == 0) return;
+            if (newTag.ParentIds.Count == 0) continue;
             foreach (var parentId in newTag.ParentIds)
                 await this.AddChildNode(newTag, parentId);
         }

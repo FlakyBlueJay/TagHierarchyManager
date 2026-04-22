@@ -20,13 +20,15 @@ public partial class BulkAddViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<TagRow> _tags;
 
     [ObservableProperty] private string _windowTitle;
+    
+    private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
 
     public BulkAddViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
 
         this.WindowTitle = string.Format("{0} - " + Resources.ButtonBulkAdd,
-            this._mainWindow.TagDatabaseService.DatabaseName);
+            this.TagDatabaseService.DatabaseName);
 
         this._tags =
         [
@@ -34,7 +36,7 @@ public partial class BulkAddViewModel : ViewModelBase
             {
                 Name = "",
                 IsTopLevel = false,
-                TagBindings = string.Join("; ", this._mainWindow.TagDatabaseService.DefaultTagBindings)
+                TagBindings = string.Join("; ", this.TagDatabaseService.DefaultTagBindings)
             }
         ];
 
@@ -89,6 +91,7 @@ public partial class BulkAddViewModel : ViewModelBase
                 {
                     var tag = new Tag
                     {
+                        
                         Name = tagRow.Name,
                         IsTopLevel = tagRow.IsTopLevel,
                         Parents = !string.IsNullOrWhiteSpace(tagRow.Parents)
@@ -114,7 +117,13 @@ public partial class BulkAddViewModel : ViewModelBase
                 })
                 .ToList();
 
-            await this._mainWindow.TagDatabaseService.WriteTagsToDatabase(tags);
+            await this._mainWindow.TagDatabaseService.WriteTagsToDatabase(
+                tags.Select(t =>
+                {
+                    var tVm = new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds);
+                    tVm.BeginEdit();
+                    return tVm;
+                }).ToList());
             this._mainWindow.StatusBlockText = string.Format(Resources.StatusBlockBulkAddSuccess, tags.Count);
             this.RequestClose?.Invoke();
         }

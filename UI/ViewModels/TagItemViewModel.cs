@@ -9,7 +9,7 @@ using TagHierarchyManager.UI.Assets;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? getParentNamesByIds = null)
+public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> getParentNamesByIds)
     : ViewModelBase
 {
     [ObservableProperty] private string _editingAliases = string.Empty;
@@ -24,6 +24,7 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
 
     [ObservableProperty] private string _editingTagBindings = string.Empty;
 
+    
     private bool _isInitialising;
 
     public event EventHandler? UserEditedTag;
@@ -35,72 +36,58 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
 
     public bool CanBeDeleted => !this.HasChildren;
 
-    public bool HasChildren => this.Children.Count > 0;
+    public bool HasChildren => this.CurrentChildren.Count > 0;
 
     public int Id => this.Tag.Id;
 
-    public string Name => this.Tag.Name;
+    public string CurrentName => this.Tag.Name;
 
-    public string Notes => this.Tag.Notes;
+    public string CurrentNotes => this.Tag.Notes;
 
     public bool OnDatabase => this.Id != 0;
 
-    public string TagBindings =>
+    public string CurrentTagBindings =>
         this.Tag.TagBindings.Count > 0
             ? string.Join("; ", this.Tag.TagBindings)
             : string.Empty;
 
-    public ObservableCollection<TagItemViewModel> Children { get; set; } = [];
+    public ObservableCollection<TagItemViewModel> CurrentChildren { get; set; } = [];
 
     internal Tag Tag { get; set; } = tag;
 
     private bool IsTopLevel => this.Tag.IsTopLevel;
 
-    private string Parents => getParentNamesByIds is not null && this.Tag.ParentIds is { Count: > 0 }
-        ? string.Join("; ", getParentNamesByIds(this.Tag.ParentIds))
+    internal string CurrentParentsString => this.Tag.Parents is { Count: > 0 }
+        ? string.Join("; ", this.Tag.Parents)
         : string.Empty;
-
+    
+    private List<int> CurrentParentIds => this.Tag.ParentIds;
+    private List<int> EditingParentIds = []; 
+    
     public void BeginEdit()
     {
         this._isInitialising = true;
         this.EditingName = this.Tag.Name;
 
         if (this.OnDatabase || string.IsNullOrEmpty(this.EditingParents))
-            this.EditingParents = this.Parents;
+            this.EditingParents = this.CurrentParentsString;
 
         this.EditingIsTopLevel = this.IsTopLevel;
-        this.EditingTagBindings = this.TagBindings;
+        this.EditingTagBindings = this.CurrentTagBindings;
         this.EditingAliases = this.Aliases;
-        this.EditingNotes = this.Notes;
+        this.EditingNotes = this.CurrentNotes;
+        this.EditingParentIds = this.CurrentParentIds;
         this._isInitialising = false;
     }
 
     public void CommitEdit()
     {
         this.Validate();
-        this.Tag.Name = this.EditingName;
-        this.Tag.Parents = !string.IsNullOrWhiteSpace(this.EditingParents)
-            ? this.EditingParents.Split(';', StringSplitOptions.RemoveEmptyEntries |
-                                             StringSplitOptions.TrimEntries)
-                .ToList()
-            : [];
-        this.Tag.TagBindings = !string.IsNullOrWhiteSpace(this.EditingTagBindings)
-            ? this.EditingTagBindings.Split(';', StringSplitOptions.RemoveEmptyEntries |
-                                                 StringSplitOptions.TrimEntries)
-                .ToList()
-            : [];
-        this.Tag.Aliases = !string.IsNullOrWhiteSpace(this.EditingAliases)
-            ? this.EditingAliases.Split(';', StringSplitOptions.RemoveEmptyEntries |
-                                             StringSplitOptions.TrimEntries)
-                .ToList()
-            : [];
-        this.Tag.Notes = !string.IsNullOrWhiteSpace(this.EditingNotes) ? this.EditingNotes : "";
-        this.Tag.IsTopLevel = this.EditingIsTopLevel;
-        this.OnPropertyChanged(nameof(this.Name));
-        this.OnPropertyChanged(nameof(this.Parents));
+        this.OnPropertyChanged(nameof(this.CurrentName));
+        this.OnPropertyChanged(nameof(this.CurrentParentsString));
         this.OnPropertyChanged(nameof(this.Aliases));
-        this.OnPropertyChanged(nameof(this.TagBindings));
-        this.OnPropertyChanged(nameof(this.Notes));
+        this.OnPropertyChanged(nameof(this.CurrentTagBindings));
+        this.OnPropertyChanged(nameof(this.CurrentNotes));
         this.OnPropertyChanged(nameof(this.IsTopLevel));
         this.OnPropertyChanged(nameof(this.HasChildren));
     }
@@ -108,8 +95,8 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
     public void RefreshParentsString()
     {
         this._isInitialising = true;
-        this.OnPropertyChanged(nameof(this.Parents));
-        var newParents = this.Parents;
+        this.OnPropertyChanged(nameof(this.CurrentParentsString));
+        var newParents = this.CurrentParentsString;
         if (!string.IsNullOrEmpty(newParents))
         {
             this.EditingParents = newParents;
@@ -121,11 +108,11 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>>? ge
 
     public void RefreshSelf()
     {
-        this.OnPropertyChanged(nameof(this.Name));
-        this.OnPropertyChanged(nameof(this.Parents));
+        this.OnPropertyChanged(nameof(this.CurrentName));
+        this.OnPropertyChanged(nameof(this.CurrentParentsString));
         this.OnPropertyChanged(nameof(this.Aliases));
-        this.OnPropertyChanged(nameof(this.TagBindings));
-        this.OnPropertyChanged(nameof(this.Notes));
+        this.OnPropertyChanged(nameof(this.CurrentTagBindings));
+        this.OnPropertyChanged(nameof(this.CurrentNotes));
         this.OnPropertyChanged(nameof(this.IsTopLevel));
         this.OnPropertyChanged(nameof(this.HasChildren));
     }

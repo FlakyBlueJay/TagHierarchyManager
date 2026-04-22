@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Common;
@@ -10,6 +12,8 @@ using TagHierarchyManager.Exporters;
 using TagHierarchyManager.Importers;
 using TagHierarchyManager.Models;
 using TagHierarchyManager.UI.Assets;
+using TagHierarchyManager.UI.ViewModels;
+using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI;
 
@@ -154,16 +158,64 @@ public class TagDatabaseService : ObservableObject
         this.NotifyDatabasePropertiesChanged();
     }
 
-    public async Task WriteTagsToDatabase(List<Tag> tags)
+    public async Task WriteTagsToDatabase(List<TagItemViewModel> tags)
     {
+        var tagsToSave = new List<Tag>(); 
         if (this.Database is null) return;
-        foreach (var tag in tags)
+        foreach (var tagToSave in tags.Select(tag => new Tag
+                 {
+                     Id = tag.Id,
+                     Name = tag.CurrentName,
+                     IsTopLevel = tag.EditingIsTopLevel,
+                     Aliases = tag.EditingAliases
+                         .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
+                     TagBindings = tag.EditingTagBindings
+                         .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
+                     Notes = tag.EditingNotes,
+                     Parents = tag.EditingParents
+                         .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
+                 }))
         {
-            tag.CreatedAt ??= DateTime.Now;
-            tag.UpdatedAt = DateTime.Now;
+            var success = await this.GetSavingTagParents(tagToSave);
+            if (!success) return;
+            tagToSave.Validate();
+            tagsToSave.Add(tagToSave);
         }
             
-        await this.Database.WriteTagsToDatabase(tags);
+        await this.Database.WriteTagsToDatabase(tagsToSave);
+        tags.ForEach(tag => tag.CommitEdit());
+    }
+
+    private async Task<bool> GetSavingTagParents(Tag tag)
+    {
+        if (this.Database is null) return false;
+        if (tag.Parents.Count == 0) return true;
+        foreach (var parentName in tag.Parents)
+        {
+            var parentTags = this.Database.Tags.Where(t => t.Name == parentName).ToList();
+            switch (parentTags.Count)
+            {
+                case 0:
+                    throw new Exception($"Parent tag '{parentName}' not found.");
+                case 1:
+                    tag.ParentIds.Add(parentTags[0].Id);
+                    continue;
+                case > 1:
+                    var ambiguousVm = new SaveAmbiguousViewModel(this, tag, parentTags);
+
+                    var dialog = new SaveAmbiguousDialog();
+                    var dialogOwner = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                        ?.Windows
+                        .FirstOrDefault(w => w.IsActive);
+                    dialog.DataContext = ambiguousVm;
+                    var result = await dialog.ShowDialog<TagItemViewModel?>(dialogOwner!);
+                
+                    if (result == null) return false;
+                    tag.ParentIds.Add(result.Id);
+                    break;
+            }
+        }
+        return true;
     }
 
     private static IExporter PickExporterFromFileExt(string path)

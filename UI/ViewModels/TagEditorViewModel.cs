@@ -41,12 +41,12 @@ public partial class TagEditorViewModel(MainWindowViewModel mainWindow) : ViewMo
         if (userWantsToSave is null) return;
 
         this._mainWindow.SelectedTag = new TagItemViewModel(
-            new Tag
-            {
+            new Tag {
                 Name = string.Empty,
                 IsTopLevel = true,
                 TagBindings = this.TagDatabaseService.DefaultTagBindings
-            }
+            },
+            this.TagDatabaseService.GetParentNamesByIds
         );
         this.UnsavedChanges = true;
     }
@@ -59,12 +59,10 @@ public partial class TagEditorViewModel(MainWindowViewModel mainWindow) : ViewMo
             if (this._mainWindow is null || this.TagDatabaseService is null) return;
             if (this._mainWindow.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen ||
                 !this._mainWindow.IsDbEnabled) return;
-
-            this._mainWindow.SelectedTag.CommitEdit();
-            await this.TagDatabaseService.WriteTagsToDatabase([this._mainWindow.SelectedTag.Tag]);
+            await this.TagDatabaseService.WriteTagsToDatabase([this._mainWindow.SelectedTag]);
             this._mainWindow.SelectedTag.RefreshParentsString();
             this._mainWindow.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful,
-                this._mainWindow.SelectedTag.Name);
+                this._mainWindow.SelectedTag.CurrentName);
             this.UnsavedChanges = false;
         }
         catch (Exception ex)

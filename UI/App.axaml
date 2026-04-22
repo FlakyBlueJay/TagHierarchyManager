@@ -3,6 +3,7 @@
              x:Class="TagHierarchyManager.UI.App"
              xmlns:local="using:TagHierarchyManager.UI"
              xmlns:semi="https://irihi.tech/semi"
+             xmlns:u-semi="https://irihi.tech/ursa/themes/semi"
              RequestedThemeVariant="Dark">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -12,6 +13,7 @@
 
     <Application.Styles>
         <semi:SemiTheme Locale="en-GB" />
+        <u-semi:SemiTheme Locale="en-GB"/>
         <semi:DataGridSemiTheme />
     </Application.Styles>
 </Application>

@@ -93,6 +93,7 @@ public partial class MusicBeeTagHierarchyImporter : Importer
 
     private static void ValidateHierarchyData(string tagHierarchyData)
     {
+        // TODO change on the fly instead of erroring out?
         if (tagHierarchyData.Contains('\t')) throw new ArgumentException(ErrorMessages.TagHierarchyTabsDetected);
 
         if (tagHierarchyData.StartsWith(' ')) throw new ArgumentException(ErrorMessages.TagHierarchyStartsWithSpace);

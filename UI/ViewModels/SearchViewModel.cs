@@ -52,7 +52,7 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
 
         results.Select(tag =>
                 new TagItemViewModel(tag, this._getParentNamesById))
-            .OrderBy(tag => tag.Name)
+            .OrderBy(tag => tag.CurrentName)
             .ToList()
             .ForEach(this.SearchResults.Add);
 

@@ -27,6 +27,7 @@ public partial class TagDatabase
                                   ?? await this.SelectTagFromDatabase(tag.Name).ConfigureAwait(false);
                 if (currentTag is null)
                     throw new InvalidOperationException(ErrorMessages.TagNotFound);
+                // todo search parent here then save the parents.
                 await this.SaveTagParents(transaction, currentTag.Id, tag.Parents, currentTag).ConfigureAwait(false);
             }
 
