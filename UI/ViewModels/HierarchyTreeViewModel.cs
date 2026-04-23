@@ -258,17 +258,20 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         try
         {
             if (sender is not TagDatabaseService { IsDatabaseOpen: true }) return;
-
-            if (result.Updated.Count > 0)
-                foreach (var updatedTag in result.Updated)
+            
+            foreach (var updatedTag in result.Updated)
                     await Dispatcher.UIThread.InvokeAsync(async () => await this.HandleTagUpdateAsync(updatedTag));
 
             if (result.Added.Count > 0)
                 await Dispatcher.UIThread.InvokeAsync(async () => await this.ProcessTagAdditionsAsync(result.Added));
-
-            if (result.Deleted.Count > 0)
-                foreach (var deletedTag in result.Deleted)
-                    await Dispatcher.UIThread.InvokeAsync(() => this.WipeTagNodesAsync(deletedTag.id));
+            
+            foreach (var deletedTag in result.Deleted)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() => this.WipeTagNodesAsync(deletedTag.id));
+                if (this.SelectedTag?.Id == deletedTag.id)
+                    this.SelectedTag = null;
+            }
+                
         }
         catch (Exception e)
         {
