@@ -61,8 +61,7 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
         ? string.Join("; ", this.Tag.Parents)
         : string.Empty;
     
-    private List<int> CurrentParentIds => this.Tag.ParentIds;
-    private List<int> EditingParentIds = []; 
+
     
     public void BeginEdit()
     {
@@ -76,13 +75,14 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
         this.EditingTagBindings = this.CurrentTagBindings;
         this.EditingAliases = this.Aliases;
         this.EditingNotes = this.CurrentNotes;
-        this.EditingParentIds = this.CurrentParentIds;
         this._isInitialising = false;
     }
 
-    public void CommitEdit()
+    public void CommitEdit(Tag savedTag)
     {
-        this.Validate();
+        this.Tag = savedTag;
+        this.OnPropertyChanged(nameof(this.Id));
+        this.OnPropertyChanged(nameof(this.OnDatabase));
         this.OnPropertyChanged(nameof(this.CurrentName));
         this.OnPropertyChanged(nameof(this.CurrentParentsString));
         this.OnPropertyChanged(nameof(this.Aliases));

@@ -41,7 +41,7 @@ public partial class MainWindow : Window
                 {
                     case true:
                         if (this.ViewModel?.StartTagSaveCommand.CanExecute(null) != true) return;
-                        this.ViewModel.StartTagSaveCommand.Execute(null);
+                        await this.ViewModel.StartTagSaveCommand.ExecuteAsync(null);
                         this._userWantsToQuit = true;
                         this.Close();
                         break;

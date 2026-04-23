@@ -51,7 +51,7 @@ public partial class BulkAddWindow : Window
     {
         if (this.ViewModel is null) return;
         this.ViewModel.SelectedRows.Clear();
-        foreach (var row in this.TagTable.SelectedItems.Cast<BulkAddViewModel.TagRow>())
+        foreach (var row in this.TagTable.SelectedItems.Cast<BulkAddViewModel.BulkAddTagRow>())
             this.ViewModel.SelectedRows.Add(row);
     }
 }

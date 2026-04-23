@@ -15,9 +15,9 @@ public partial class BulkAddViewModel : ViewModelBase
 {
     private readonly MainWindowViewModel _mainWindow;
 
-    [ObservableProperty] private ObservableCollection<TagRow> _selectedRows = [];
+    [ObservableProperty] private ObservableCollection<BulkAddTagRow> _selectedRows = [];
 
-    [ObservableProperty] private ObservableCollection<TagRow> _tags;
+    [ObservableProperty] private ObservableCollection<BulkAddTagRow> _tags;
 
     [ObservableProperty] private string _windowTitle;
     
@@ -32,7 +32,7 @@ public partial class BulkAddViewModel : ViewModelBase
 
         this._tags =
         [
-            new TagRow
+            new BulkAddTagRow
             {
                 Name = "",
                 IsTopLevel = false,
@@ -52,7 +52,7 @@ public partial class BulkAddViewModel : ViewModelBase
     [RelayCommand]
     private void AddTag()
     {
-        this.Tags.Add(new TagRow
+        this.Tags.Add(new BulkAddTagRow
         {
             Name = "",
             IsTopLevel = false,
@@ -60,7 +60,7 @@ public partial class BulkAddViewModel : ViewModelBase
         });
     }
 
-    partial void OnSelectedRowsChanged(ObservableCollection<TagRow>? oldValue, ObservableCollection<TagRow> newValue)
+    partial void OnSelectedRowsChanged(ObservableCollection<BulkAddTagRow>? oldValue, ObservableCollection<BulkAddTagRow> newValue)
     {
         oldValue?.CollectionChanged -= this.OnSelectedRowsCollectionChanged;
         newValue.CollectionChanged += this.OnSelectedRowsCollectionChanged;
@@ -111,7 +111,6 @@ public partial class BulkAddViewModel : ViewModelBase
                             : [],
                         Notes = !string.IsNullOrEmpty(tagRow.Notes) ? tagRow.Notes : string.Empty
                     };
-                    tag.Validate();
                     currentTagRow++;
                     return tag;
                 })
@@ -138,7 +137,7 @@ public partial class BulkAddViewModel : ViewModelBase
         }
     }
 
-    public class TagRow
+    public class BulkAddTagRow
     {
         public string Aliases { get; set; } = string.Empty;
         public bool IsTopLevel { get; set; }

@@ -9,8 +9,8 @@ public partial class RecentsViewModel : ViewModelBase
 {
     private readonly MainWindowViewModel _mainWindow;
     
-    [ObservableProperty] private ObservableCollection<TagRow> _recentAdded = [];
-    [ObservableProperty] private ObservableCollection<TagRow> _recentEdited = [];
+    [ObservableProperty] private ObservableCollection<RecentsTagRow> _recentAdded = [];
+    [ObservableProperty] private ObservableCollection<RecentsTagRow> _recentEdited = [];
 
     public RecentsViewModel(MainWindowViewModel mainWindow)
     {
@@ -18,19 +18,19 @@ public partial class RecentsViewModel : ViewModelBase
         this.RecentAdded = [];
         foreach (var tag in this._mainWindow.TagDatabaseService.GetRecentTags(true))
             if (tag.CreatedAt is not null)
-                this.RecentAdded.Add(new TagRow(tag, tag.CreatedAt.Value));
+                this.RecentAdded.Add(new RecentsTagRow(tag, tag.CreatedAt.Value));
 
         foreach (var tag in this._mainWindow.TagDatabaseService.GetRecentTags(false))
         {
             if (Equals(tag.UpdatedAt, tag.CreatedAt)) continue;
-            this.RecentEdited.Add(new TagRow(tag, tag.UpdatedAt));
+            this.RecentEdited.Add(new RecentsTagRow(tag, tag.UpdatedAt));
         }
             
     }
 
     public event Action? RequestClose;
 
-    public void ActivateRowToTagItem(TagRow tagRow)
+    public void ActivateRowToTagItem(RecentsTagRow tagRow)
     {
         var tag = this._mainWindow.TagDatabaseService.GetTagById(tagRow.Id);
         if (tag is null) return;
@@ -38,7 +38,7 @@ public partial class RecentsViewModel : ViewModelBase
         this.RequestClose?.Invoke();
     }
 
-    public class TagRow(Tag tag, DateTime dateTime)
+    public class RecentsTagRow(Tag tag, DateTime dateTime)
     {
         public DateTime DateTime => dateTime;
         public int Id => tag.Id;

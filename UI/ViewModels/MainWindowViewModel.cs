@@ -415,4 +415,6 @@ public partial class MainWindowViewModel : ViewModelBase
         if (tagEditor is null) return;
         tagEditor.PropertyChanged -= this.TagEditorOnPropertyChanged;
     }
+    
+    
 }

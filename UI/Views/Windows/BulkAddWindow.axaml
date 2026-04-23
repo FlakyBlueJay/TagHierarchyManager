@@ -42,7 +42,7 @@
                     <!-- maybe have another window to edit notes in? but for now, this is cromulent. -->
                     <DataGridTemplateColumn Header="{x:Static assets:Resources.HeaderNotes}" MinWidth="200">
                         <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate DataType="vm:BulkAddViewModel+TagRow">
+                            <DataTemplate DataType="vm:BulkAddViewModel+BulkAddTagRow">
                                 <TextBlock Text="{Binding Notes}" TextWrapping="NoWrap" Margin="10 10"
                                            VerticalAlignment="Center" />
                             </DataTemplate>

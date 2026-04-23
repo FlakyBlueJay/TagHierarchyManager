@@ -158,35 +158,88 @@ public class TagDatabaseService : ObservableObject
         this.NotifyDatabasePropertiesChanged();
     }
 
-    public async Task WriteTagsToDatabase(List<TagItemViewModel> tags)
+    private List<Tag> SortTagsTopologically(List<Tag> tags)
     {
-        var tagsToSave = new List<Tag>(); 
-        if (this.Database is null) return;
-        foreach (var tagToSave in tags.Select(tag => new Tag
-                 {
-                     Id = tag.Id,
-                     Name = tag.CurrentName,
-                     IsTopLevel = tag.EditingIsTopLevel,
-                     Aliases = tag.EditingAliases
-                         .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
-                     TagBindings = tag.EditingTagBindings
-                         .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
-                     Notes = tag.EditingNotes,
-                     Parents = tag.EditingParents
-                         .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
-                 }))
+        var sorted = new List<Tag>();
+        var checkedNames = new HashSet<string>();
+        var checking = new HashSet<string>();
+
+        void CheckParents(Tag tag)
         {
-            var success = await this.GetSavingTagParents(tagToSave);
-            if (!success) return;
-            tagToSave.Validate();
-            tagsToSave.Add(tagToSave);
-        }
+            if (checking.Contains(tag.Name))
+                throw new InvalidOperationException($"Circular parent depedency detected involving {tag.Name}");
             
-        await this.Database.WriteTagsToDatabase(tagsToSave);
-        tags.ForEach(tag => tag.CommitEdit());
+            if (!checkedNames.Add(tag.Name)) return;
+
+            checking.Add(tag.Name);
+            
+            foreach (var parentName in tag.Parents)
+            {
+                var parent = tags.FirstOrDefault(t => t.Name == parentName);
+                if (parent is null) continue;
+                CheckParents(parent);
+            }
+
+            checking.Remove(tag.Name);
+            sorted.Add(tag);
+        }
+        
+        foreach (var tag in tags)
+            CheckParents(tag);
+
+        return sorted;
     }
 
-    private async Task<bool> GetSavingTagParents(Tag tag)
+    public async Task WriteTagsToDatabase(List<TagItemViewModel> tags)
+    {
+        if (this.Database is null) return;
+        var tagsToSave = new List<(TagItemViewModel vm, Tag tag)>();
+        var bulkParents = new Dictionary<Tag, Tag>();
+        foreach (var vm in tags)
+        {
+            var tag = new Tag
+            {
+                Id = vm.Id,
+                Name = vm.EditingName,
+                IsTopLevel = vm.EditingIsTopLevel,
+                Aliases = vm.EditingAliases
+                    .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
+                TagBindings = vm.EditingTagBindings
+                    .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
+                Notes = vm.EditingNotes,
+                Parents = vm.EditingParents
+                    .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
+            };
+            
+            if (tags.Count == 1)
+            {
+                var success = await this.GetSavingTagParents(tag);
+                if (!success) return;
+                tag.Validate();
+            }
+            
+            tagsToSave.Add((vm, tag));
+        }
+        
+        if (tags.Count > 1)
+        {
+            var sortedPairs = this.SortTagsTopologically(tagsToSave.Select(x => x.tag).ToList())
+                .Select(t => tagsToSave.First(x => x.tag == t))
+                .ToList();
+            
+            foreach (var (vm, tag) in sortedPairs)
+            {
+                var success = await this.GetSavingTagParents(tag, tagsToSave.Select(x => x.tag).ToList());
+                if (!success) return;
+                tag.Validate();
+                await this.Database.WriteTagsToDatabase([tag]);
+            }
+        }
+        else await this.Database.WriteTagsToDatabase(tagsToSave.Select(x => x.tag).ToList());
+        tagsToSave.ForEach(pair => pair.vm.CommitEdit(pair.tag));
+    }
+
+    private async Task<bool> GetSavingTagParents(Tag tag, List<Tag>? batch = null)
     {
         if (this.Database is null) return false;
         if (tag.Parents.Count == 0) return true;
@@ -196,7 +249,10 @@ public class TagDatabaseService : ObservableObject
             switch (parentTags.Count)
             {
                 case 0:
-                    throw new Exception($"Parent tag '{parentName}' not found.");
+                    var match = batch?.FirstOrDefault(t => t.Name == parentName);
+                    if (match is null) throw new Exception($"Parent tag '{parentName}' not found.");
+                    tag.ParentIds.Add(match.Id);
+                    continue;
                 case 1:
                     tag.ParentIds.Add(parentTags[0].Id);
                     continue;

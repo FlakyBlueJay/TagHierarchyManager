@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
 
@@ -24,6 +20,5 @@ public partial class SaveAmbiguousViewModel : ViewModelBase
         this._tags = tags.Select(t => new TagItemViewModel(t, tagDatabaseService.GetParentNamesByIds)).ToList();
         this._currentTag = currentTag;
     }
-    
     
 }

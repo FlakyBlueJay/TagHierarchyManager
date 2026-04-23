@@ -90,7 +90,7 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
         foreach (var deletedTag in result.Deleted)
         {
             var deletedTagItemVm = this.SearchResults.FirstOrDefault(item => item.Tag.Id == deletedTag.id);
-            if (deletedTagItemVm is null) return;
+            if (deletedTagItemVm is null) continue;
             this.SearchResults.Remove(deletedTagItemVm);
         }
     }

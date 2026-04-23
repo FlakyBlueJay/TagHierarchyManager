@@ -28,8 +28,6 @@ public partial class TagEditorViewModel(MainWindowViewModel mainWindow) : ViewMo
         if (this._mainWindow is null || this.TagDatabaseService is null) return;
         if (!this.TagDatabaseService.IsDatabaseOpen) return;
 
-        this.TagDatabaseService.TagsWritten -= this.TagDatabaseService_TagsWritten;
-
         GC.SuppressFinalize(this);
     }
 
@@ -117,12 +115,5 @@ public partial class TagEditorViewModel(MainWindowViewModel mainWindow) : ViewMo
     {
         if (this._mainWindow?.SelectedTag is null || !this.CanDeleteSelectedTag || this._mainWindow is null) return;
         await this._mainWindow.StartTagDeletionAsync(this._mainWindow.SelectedTag.Id);
-    }
-
-    private void TagDatabaseService_TagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
-    {
-        if (this._mainWindow is null) return;
-        if (result.Added.Count > 0)
-            this._mainWindow.SelectedTag?.SyncId();
     }
 }

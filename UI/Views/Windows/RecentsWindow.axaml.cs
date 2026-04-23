@@ -27,7 +27,7 @@ public partial class RecentsWindow : Window
     public void DataGrid_DoubleTapped(object sender, RoutedEventArgs e)
     {
         if (this.ViewModel is null) return;
-        if (e.Source is Control { DataContext: RecentsViewModel.TagRow row })
+        if (e.Source is Control { DataContext: RecentsViewModel.RecentsTagRow row })
             this.ViewModel.ActivateRowToTagItem(row);
     }
 }

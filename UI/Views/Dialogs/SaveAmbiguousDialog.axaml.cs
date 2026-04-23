@@ -15,13 +15,6 @@ public partial class SaveAmbiguousDialog : Window
     {
         InitializeComponent();
     }
-    
-    private Window? GetActiveWindow()
-    {
-        return (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-            ?.Windows
-            .FirstOrDefault(w => w.IsActive);
-    }
 
     private void OnOkButtonClick(object? sender, RoutedEventArgs e)
     {
