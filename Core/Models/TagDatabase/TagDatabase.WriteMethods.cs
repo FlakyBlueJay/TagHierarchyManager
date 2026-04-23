@@ -41,20 +41,13 @@ public partial class TagDatabase
                     IsTopLevel = tag.IsTopLevel,
                 });
                 
-                bool alreadyOnDatabase = tag.Id != 0;
-                
                 SqliteCommand addCommand = this.currentConnection.CreateCommand();
                 addCommand.Transaction = transaction;
                 QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
                 
-                if (await this.SelectTagFromDatabase(tag.Name) is not null && !alreadyOnDatabase)
-                    throw new ArgumentException(ErrorMessages.TagAlreadyExists(tag.Name));
-                
                 tag.Id = Convert.ToInt32(await addCommand.ExecuteScalarAsync().ConfigureAwait(false),
                     CultureInfo.InvariantCulture);
                 
-                // deprecated - TODO process via TagDatabaseService instead.
-                // await this.SaveTagParents(transaction, tag.Id, tag.Parents, tag).ConfigureAwait(false);
                 await SaveTagParentIds(transaction, tag);
                 
                 int index = this.Tags.FindIndex(t => t.Id == tag.Id);

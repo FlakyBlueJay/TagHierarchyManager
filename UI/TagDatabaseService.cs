@@ -161,26 +161,26 @@ public class TagDatabaseService : ObservableObject
     private List<Tag> SortTagsTopologically(List<Tag> tags)
     {
         var sorted = new List<Tag>();
-        var checkedNames = new HashSet<string>();
-        var checking = new HashSet<string>();
+        var checkedNames = new HashSet<Tag>();
+        var checking = new HashSet<Tag>();
 
         void CheckParents(Tag tag)
         {
-            if (checking.Contains(tag.Name))
+            if (checking.Contains(tag))
                 throw new InvalidOperationException($"Circular parent depedency detected involving {tag.Name}");
             
-            if (!checkedNames.Add(tag.Name)) return;
+            if (!checkedNames.Add(tag)) return;
 
-            checking.Add(tag.Name);
+            checking.Add(tag);
             
             foreach (var parentName in tag.Parents)
             {
-                var parent = tags.FirstOrDefault(t => t.Name == parentName);
-                if (parent is null) continue;
-                CheckParents(parent);
+                var parents = tags.Where(t => t.Name == parentName).ToList();
+                if (parents.Count == 1)
+                    CheckParents(parents[0]);
             }
 
-            checking.Remove(tag.Name);
+            checking.Remove(tag);
             sorted.Add(tag);
         }
         

@@ -117,8 +117,8 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
                 this.AddAllChildren(tagNode);
 
                 var index = 0;
-                while (index < parent.CurrentChildren.Count && string.Compare(parent.CurrentChildren[index].CurrentName, tagNode.CurrentName,
-                           StringComparison.CurrentCultureIgnoreCase) < 0) index++;
+                while (index < parent.CurrentChildren.Count
+                       && this.CompareTagNodes(parent.CurrentChildren[index], tagNode) < 0) index++;
 
                 parent.CurrentChildren.Insert(index, tagNode);
                 this.AddTagNodeToViewModelMap(tagNode);
@@ -150,8 +150,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
         var index = 0;
         while (index < this.TopLevelTagNodes.Count
-               && string.Compare(this.TopLevelTagNodes[index].CurrentName, newTopLevelTag.CurrentName,
-                   StringComparison.CurrentCultureIgnoreCase) < 0)
+               && this.CompareTagNodes(this.TopLevelTagNodes[index], newTopLevelTag) < 0)
             index++;
 
         this.TopLevelTagNodes.Insert(index, newTopLevelTag);
@@ -288,5 +287,16 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         }
 
         this.DeleteTopLevelNode(idToDelete);
+    }
+    
+    private int CompareTagNodes(TagItemViewModel a, TagItemViewModel b)
+    {
+        var nameCompare = string.Compare(a.CurrentName, b.CurrentName, StringComparison.CurrentCultureIgnoreCase);
+        if (nameCompare != 0) return nameCompare;
+        
+        var bindingA = a.Tag.TagBindings.FirstOrDefault() ?? string.Empty;
+        var bindingB = b.Tag.TagBindings.FirstOrDefault() ?? string.Empty;
+        
+        return string.Compare(bindingA, bindingB, StringComparison.CurrentCultureIgnoreCase);
     }
 }
