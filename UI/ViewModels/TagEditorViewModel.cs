@@ -8,9 +8,9 @@ using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public partial class TagEditorViewModel(MainWindowViewModel mainWindow) : ViewModelBase, IDisposable
+public partial class TagEditorViewModel : ViewModelBase, IDisposable
 {
-    private readonly MainWindowViewModel? _mainWindow = mainWindow;
+    private readonly MainWindowViewModel? _mainWindow;
     [ObservableProperty] private TagItemViewModel? _selectedTag;
 
     [ObservableProperty] private int _selectedTagId;
@@ -23,11 +23,17 @@ public partial class TagEditorViewModel(MainWindowViewModel mainWindow) : ViewMo
 
     private TagDatabaseService? TagDatabaseService => this._mainWindow?.TagDatabaseService;
 
+    public TagEditorViewModel(MainWindowViewModel mainWindow)
+    {
+        this._mainWindow = mainWindow;
+        this.TagDatabaseService?.TagsWritten += this.TagDatabaseService_OnTagsWritten;
+    }
+    
     public void Dispose()
     {
         if (this._mainWindow is null || this.TagDatabaseService is null) return;
         if (!this.TagDatabaseService.IsDatabaseOpen) return;
-
+        this.TagDatabaseService.TagsWritten -= this.TagDatabaseService_OnTagsWritten;
         GC.SuppressFinalize(this);
     }
 
@@ -109,6 +115,12 @@ public partial class TagEditorViewModel(MainWindowViewModel mainWindow) : ViewMo
                 : new TagItemViewModel(tag, this.TagDatabaseService.GetParentNamesByIds);
     }
 
+    private void TagDatabaseService_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult tags)
+    {
+       foreach (var deletedTag in tags.Deleted)
+           if (this._mainWindow?.SelectedTag?.Id == deletedTag.id)
+               this._mainWindow.SelectedTag = null;
+    }
 
     [RelayCommand]
     private async Task StartTagDeletionAsync()
