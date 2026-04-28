@@ -248,13 +248,31 @@ public class TagDatabaseService : ObservableObject
                 .Select(t => tagsToSave.First(x => x.tag == t))
                 .ToList();
             
-            foreach (var (vm, tag) in sortedPairs)
+            var transaction = await this.Database.BeginTransactionAsync();
+
+            try
             {
-                var success = await this.GetSavingTagParents(tag, tagsToSave.Select(x => x.tag).ToList());
-                if (!success) return;
-                tag.Validate();
-                await this.Database.WriteTagsToDatabase([tag]);
+                foreach (var (vm, tag) in sortedPairs)
+                {
+                    var success = await this.GetSavingTagParents(tag, tagsToSave.Select(x => x.tag).ToList());
+                    if (!success)
+                    {
+                        transaction.Rollback();
+                        return;
+                    }
+                    
+                    tag.Validate();
+                    await this.Database.WriteTagsToDatabase([tag], transaction: transaction);
+                }
+
+                await transaction.CommitAsync();
             }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            finally { await transaction.DisposeAsync(); }
         }
         else await this.Database.WriteTagsToDatabase(tagsToSave.Select(x => x.tag).ToList());
         tagsToSave.ForEach(pair => pair.vm.CommitEdit(pair.tag));

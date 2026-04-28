@@ -93,4 +93,10 @@ public partial class TagDatabase
     ///     Gets a value indicating whether the database has been initialised or not.
     /// </summary>
     private bool Initialised { get; set; }
+
+    public async Task<SqliteTransaction> BeginTransactionAsync()
+    {
+        this.CheckInitialisation();
+        return (SqliteTransaction)await this.currentConnection.BeginTransactionAsync();
+    }
 }

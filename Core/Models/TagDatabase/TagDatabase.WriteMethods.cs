@@ -1,6 +1,5 @@
 using System.Globalization;
 using Microsoft.Data.Sqlite;
-using TagHierarchyManager.Utilities;
 
 namespace TagHierarchyManager.Models;
 
@@ -15,11 +14,11 @@ public partial class TagDatabase
     public async Task WriteTagsToDatabase(List<Tag> tags, SqliteTransaction? transaction = null)
     {
         this.CheckInitialisation();
-        bool success = false;
         bool isTransactionOwner = transaction == null;
         transaction ??= (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
 
         List<Tag> oldTags = [];
+        List<(Tag tag, int id)> originalIds = [];
         List<Tag> updatedTags = [];
         List<Tag> newlyAddedTags = [];
 
@@ -40,6 +39,7 @@ public partial class TagDatabase
                     Notes = tag.Notes,
                     IsTopLevel = tag.IsTopLevel,
                 });
+                originalIds.Add((tag, tag.Id));
                 
                 SqliteCommand addCommand = this.currentConnection.CreateCommand();
                 addCommand.Transaction = transaction;
@@ -85,7 +85,12 @@ public partial class TagDatabase
                 int index = this.Tags.FindIndex(t => t.Id == tag.Id);
                 
                 if (index != -1) this.Tags[index] = tag;
+                
             }
+            
+            foreach (var (tag, id) in originalIds)
+                tag.Id = id;
+            
             throw;
         }
         finally
