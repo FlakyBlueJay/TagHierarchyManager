@@ -13,18 +13,14 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 {
+    private readonly Dictionary<int, HashSet<int>> _childNodeMap = new();
     private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
 
-
-    private readonly Dictionary<int, HashSet<int>> _childNodeMap = new();
+    private readonly Dictionary<int, HashSet<TagItemViewModel>> _viewModelMap = new();
     [ObservableProperty] private TagItemViewModel? _contextMenuTag;
 
     [ObservableProperty] private TagItemViewModel? _selectedTag;
-
-    public ObservableCollection<TagItemViewModel> TopLevelTagNodes { get; } = [];
-
-    private readonly Dictionary<int, HashSet<TagItemViewModel>> _viewModelMap = new();
 
     public HierarchyTreeViewModel(MainWindowViewModel mainWindow)
     {
@@ -36,6 +32,8 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     public ICommand NewTagCommand => this._mainWindow.StartNewTagCommand;
 
     public ICommand ShowBulkAddDialogCommand => this._mainWindow.ShowBulkAddDialogCommand;
+
+    public ObservableCollection<TagItemViewModel> TopLevelTagNodes { get; } = [];
     private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
 
     public void Dispose()
@@ -93,7 +91,9 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
         try
         {
-            foreach (var childNode in from child in childTags where !ancestors.Contains(child.Id) select new TagItemViewModel(child, this._getParentNamesById))
+            foreach (var childNode in from child in childTags
+                     where !ancestors.Contains(child.Id)
+                     select new TagItemViewModel(child, this._getParentNamesById))
             {
                 if (!this._childNodeMap.ContainsKey(childNode.Id))
                     this._childNodeMap.Add(childNode.Tag.Id, []);
@@ -115,7 +115,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         if (!this._viewModelMap.TryGetValue(parentId, out var parentViewModels)) return;
         var childLookup = this.TagDatabaseService.GetChildLookup();
-        
+
         foreach (var parent in parentViewModels.Where(parent => parent.CurrentChildren.All(c => c.Id != tag.Id)))
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -195,6 +195,32 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         this.TopLevelTagNodes.Remove(topLevelNode);
     }
 
+    private async Task HandleTagsWrittenEventAsync(object? sender, TagDatabaseService.TagWriteResult result)
+    {
+        try
+        {
+            if (sender is not TagDatabaseService { IsDatabaseOpen: true }) return;
+
+            foreach (var updatedTag in result.Updated)
+                await Dispatcher.UIThread.InvokeAsync(async () => await this.HandleTagUpdateAsync(updatedTag));
+
+            if (result.Added.Count > 0)
+                await Dispatcher.UIThread.InvokeAsync(async () => await this.ProcessTagAdditionsAsync(result.Added));
+
+            foreach (var deletedTag in result.Deleted)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() => this.WipeTagNodes(deletedTag.id));
+                if (this.SelectedTag?.Id == deletedTag.id)
+                    this.SelectedTag = null;
+            }
+        }
+        catch (Exception e)
+        {
+            var error = new ErrorDialogViewModel(e.Message);
+            error.ShowDialog();
+        }
+    }
+
     private async Task HandleTagUpdateAsync(Tag updatedTag)
     {
         if (!this._viewModelMap.TryGetValue(updatedTag.Id, out var tagViewModels)) return;
@@ -272,28 +298,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
     private async void TagDatabaseService_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
     {
-        try
-        {
-            if (sender is not TagDatabaseService { IsDatabaseOpen: true }) return;
-
-            foreach (var updatedTag in result.Updated)
-                await Dispatcher.UIThread.InvokeAsync(async () => await this.HandleTagUpdateAsync(updatedTag));
-
-            if (result.Added.Count > 0)
-                await Dispatcher.UIThread.InvokeAsync(async () => await this.ProcessTagAdditionsAsync(result.Added));
-
-            foreach (var deletedTag in result.Deleted)
-            {
-                await Dispatcher.UIThread.InvokeAsync(() => this.WipeTagNodes(deletedTag.id));
-                if (this.SelectedTag?.Id == deletedTag.id)
-                    this.SelectedTag = null;
-            }
-        }
-        catch (Exception e)
-        {
-            var error = new ErrorDialogViewModel(e.Message);
-            error.ShowDialog();
-        }
+        _ = this.HandleTagsWrittenEventAsync(sender, result);
     }
 
     private void WipeTagNodes(int idToDelete)

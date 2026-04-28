@@ -11,7 +11,7 @@
           IsEnabled="{Binding SelectedTag, Converter={x:Static ObjectConverters.IsNotNull}}">
         <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName, FallbackValue=''}"
                  Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch"
-                 Margin="0 0 0 5 " />
+                 Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
         <TextBox Grid.Row="1" Name="ParentsTextBox"
                  Text="{Binding SelectedTag.EditingParents, FallbackValue=''}"
                  Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch"

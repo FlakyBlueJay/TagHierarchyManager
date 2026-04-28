@@ -20,7 +20,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     internal readonly Func<List<int>, List<string>> GetParentNamesById;
     [ObservableProperty] private HierarchyTreeViewModel? _hierarchyTreeViewModel;
-    
+
     [ObservableProperty] private bool _isDbEnabled;
     private bool _isSwitching;
 
@@ -62,19 +62,25 @@ public partial class MainWindowViewModel : ViewModelBase
         set
         {
             if (this._selectedTag == value || this.TagEditorViewModel is null || this._isSwitching) return;
-            if (value == null) this._selectedTag = value;
-            if (this._selectedTag != null && this.TagEditorViewModel.UnsavedChanges)
+            if (value is null)
+            {
+                this._selectedTag = null;
+                this.OnPropertyChanged();
+                this.TagEditorViewModel.SelectedTag = null;
+                return;
+            }
+
+            if (this._selectedTag is not null && this.TagEditorViewModel.UnsavedChanges)
             {
                 _ = this.HandleTagSwitchAsync(this._selectedTag, value);
+                return;
             }
-            else
-            {
-                if (this._selectedTag == value) return;
-                value.RefreshParentsString();
-                this._selectedTag = value;
-                this.OnPropertyChanged();
-                this.TagEditorViewModel?.SelectedTag = value;
-            }
+
+            if (this._selectedTag == value) return;
+            value.RefreshParentsString();
+            this._selectedTag = value;
+            this.OnPropertyChanged();
+            this.TagEditorViewModel?.SelectedTag = value;
         }
     }
 
@@ -367,7 +373,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void TagDatabaseService_OnInitalisationComplete(object? sender, EventArgs e)
     {
         if (sender is not TagDatabaseService _) return;
-        Dispatcher.UIThread.Post(async void () =>
+        _ = Dispatcher.UIThread.InvokeAsync(async () =>
         {
             try
             {
@@ -415,6 +421,4 @@ public partial class MainWindowViewModel : ViewModelBase
         if (tagEditor is null) return;
         tagEditor.PropertyChanged -= this.TagEditorOnPropertyChanged;
     }
-    
-    
 }

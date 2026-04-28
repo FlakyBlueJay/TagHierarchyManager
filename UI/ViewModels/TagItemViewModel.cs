@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
-using TagHierarchyManager.UI.Assets;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
@@ -24,10 +21,8 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
 
     [ObservableProperty] private string _editingTagBindings = string.Empty;
 
-    
-    private bool _isInitialising;
 
-    public event EventHandler? UserEditedTag;
+    private bool _isInitialising;
 
     public string Aliases =>
         this.Tag.Aliases.Count > 0
@@ -36,37 +31,32 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
 
     public bool CanBeDeleted => !this.HasChildren;
 
-    public bool HasChildren => this.CurrentChildren.Count > 0;
-
-    public int Id => this.Tag.Id;
-
     public string CurrentName => this.Tag.Name;
 
     public string CurrentNotes => this.Tag.Notes;
-
-    public bool OnDatabase => this.Id != 0;
 
     public string CurrentTagBindings =>
         this.Tag.TagBindings.Count > 0
             ? string.Join("; ", this.Tag.TagBindings)
             : string.Empty;
 
+    public bool HasChildren => this.CurrentChildren.Count > 0;
+
+    public int Id => this.Tag.Id;
+
+    public bool OnDatabase => this.Id != 0;
+
     public ObservableCollection<TagItemViewModel> CurrentChildren { get; set; } = [];
+
+    internal string CurrentParentsString => this.Tag.Parents is { Count: > 0 }
+        ? string.Join("; ", this.Tag.Parents)
+        : string.Empty;
 
     internal Tag Tag { get; set; } = tag;
 
     private bool IsTopLevel => this.Tag.IsTopLevel;
 
-    internal string CurrentParentsString => this.Tag.Parents is { Count: > 0 }
-        ? string.Join("; ", this.Tag.Parents)
-        : string.Empty;
-    
-    public void UpdateTag(Tag tag)
-    {
-        this.Tag = tag;
-    }
 
-    
     public void BeginEdit()
     {
         this._isInitialising = true;
@@ -121,11 +111,8 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
         this.OnPropertyChanged(nameof(this.HasChildren));
     }
 
-    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+    public void UpdateTag(Tag tag)
     {
-        base.OnPropertyChanged(e);
-
-        if (!this._isInitialising && e.PropertyName!.StartsWith("Editing"))
-            this.UserEditedTag?.Invoke(this, EventArgs.Empty);
+        this.Tag = tag;
     }
 }
