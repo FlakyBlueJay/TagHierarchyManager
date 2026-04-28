@@ -186,7 +186,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
         foreach (var tag in tagViewModels)
         {
-            tag.Tag = updatedTag;
+            tag.UpdateTag(updatedTag);
             tag.RefreshSelf();
             tag.RefreshParentsString();
         }
@@ -267,7 +267,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
             
             foreach (var deletedTag in result.Deleted)
             {
-                await Dispatcher.UIThread.InvokeAsync(() => this.WipeTagNodesAsync(deletedTag.id));
+                await Dispatcher.UIThread.InvokeAsync(() => this.WipeTagNodes(deletedTag.id));
                 if (this.SelectedTag?.Id == deletedTag.id)
                     this.SelectedTag = null;
             }
@@ -280,7 +280,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private void WipeTagNodesAsync(int idToDelete)
+    private void WipeTagNodes(int idToDelete)
     {
         if (this.ChildNodeMap.TryGetValue(idToDelete, out var parentList))
         {

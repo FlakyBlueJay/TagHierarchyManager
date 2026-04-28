@@ -61,6 +61,10 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
         ? string.Join("; ", this.Tag.Parents)
         : string.Empty;
     
+    public void UpdateTag(Tag tag)
+    {
+        this.Tag = tag;
+    }
 
     
     public void BeginEdit()
@@ -117,33 +121,11 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
         this.OnPropertyChanged(nameof(this.HasChildren));
     }
 
-    public void SyncId()
-    {
-        this.OnPropertyChanged(nameof(this.Id));
-        this.OnPropertyChanged(nameof(this.OnDatabase));
-    }
-
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
 
         if (!this._isInitialising && e.PropertyName!.StartsWith("Editing"))
             this.UserEditedTag?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void Validate()
-    {
-        var parentNames = this.EditingParents.Split(';',
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .ToList();
-
-        if (string.IsNullOrWhiteSpace(this.EditingName))
-            throw new ArgumentException(Resources.ErrorBlankTagName);
-
-        if (!this.EditingIsTopLevel && parentNames.Count == 0)
-            throw new InvalidOperationException(Resources.ErrorOrphanTagAttempt);
-
-        if (parentNames.Contains(this.EditingName))
-            throw new InvalidOperationException(Resources.ErrorSelfParentAttempt);
     }
 }

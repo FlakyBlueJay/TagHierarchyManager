@@ -27,8 +27,7 @@ public partial class BulkAddViewModel : ViewModelBase
     {
         this._mainWindow = mainWindow;
 
-        this.WindowTitle = string.Format("{0} - " + Resources.ButtonBulkAdd,
-            this.TagDatabaseService.DatabaseName);
+        this.WindowTitle = $"{this.TagDatabaseService.DatabaseName} - {Resources.ButtonBulkAdd}";
 
         this._tags =
         [
