@@ -94,6 +94,27 @@ public class TagDatabaseService : ObservableObject
             : [];
     }
 
+    public Dictionary<int, List<Tag>> GetChildLookup()
+    {
+        if (this.Database is null) return new();
+        var lookup = new Dictionary<int, List<Tag>>();
+        foreach (var tag in this.Database.Tags)
+        {
+            foreach (var parentId in tag.ParentIds)
+            {
+                if (!lookup.TryGetValue(parentId, out var children))
+                {
+                    children = [];
+                    lookup[parentId] = children;
+                }
+                children.Add(tag);
+            }
+        }
+        foreach (var children in lookup.Values)
+            children.Sort((a, b) => a.Name.CompareTo(b.Name, StringComparison.CurrentCultureIgnoreCase));
+        return lookup;
+    }
+
     public List<Tag> GetAllTags(bool topLevelOnly = false)
     {
         if (this.Database is null) return [];
