@@ -16,6 +16,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
 
+
     [ObservableProperty] private Dictionary<int, HashSet<int>> _childNodeMap = new();
     [ObservableProperty] private TagItemViewModel? _contextMenuTag;
 
@@ -35,18 +36,16 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     public ICommand NewTagCommand => this._mainWindow.StartNewTagCommand;
 
     public ICommand ShowBulkAddDialogCommand => this._mainWindow.ShowBulkAddDialogCommand;
+    private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
 
     public void Dispose()
     {
-        if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
-
-        this._mainWindow.TagDatabaseService.TagsWritten -= this.TagDatabaseService_OnTagsWritten;
-        GC.SuppressFinalize(this);
+        this.TagDatabaseService.TagsWritten -= this.TagDatabaseService_OnTagsWritten;
     }
 
     public async Task InitializeAsync()
     {
-        if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
+        if (!this.TagDatabaseService.IsDatabaseOpen) return;
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -56,7 +55,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         });
 
 
-        var topLevelTags = await Task.Run(() => this._mainWindow.TagDatabaseService.GetAllTags(true));
+        var topLevelTags = await Task.Run(() => this.TagDatabaseService.GetAllTags(true));
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -87,7 +86,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         }
 
         var childTags =
-            this._mainWindow.TagDatabaseService.GetAllTagChildren(tag.Id);
+            this.TagDatabaseService.GetAllTagChildren(tag.Id);
 
         foreach (var childNode in childTags.Select(child =>
                      new TagItemViewModel(child, this._getParentNamesById)))
@@ -107,10 +106,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         if (!this.ViewModelMap.TryGetValue(parentId, out var parentViewModels)) return;
 
-        foreach (var parent in parentViewModels)
-        {
-            if (parent.CurrentChildren.Any(c => c.Id == tag.Id)) continue;
-
+        foreach (var parent in parentViewModels.Where(parent => parent.CurrentChildren.All(c => c.Id != tag.Id)))
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var tagNode = new TagItemViewModel(tag, this._getParentNamesById);
@@ -123,7 +119,6 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
                 parent.CurrentChildren.Insert(index, tagNode);
                 this.AddTagNodeToViewModelMap(tagNode);
             });
-        }
 
         if (!this.ChildNodeMap.TryGetValue(tag.Id, out var set))
             this.ChildNodeMap.Add(tag.Id, [parentId]);
@@ -157,6 +152,17 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         this.AddTagNodeToViewModelMap(newTopLevelTag);
     }
 
+    private int CompareTagNodes(TagItemViewModel a, TagItemViewModel b)
+    {
+        var nameCompare = string.Compare(a.CurrentName, b.CurrentName, StringComparison.CurrentCultureIgnoreCase);
+        if (nameCompare != 0) return nameCompare;
+
+        var bindingA = a.Tag.TagBindings.FirstOrDefault() ?? string.Empty;
+        var bindingB = b.Tag.TagBindings.FirstOrDefault() ?? string.Empty;
+
+        return string.Compare(bindingA, bindingB, StringComparison.CurrentCultureIgnoreCase);
+    }
+
     private void DeleteChildNode(int parentId, int idToDelete)
     {
         if (!this.ViewModelMap.TryGetValue(parentId, out var parentViewModels)) return;
@@ -167,7 +173,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
                 parentTag.CurrentChildren.FirstOrDefault(t => t.Id == idToDelete)!;
             parentTag.CurrentChildren.Remove(foundChild);
         }
-        
+
         if (!this.ChildNodeMap.TryGetValue(idToDelete, out var parentSet)) return;
         parentSet.Remove(parentId);
     }
@@ -220,7 +226,8 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     }
 
     // public ICommand NewTagCommand => this._mainWindow.NewTagCommand;
-    partial void OnSelectedTagChanged(TagItemViewModel? oldValue, TagItemViewModel? newValue)
+    // ReSharper disable once PartialMethodParameterNameMismatch
+    partial void OnSelectedTagChanged(TagItemViewModel? _, TagItemViewModel? newValue)
     {
         if (newValue is null || this._mainWindow.SelectedTagId == newValue.Id) return;
         this._mainWindow.SelectedTag = newValue;
@@ -249,8 +256,8 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
     private void SubscribeToEvents()
     {
-        if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
-        this._mainWindow.TagDatabaseService.TagsWritten += this.TagDatabaseService_OnTagsWritten;
+        if (!this.TagDatabaseService.IsDatabaseOpen) return;
+        this.TagDatabaseService.TagsWritten += this.TagDatabaseService_OnTagsWritten;
     }
 
     private async void TagDatabaseService_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
@@ -258,20 +265,19 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         try
         {
             if (sender is not TagDatabaseService { IsDatabaseOpen: true }) return;
-            
+
             foreach (var updatedTag in result.Updated)
-                    await Dispatcher.UIThread.InvokeAsync(async () => await this.HandleTagUpdateAsync(updatedTag));
+                await Dispatcher.UIThread.InvokeAsync(async () => await this.HandleTagUpdateAsync(updatedTag));
 
             if (result.Added.Count > 0)
                 await Dispatcher.UIThread.InvokeAsync(async () => await this.ProcessTagAdditionsAsync(result.Added));
-            
+
             foreach (var deletedTag in result.Deleted)
             {
                 await Dispatcher.UIThread.InvokeAsync(() => this.WipeTagNodes(deletedTag.id));
                 if (this.SelectedTag?.Id == deletedTag.id)
                     this.SelectedTag = null;
             }
-                
         }
         catch (Exception e)
         {
@@ -290,16 +296,5 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         }
 
         this.DeleteTopLevelNode(idToDelete);
-    }
-    
-    private int CompareTagNodes(TagItemViewModel a, TagItemViewModel b)
-    {
-        var nameCompare = string.Compare(a.CurrentName, b.CurrentName, StringComparison.CurrentCultureIgnoreCase);
-        if (nameCompare != 0) return nameCompare;
-        
-        var bindingA = a.Tag.TagBindings.FirstOrDefault() ?? string.Empty;
-        var bindingB = b.Tag.TagBindings.FirstOrDefault() ?? string.Empty;
-        
-        return string.Compare(bindingA, bindingB, StringComparison.CurrentCultureIgnoreCase);
     }
 }

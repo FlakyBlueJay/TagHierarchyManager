@@ -10,42 +10,39 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class TagEditorViewModel : ViewModelBase, IDisposable
 {
-    private readonly MainWindowViewModel? _mainWindow;
+    private readonly MainWindowViewModel _mainWindow;
     [ObservableProperty] private TagItemViewModel? _selectedTag;
 
     [ObservableProperty] private int _selectedTagId;
     [ObservableProperty] private bool _unsavedChanges;
 
-    public bool CanDeleteSelectedTag => this._mainWindow?.SelectedTag is not null
-                                        && this._mainWindow.SelectedTag.Id > 0
-                                        && this.TagDatabaseService?
-                                            .GetAllTagChildren(this._mainWindow.SelectedTag.Id).Count == 0;
-
-    private TagDatabaseService? TagDatabaseService => this._mainWindow?.TagDatabaseService;
-
     public TagEditorViewModel(MainWindowViewModel mainWindow)
     {
         this._mainWindow = mainWindow;
-        this.TagDatabaseService?.TagsWritten += this.TagDatabaseService_OnTagsWritten;
+        this.TagDatabaseService.TagsWritten += this.TagDatabaseService_OnTagsWritten;
     }
-    
+
+    public bool CanDeleteSelectedTag => this._mainWindow.SelectedTag is not null
+                                        && this._mainWindow.SelectedTag.Id > 0
+                                        && this.TagDatabaseService
+                                            .GetAllTagChildren(this._mainWindow.SelectedTag.Id).Count == 0;
+
+    private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
+
     public void Dispose()
     {
-        if (this._mainWindow is null || this.TagDatabaseService is null) return;
-        if (!this.TagDatabaseService.IsDatabaseOpen) return;
         this.TagDatabaseService.TagsWritten -= this.TagDatabaseService_OnTagsWritten;
-        GC.SuppressFinalize(this);
     }
 
     [RelayCommand(AllowConcurrentExecutions = false)]
     internal async Task NewTag()
     {
-        if (this._mainWindow is null || this.TagDatabaseService is null) return;
         var userWantsToSave = await this._mainWindow.ShowUnsavedChangesDialog();
         if (userWantsToSave is null) return;
 
         this._mainWindow.SelectedTag = new TagItemViewModel(
-            new Tag {
+            new Tag
+            {
                 Name = string.Empty,
                 IsTopLevel = true,
                 TagBindings = this.TagDatabaseService.DefaultTagBindings
@@ -60,7 +57,6 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            if (this._mainWindow is null || this.TagDatabaseService is null) return;
             if (this._mainWindow.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen ||
                 !this._mainWindow.IsDbEnabled) return;
             await this.TagDatabaseService.WriteTagsToDatabase([this._mainWindow.SelectedTag]);
@@ -71,14 +67,13 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            this._mainWindow?.ShowErrorDialog(ex.Message);
+            this._mainWindow.ShowErrorDialog(ex.Message);
         }
     }
 
     [RelayCommand]
     private async Task CancelTagEditAsync()
     {
-        if (this._mainWindow is null) return;
         if (this.UnsavedChanges)
         {
             var userWantsToOverwrite = await this._mainWindow.ShowNullableBoolDialog(new UnsavedCancelDialog());
@@ -107,7 +102,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
 
     partial void OnSelectedTagIdChanged(int value)
     {
-        if (value is 0 || this._mainWindow is null || this.TagDatabaseService is null) return;
+        if (value is 0) return;
         var tag = this.TagDatabaseService.GetTagById(value);
         this._mainWindow.SelectedTag =
             tag is null
@@ -115,17 +110,17 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
                 : new TagItemViewModel(tag, this.TagDatabaseService.GetParentNamesByIds);
     }
 
-    private void TagDatabaseService_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult tags)
-    {
-       foreach (var deletedTag in tags.Deleted)
-           if (this._mainWindow?.SelectedTag?.Id == deletedTag.id)
-               this._mainWindow.SelectedTag = null;
-    }
-
     [RelayCommand]
     private async Task StartTagDeletionAsync()
     {
-        if (this._mainWindow?.SelectedTag is null || !this.CanDeleteSelectedTag || this._mainWindow is null) return;
+        if (this._mainWindow.SelectedTag is null || !this.CanDeleteSelectedTag) return;
         await this._mainWindow.StartTagDeletionAsync(this._mainWindow.SelectedTag.Id);
+    }
+
+    private void TagDatabaseService_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult tags)
+    {
+        foreach (var deletedTag in tags.Deleted)
+            if (this._mainWindow.SelectedTag?.Id == deletedTag.id)
+                this._mainWindow.SelectedTag = null;
     }
 }
