@@ -10,15 +10,15 @@ namespace TagHierarchyManager.Models;
 public partial class TagDatabase
 {
     private const string AliasesColumnName = "also_known_as";
+    private const string DateCreatedColumnName = "date_created";
+    private const string DateModifiedColumnName = "date_modified";
     private const string IdColumnName = "id";
+    private const int LatestVersion = 3;
     private const string NameColumnName = "name";
     private const string NotesColumnName = "notes";
     private const string ParentIdsColumnName = "parent_ids";
     private const string TagBindingsColumnName = "tags_to_bind";
     private const string TopLevelColumnName = "top_level";
-    private const string DateCreatedColumnName = "date_created";
-    private const string DateModifiedColumnName = "date_modified";
-    private const int LatestVersion = 3;
     private SqliteConnection? currentConnection;
 
     private List<string> defaultBindings = ["genre"];
@@ -78,7 +78,7 @@ public partial class TagDatabase
     ///     Gets version of the database. Cannot be set outside of initialisation.
     /// </summary>
     public int Version { get; private set; }
-    
+
     /// <summary>
     ///     Gets the SQLite connection associated with the <see cref="TagDatabase" />.
     /// </summary>
@@ -94,9 +94,10 @@ public partial class TagDatabase
     /// </summary>
     private bool Initialised { get; set; }
 
-    public async Task<SqliteTransaction> BeginTransactionAsync()
+    public async Task<ExternalTransaction> BeginExternalTransactionAsync()
     {
         this.CheckInitialisation();
-        return (SqliteTransaction)await this.currentConnection.BeginTransactionAsync();
+        var transaction = (SqliteTransaction)await this.currentConnection.BeginTransactionAsync();
+        return new ExternalTransaction(this, transaction);
     }
 }

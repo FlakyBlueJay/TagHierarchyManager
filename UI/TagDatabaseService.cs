@@ -94,27 +94,6 @@ public class TagDatabaseService : ObservableObject
             : [];
     }
 
-    public Dictionary<int, List<Tag>> GetChildLookup()
-    {
-        if (this.Database is null) return new();
-        var lookup = new Dictionary<int, List<Tag>>();
-        foreach (var tag in this.Database.Tags)
-        {
-            foreach (var parentId in tag.ParentIds)
-            {
-                if (!lookup.TryGetValue(parentId, out var children))
-                {
-                    children = [];
-                    lookup[parentId] = children;
-                }
-                children.Add(tag);
-            }
-        }
-        foreach (var children in lookup.Values)
-            children.Sort((a, b) => a.Name.CompareTo(b.Name, StringComparison.CurrentCultureIgnoreCase));
-        return lookup;
-    }
-
     public List<Tag> GetAllTags(bool topLevelOnly = false)
     {
         if (this.Database is null) return [];
@@ -122,6 +101,27 @@ public class TagDatabaseService : ObservableObject
         return topLevelOnly
             ? this.Database.Tags.Where(t => t.IsTopLevel).OrderBy(t => t.Name).ToList()
             : this.Database.Tags.OrderBy(t => t.Name).ToList();
+    }
+
+    public Dictionary<int, List<Tag>> GetChildLookup()
+    {
+        if (this.Database is null) return new Dictionary<int, List<Tag>>();
+        var lookup = new Dictionary<int, List<Tag>>();
+        foreach (var tag in this.Database.Tags)
+        foreach (var parentId in tag.ParentIds)
+        {
+            if (!lookup.TryGetValue(parentId, out var children))
+            {
+                children = [];
+                lookup[parentId] = children;
+            }
+
+            children.Add(tag);
+        }
+
+        foreach (var children in lookup.Values)
+            children.Sort((a, b) => a.Name.CompareTo(b.Name, StringComparison.CurrentCultureIgnoreCase));
+        return lookup;
     }
 
     public List<string> GetParentNamesByIds(List<int> ids)
@@ -179,38 +179,6 @@ public class TagDatabaseService : ObservableObject
         this.NotifyDatabasePropertiesChanged();
     }
 
-    private List<Tag> SortTagsTopologically(List<Tag> tags)
-    {
-        var sorted = new List<Tag>();
-        var checkedNames = new HashSet<Tag>();
-        var checking = new HashSet<Tag>();
-
-        void CheckParents(Tag tag)
-        {
-            if (checking.Contains(tag))
-                throw new InvalidOperationException($"Circular parent depedency detected involving {tag.Name}");
-            
-            if (!checkedNames.Add(tag)) return;
-
-            checking.Add(tag);
-            
-            foreach (var parentName in tag.Parents)
-            {
-                var parents = tags.Where(t => t.Name == parentName).ToList();
-                if (parents.Count == 1)
-                    CheckParents(parents[0]);
-            }
-
-            checking.Remove(tag);
-            sorted.Add(tag);
-        }
-        
-        foreach (var tag in tags)
-            CheckParents(tag);
-
-        return sorted;
-    }
-
     public async Task WriteTagsToDatabase(List<TagItemViewModel> tags)
     {
         if (this.Database is null) return;
@@ -229,40 +197,40 @@ public class TagDatabaseService : ObservableObject
                     .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
                 Notes = vm.EditingNotes,
                 Parents = vm.EditingParents
-                    .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList()
             };
-            
+
             if (tags.Count == 1)
             {
                 var success = await this.GetSavingTagParents(tag);
                 if (!success) return;
                 tag.Validate();
             }
-            
+
             tagsToSave.Add((vm, tag));
         }
-        
+
         if (tags.Count > 1)
         {
             var sortedPairs = this.SortTagsTopologically(tagsToSave.Select(x => x.tag).ToList())
                 .Select(t => tagsToSave.First(x => x.tag == t))
                 .ToList();
-            
-            var transaction = await this.Database.BeginTransactionAsync();
+
+            var transaction = await this.Database.BeginExternalTransactionAsync();
 
             try
             {
-                foreach (var (vm, tag) in sortedPairs)
+                foreach (var (_, tag) in sortedPairs)
                 {
                     var success = await this.GetSavingTagParents(tag, tagsToSave.Select(x => x.tag).ToList());
                     if (!success)
                     {
-                        transaction.Rollback();
+                        transaction.RollbackAsync();
                         return;
                     }
-                    
+
                     tag.Validate();
-                    await this.Database.WriteTagsToDatabase([tag], transaction: transaction);
+                    await this.Database.WriteTagToDatabase(tag, transaction);
                 }
 
                 await transaction.CommitAsync();
@@ -272,10 +240,27 @@ public class TagDatabaseService : ObservableObject
                 await transaction.RollbackAsync();
                 throw;
             }
-            finally { await transaction.DisposeAsync(); }
+            finally
+            {
+                await transaction.DisposeAsync();
+            }
         }
-        else await this.Database.WriteTagsToDatabase(tagsToSave.Select(x => x.tag).ToList());
+        else
+        {
+            await this.Database.WriteTagToDatabase(tagsToSave[0].tag);
+        }
+
         tagsToSave.ForEach(pair => pair.vm.CommitEdit(pair.tag));
+    }
+
+    private static IExporter PickExporterFromFileExt(string path)
+    {
+        var fileExt = Path.GetExtension(path);
+
+        // ReSharper disable once ConvertIfStatementToReturnStatement
+        if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension) return new MusicBeeTagHierarchyExporter();
+
+        throw new NotSupportedException($"File extension '{fileExt}' is not supported.");
     }
 
     private async Task<bool> GetSavingTagParents(Tag tag, List<Tag>? batch = null)
@@ -299,28 +284,20 @@ public class TagDatabaseService : ObservableObject
                     var ambiguousVm = new SaveAmbiguousViewModel(this, tag, parentTags);
 
                     var dialog = new SaveAmbiguousDialog();
-                    var dialogOwner = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                    var dialogOwner =
+                        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                         ?.Windows
                         .FirstOrDefault(w => w.IsActive);
                     dialog.DataContext = ambiguousVm;
                     var result = await dialog.ShowDialog<TagItemViewModel?>(dialogOwner!);
-                
+
                     if (result == null) return false;
                     tag.ParentIds.Add(result.Id);
                     break;
             }
         }
+
         return true;
-    }
-
-    private static IExporter PickExporterFromFileExt(string path)
-    {
-        var fileExt = Path.GetExtension(path);
-
-        // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (fileExt == FileTypes.MusicBeeTagHierarchyTemplate.FileExtension) return new MusicBeeTagHierarchyExporter();
-
-        throw new NotSupportedException($"File extension '{fileExt}' is not supported.");
     }
 
     private void NotifyDatabasePropertiesChanged()
@@ -347,6 +324,38 @@ public class TagDatabaseService : ObservableObject
             return new MusicBeeTagHierarchyImporter();
 
         throw new NotSupportedException(string.Format(Resources.ErrorImportFileTypeNotSupported, fileExt));
+    }
+
+    private List<Tag> SortTagsTopologically(List<Tag> tags)
+    {
+        var sorted = new List<Tag>();
+        var checkedNames = new HashSet<Tag>();
+        var checking = new HashSet<Tag>();
+
+        void CheckParents(Tag tag)
+        {
+            if (checking.Contains(tag))
+                throw new InvalidOperationException($"Circular parent depedency detected involving {tag.Name}");
+
+            if (!checkedNames.Add(tag)) return;
+
+            checking.Add(tag);
+
+            foreach (var parentName in tag.Parents)
+            {
+                var parents = tags.Where(t => t.Name == parentName).ToList();
+                if (parents.Count == 1)
+                    CheckParents(parents[0]);
+            }
+
+            checking.Remove(tag);
+            sorted.Add(tag);
+        }
+
+        foreach (var tag in tags)
+            CheckParents(tag);
+
+        return sorted;
     }
 
     private void SubscribeToEvents()

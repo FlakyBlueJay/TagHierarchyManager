@@ -63,7 +63,7 @@ public abstract class TestBase
 
         List<Tag> sampleTags = TestSampleTags.AllTags();
         this.Database.ClearTags();
-        await this.Database.WriteTagsToDatabase(sampleTags);
+        await this.Database.WriteTagToDatabase(sampleTags);
     }
 
     // do not use in Test1_Init. That needs to be tested at a lower level.

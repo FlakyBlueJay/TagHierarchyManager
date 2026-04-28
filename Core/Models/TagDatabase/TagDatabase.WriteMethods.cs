@@ -6,106 +6,127 @@ namespace TagHierarchyManager.Models;
 public partial class TagDatabase
 {
     /// <summary>
-    ///     Saves all tag objects to the database.
+    ///     Saves a Tag object to the database.
     /// </summary>
-    /// <param name="tags">The List of Tag objects.</param>
+    /// <param name="tag">The List of Tag objects.</param>
     /// <param name="transaction">The SqliteTransaction to execute queries on, will make its own if null.</param>
     /// <exception cref="ArgumentException">Thrown if the tag already existed in the database.</exception>
-    public async Task WriteTagsToDatabase(List<Tag> tags, SqliteTransaction? transaction = null)
+    public async Task WriteTagToDatabase(Tag tag, SqliteTransaction? transaction = null)
     {
         this.CheckInitialisation();
-        bool isTransactionOwner = transaction == null;
+        var isTransactionOwner = transaction == null;
         transaction ??= (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
 
-        List<Tag> oldTags = [];
-        List<(Tag tag, int id)> originalIds = [];
-        List<Tag> updatedTags = [];
-        List<Tag> newlyAddedTags = [];
+        var oldTag = new Tag
+        {
+            Id = tag.Id,
+            Name = tag.Name,
+            ParentIds = tag.ParentIds,
+            TagBindings = tag.TagBindings,
+            Aliases = tag.Aliases,
+            Notes = tag.Notes,
+            IsTopLevel = tag.IsTopLevel
+        };
+        var originalId = 0;
 
-        List<(int index, Tag tag)> pendingUpdates = [];
-        List<Tag> pendingAdditions = [];
-        
         try
         {
-            foreach (var tag in tags)
-            {
-                if (tag.Id != 0) oldTags.Add(new Tag
-                {
-                    Id = tag.Id,
-                    Name = tag.Name,
-                    ParentIds = tag.ParentIds,
-                    TagBindings = tag.TagBindings,
-                    Aliases = tag.Aliases,
-                    Notes = tag.Notes,
-                    IsTopLevel = tag.IsTopLevel,
-                });
-                originalIds.Add((tag, tag.Id));
-                
-                SqliteCommand addCommand = this.currentConnection.CreateCommand();
-                addCommand.Transaction = transaction;
-                QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
-                
-                tag.Id = Convert.ToInt32(await addCommand.ExecuteScalarAsync().ConfigureAwait(false),
-                    CultureInfo.InvariantCulture);
-                
-                await SaveTagParentIds(transaction, tag);
-                
-                int index = this.Tags.FindIndex(t => t.Id == tag.Id);
-                if (index != -1)
-                {
-                    pendingUpdates.Add((index, tag));
-                    updatedTags.Add(tag);
-                }
-                else
-                {
-                    pendingAdditions.Add(tag);
-                    newlyAddedTags.Add(tag);
-                }
-                
-                tag.CreatedAt ??= DateTime.Now;
-                tag.UpdatedAt = DateTime.Now;
-                
-                
-            }
-            
-            if (isTransactionOwner) await transaction.CommitAsync();
-            
-            foreach (var (index, tag) in pendingUpdates)
-                this.Tags[index] = tag;
-            foreach (var tag in pendingAdditions)
-                this.Tags.Add(tag);
+            originalId = tag.Id;
 
-            TagsWritten?.Invoke(this, new DatabaseEditResult(newlyAddedTags, updatedTags, []));
+            var addCommand = this.currentConnection.CreateCommand();
+            addCommand.Transaction = transaction;
+            QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
+
+            tag.Id = Convert.ToInt32(await addCommand.ExecuteScalarAsync().ConfigureAwait(false),
+                CultureInfo.InvariantCulture);
+            await this.SaveTagParentIds(transaction, tag);
+
+            var index = this.Tags.FindIndex(t => t.Id == tag.Id);
+
+            tag.CreatedAt ??= DateTime.Now;
+            tag.UpdatedAt = DateTime.Now;
+
+            if (isTransactionOwner) await transaction.CommitAsync();
+            if (originalId != 0)
+            {
+                this.Tags[index] = tag;
+                this.TagsWritten?.Invoke(this, new DatabaseEditResult([], [tag], []));
+            }
+            else
+            {
+                this.Tags.Add(tag);
+                this.TagsWritten?.Invoke(this, new DatabaseEditResult([tag], [], []));
+            }
         }
         catch (Exception)
         {
             await transaction.RollbackAsync().ConfigureAwait(false);
-            foreach (var tag in oldTags)
+            if (oldTag.Id != 0)
             {
-                int index = this.Tags.FindIndex(t => t.Id == tag.Id);
-                
-                if (index != -1) this.Tags[index] = tag;
-                
+                var index = this.Tags.FindIndex(t => t.Id == tag.Id);
+                this.Tags[index] = oldTag;
             }
-            
-            foreach (var (tag, id) in originalIds)
-                tag.Id = id;
-            
+
             throw;
         }
         finally
         {
-            if (isTransactionOwner) await transaction.DisposeAsync().ConfigureAwait(false);
+            await transaction.DisposeAsync().ConfigureAwait(false);
         }
     }
+
+    public async Task WriteTagToDatabase(Tag tag, ExternalTransaction transaction)
+    {
+        this.CheckInitialisation();
+
+        var oldTag = new Tag
+        {
+            Id = tag.Id,
+            Name = tag.Name,
+            ParentIds = tag.ParentIds,
+            TagBindings = tag.TagBindings,
+            Aliases = tag.Aliases,
+            Notes = tag.Notes,
+            IsTopLevel = tag.IsTopLevel
+        };
+
+        try
+        {
+            var addCommand = this.currentConnection.CreateCommand();
+            addCommand.Transaction = transaction.Transaction;
+            QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
+
+            tag.Id = Convert.ToInt32(await addCommand.ExecuteScalarAsync().ConfigureAwait(false),
+                CultureInfo.InvariantCulture);
+            await this.SaveTagParentIds(transaction.Transaction, tag);
+
+            tag.CreatedAt ??= DateTime.Now;
+            tag.UpdatedAt = DateTime.Now;
+
+            if (oldTag.Id != 0)
+                transaction.AccumulateUpdates(tag);
+            else transaction.AccumulateAdditions(tag);
+        }
+        catch (Exception)
+        {
+            if (oldTag.Id != 0)
+            {
+                var index = this.Tags.FindIndex(t => t.Id == tag.Id);
+                this.Tags[index] = oldTag;
+            }
+
+            throw;
+        }
+    }
+
 
     private async Task SaveTagParentIds(SqliteTransaction transaction, Tag tag)
     {
         if (tag.ParentIds.Count == 0) return;
         this.CheckInitialisation();
-        
+
         // clear existing tag parents so we have a clean slate.
-        SqliteCommand deleteCommand = this.currentConnection.CreateCommand();
+        var deleteCommand = this.currentConnection.CreateCommand();
         deleteCommand.Transaction = transaction;
         deleteCommand.CommandText = """
                                         DELETE FROM tag_parent_link
@@ -115,7 +136,7 @@ public partial class TagDatabase
         await deleteCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
 
         // process + add parent links
-        SqliteCommand parentCommand = this.currentConnection.CreateCommand();
+        var parentCommand = this.currentConnection.CreateCommand();
         parentCommand.Transaction = transaction;
         parentCommand.CommandText = """
                                         INSERT INTO tag_parent_link (target_tag_id, parent_tag_id)
@@ -126,13 +147,13 @@ public partial class TagDatabase
         parentCommand.Parameters.Add("@parent_tag_id", SqliteType.Integer);
         await parentCommand.PrepareAsync();
 
-        foreach (int parentId in tag.ParentIds)
+        foreach (var parentId in tag.ParentIds)
         {
             parentCommand.Parameters["@parent_tag_id"].Value = (long)parentId;
             await parentCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
     }
-    
+
     private async Task SaveTagParents(SqliteTransaction transaction, int id, IReadOnlyCollection<string> parents,
         Tag? tag = null)
     {
@@ -142,17 +163,17 @@ public partial class TagDatabase
         List<int> parentIds = [];
 
         // process parents, grabbing the names first in case the user wants to change the parents.
-        foreach (string parentName in parents)
+        foreach (var parentName in parents)
         {
-            Tag? retrievedTag = this.Tags.SingleOrDefault(t => t.Name == parentName)
-                                ?? await this.SelectTagFromDatabase(parentName).ConfigureAwait(false);
+            var retrievedTag = this.Tags.SingleOrDefault(t => t.Name == parentName)
+                               ?? await this.SelectTagFromDatabase(parentName).ConfigureAwait(false);
             if (retrievedTag is null) throw new ArgumentException(ErrorMessages.TagNotFound);
 
             parentIds.Add(retrievedTag.Id);
         }
 
         // clear existing tag parents so we have a clean slate.
-        SqliteCommand deleteCommand = this.currentConnection.CreateCommand();
+        var deleteCommand = this.currentConnection.CreateCommand();
         deleteCommand.Transaction = transaction;
         deleteCommand.CommandText = """
                                         DELETE FROM tag_parent_link
@@ -162,7 +183,7 @@ public partial class TagDatabase
         await deleteCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
 
         // process + add parent links
-        SqliteCommand parentCommand = this.currentConnection.CreateCommand();
+        var parentCommand = this.currentConnection.CreateCommand();
         parentCommand.Transaction = transaction;
         parentCommand.CommandText = """
                                         INSERT INTO tag_parent_link (target_tag_id, parent_tag_id)
@@ -173,7 +194,7 @@ public partial class TagDatabase
         parentCommand.Parameters.Add("@parent_tag_id", SqliteType.Integer);
         await parentCommand.PrepareAsync();
 
-        foreach (int parentId in parentIds)
+        foreach (var parentId in parentIds)
         {
             parentCommand.Parameters["@parent_tag_id"].Value = (long)parentId;
             await parentCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
