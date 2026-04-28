@@ -63,7 +63,25 @@ public abstract class TestBase
 
         List<Tag> sampleTags = TestSampleTags.AllTags();
         this.Database.ClearTags();
-        await this.Database.WriteTagToDatabase(sampleTags);
+        
+        // phase 1: add with no parents.
+        foreach (var tag in sampleTags)
+        {
+            await this.Database.WriteTagToDatabase(tag);
+        }
+        
+        // phase 2: add the parents
+        foreach (var tag in sampleTags)
+        {
+            foreach (string parent in tag.Parents)
+            {
+                var parentTag = await this.Database.SelectTagFromDatabase(parent);
+                tag.ParentIds.Add(parentTag.Id);
+            }
+            await this.Database.WriteTagToDatabase(tag);
+        }
+            
+            
     }
 
     // do not use in Test1_Init. That needs to be tested at a lower level.

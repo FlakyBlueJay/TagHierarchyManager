@@ -50,7 +50,7 @@ public class ExporterTests : TestBase
 
         // Act
         string exportedTagHierarchy = new MusicBeeTagHierarchyExporter().ExportDatabase(this.Database);
-        exportedTagHierarchy = exportedTagHierarchy.TrimEnd();
+        exportedTagHierarchy = exportedTagHierarchy.ReplaceLineEndings("\n").TrimEnd();
 
         // Assert
         Assert.That(exportedTagHierarchy, Is.EqualTo(expectedExport));

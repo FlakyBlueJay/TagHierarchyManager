@@ -62,7 +62,7 @@ public class ImporterTests : TestBase
         await db.CreateAsync(":memory:", tagsToImport: testData);
 
         string exportedTagHierarchy = new MusicBeeTagHierarchyExporter().ExportDatabase(db);
-        exportedTagHierarchy = exportedTagHierarchy.TrimEnd();
+        exportedTagHierarchy = exportedTagHierarchy.ReplaceLineEndings("\n").TrimEnd();
 
         // Assert
         Assert.That(exportedTagHierarchy, Is.EqualTo(expectedExport.TrimEnd()));
