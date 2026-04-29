@@ -11,14 +11,16 @@ namespace TagHierarchyManager.UI.ViewModels;
 public partial class TagEditorViewModel : ViewModelBase, IDisposable
 {
     private readonly MainWindowViewModel _mainWindow;
+    private readonly DialogService _dialogService;
     [ObservableProperty] private TagItemViewModel? _selectedTag;
 
     [ObservableProperty] private int _selectedTagId;
     [ObservableProperty] private bool _unsavedChanges;
 
-    public TagEditorViewModel(MainWindowViewModel mainWindow)
+    public TagEditorViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
         this._mainWindow = mainWindow;
+        this._dialogService = dialogService;
         this.TagDatabaseService.TagsWritten += this.TagDatabaseService_OnTagsWritten;
     }
 
@@ -37,7 +39,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
     [RelayCommand(AllowConcurrentExecutions = false)]
     internal async Task NewTag()
     {
-        var userWantsToSave = await this._mainWindow.ShowUnsavedChangesDialog();
+        var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedCancelDialog());
         if (userWantsToSave is null) return;
 
         this._mainWindow.SelectedTag = new TagItemViewModel(
@@ -59,6 +61,11 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
         {
             if (this._mainWindow.SelectedTag is null || !this.TagDatabaseService.IsDatabaseOpen ||
                 !this._mainWindow.IsDbEnabled) return;
+            var validatedUnique = this.TagDatabaseService.ValidateUnique(this._mainWindow.SelectedTag);
+            if (!validatedUnique)
+            {
+                // warn user
+            }
             await this.TagDatabaseService.WriteTagsToDatabase([this._mainWindow.SelectedTag]);
             this._mainWindow.SelectedTag.RefreshParentsString();
             this._mainWindow.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful,
@@ -67,7 +74,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            this._mainWindow.ShowErrorDialog(ex.Message);
+            await this._dialogService.ShowErrorDialog(ex.Message);
         }
     }
 

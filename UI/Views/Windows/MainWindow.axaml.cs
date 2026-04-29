@@ -8,10 +8,14 @@ namespace TagHierarchyManager.UI.Views;
 public partial class MainWindow : Window
 {
     private bool _userWantsToQuit;
+    private readonly DialogService _dialogService;
 
-    public MainWindow()
+    public MainWindow() : this(new DialogService()) { }
+    
+    public MainWindow(DialogService dialogService)
     {
         this.InitializeComponent();
+        this._dialogService = dialogService;
     }
 
 
@@ -32,37 +36,15 @@ public partial class MainWindow : Window
         try
         {
             if (this._userWantsToQuit) return;
-
-            if (this.ViewModel is not null && this.ViewModel.UnsavedChanges)
-            {
-                e.Cancel = true;
-                var result = await this.ViewModel.ShowUnsavedChangesDialog();
-                switch (result)
-                {
-                    case true:
-                        if (this.ViewModel?.StartTagSaveCommand.CanExecute(null) != true) return;
-                        await this.ViewModel.StartTagSaveCommand.ExecuteAsync(null);
-                        this._userWantsToQuit = true;
-                        this.Close();
-                        break;
-                    case false:
-                        this._userWantsToQuit = true;
-                        this.Close();
-                        break;
-                    case null:
-                        break;
-                }
-            }
-            else
-            {
-                this._userWantsToQuit = true;
-                this.Close();
-            }
+            e.Cancel = true;
+            if (this.ViewModel is not null && !await this.ViewModel.ConfirmQuitAsync()) return;
+        
+            this._userWantsToQuit = true;
+            this.Close();
         }
         catch (Exception ex)
         {
-            var error = new ErrorDialogViewModel(ex.Message);
-            error.ShowDialog();
+            await this._dialogService.ShowErrorDialog(ex.Message);
         }
     }
 }

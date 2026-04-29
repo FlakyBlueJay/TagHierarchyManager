@@ -183,7 +183,6 @@ public class TagDatabaseService : ObservableObject
     {
         if (this.Database is null) return;
         var tagsToSave = new List<(TagItemViewModel vm, Tag tag)>();
-        var bulkParents = new Dictionary<Tag, Tag>();
         foreach (var vm in tags)
         {
             var tag = new Tag
@@ -204,7 +203,6 @@ public class TagDatabaseService : ObservableObject
             {
                 var success = await this.GetSavingTagParents(tag);
                 if (!success) return;
-                tag.Validate();
             }
 
             tagsToSave.Add((vm, tag));
@@ -225,7 +223,7 @@ public class TagDatabaseService : ObservableObject
                     var success = await this.GetSavingTagParents(tag, tagsToSave.Select(x => x.tag).ToList());
                     if (!success)
                     {
-                        transaction.RollbackAsync();
+                        await transaction.RollbackAsync();
                         return;
                     }
 
@@ -383,6 +381,13 @@ public class TagDatabaseService : ObservableObject
     {
         if (this.Database is null) return;
         this.Database.TagsWritten -= this.TagDatabase_OnTagsWritten;
+    }
+
+    public bool ValidateUnique(TagItemViewModel tag)
+    {
+        if (this.Database is null) return false;
+        return tag.EditingName == tag.CurrentName
+               || this.Database.Tags.All(t => t.Name != tag.EditingName);
     }
 
     public sealed record TagWriteResult(

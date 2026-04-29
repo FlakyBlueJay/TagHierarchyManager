@@ -113,7 +113,7 @@ public class TagObjectTests : TestBase
         };
 
         // Act/Assert
-        Assert.Throws<InvalidOperationException>(() => invalidTag.Validate());
+        Assert.Throws<TagValidationException>(() => invalidTag.Validate());
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public class TagObjectTests : TestBase
         };
 
         // Assert
-        Assert.Throws<InvalidOperationException>(() => topLevelTag.Validate());
+        Assert.Throws<TagValidationException>(() => topLevelTag.Validate());
     }
 
     /// <summary>
@@ -151,6 +151,6 @@ public class TagObjectTests : TestBase
         };
 
         // Act/Assert
-        Assert.Throws<InvalidOperationException>(() => topLevelTag.Validate());
+        Assert.Throws<TagValidationException>(() => topLevelTag.Validate());
     }
 }

@@ -13,6 +13,7 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
 {
     private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
+    private readonly DialogService _dialogService;
     [ObservableProperty] private bool _searchAliases;
     [ObservableProperty] private TagDatabaseSearchMode _searchMode = TagDatabaseSearchMode.Fuzzy;
 
@@ -23,9 +24,10 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty] private TagItemViewModel? _selectedSearchResult;
 
-    public SearchViewModel(MainWindowViewModel mainWindow)
+    public SearchViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
         this._mainWindow = mainWindow;
+        this._dialogService = dialogService;
         this._getParentNamesById = this._mainWindow.GetParentNamesById;
         mainWindow.TagDatabaseService.TagsWritten += this.TagDatabase_OnTagsWritten;
         this._selectedSearchMode = this.SearchModes.First();
@@ -79,7 +81,7 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            this._mainWindow.ShowErrorDialog(ex.Message);
+            this._dialogService.ShowErrorDialog(ex.Message);
         }
     }
 

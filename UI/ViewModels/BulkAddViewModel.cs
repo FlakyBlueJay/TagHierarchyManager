@@ -14,6 +14,7 @@ namespace TagHierarchyManager.UI.ViewModels;
 public partial class BulkAddViewModel : ViewModelBase
 {
     private readonly MainWindowViewModel _mainWindow;
+    private readonly DialogService _dialogService;
 
     [ObservableProperty] private ObservableCollection<BulkAddTagRow> _selectedRows = [];
 
@@ -23,9 +24,10 @@ public partial class BulkAddViewModel : ViewModelBase
     
     private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
 
-    public BulkAddViewModel(MainWindowViewModel mainWindow)
+    public BulkAddViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
         this._mainWindow = mainWindow;
+        this._dialogService = dialogService;
 
         this.WindowTitle = $"{this.TagDatabaseService.DatabaseName} - {Resources.ButtonBulkAdd}";
 
@@ -127,12 +129,7 @@ public partial class BulkAddViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                var error = new ErrorDialogViewModel(
-                    string.Format(Resources.BulkAddExceptionTemplate, ex.Message, currentTagRow + 1));
-                error.ShowDialog();
-            });
+            await this._dialogService.ShowErrorDialog(ex.Message);
         }
     }
 

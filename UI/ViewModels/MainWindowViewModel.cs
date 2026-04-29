@@ -36,9 +36,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _unsavedChanges;
 
-    public MainWindowViewModel(TagDatabaseService tagDatabaseService)
+    private readonly DialogService _dialogService;
+
+    public MainWindowViewModel(TagDatabaseService tagDatabaseService, DialogService dialogService)
     {
         this.TagDatabaseService = tagDatabaseService;
+        this._dialogService = dialogService;
         this.TagDatabaseService.InitialisationComplete += this.TagDatabaseService_OnInitalisationComplete;
         this.TagDatabaseService.TagsWritten += this.TagDatabaseService_TagsWritten;
         this.TagDatabaseService.PropertyChanged += (_, args) =>
@@ -82,20 +85,6 @@ public partial class MainWindowViewModel : ViewModelBase
             this.OnPropertyChanged();
             this.TagEditorViewModel?.SelectedTag = value;
         }
-    }
-
-
-    public async Task<bool?> ShowUnsavedChangesDialog()
-    {
-        if (!this.UnsavedChanges) return true;
-        var result = await this.ShowNullableBoolDialog(new UnsavedChangesDialog());
-        return result;
-    }
-
-    internal void ShowErrorDialog(string message)
-    {
-        var error = new ErrorDialogViewModel(message);
-        error.ShowDialog();
     }
 
     internal async Task<bool?> ShowNullableBoolDialog(Window dialog)
@@ -153,7 +142,7 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             this.TagEditorViewModel?.SelectedTag = oldSelectedTag;
-            this.ShowErrorDialog(ex.Message);
+            await this._dialogService.ShowErrorDialog(ex.Message);
         }
     }
 
@@ -207,8 +196,11 @@ public partial class MainWindowViewModel : ViewModelBase
             if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
                 desktop.MainWindow is null) return;
 
-            var userWantsToSave = await this.ShowUnsavedChangesDialog();
-            if (userWantsToSave is null) return;
+            if (this.UnsavedChanges)
+            {
+                var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
+                if (userWantsToSave is null) return;
+            }
 
             var storageProvider = desktop.MainWindow?.StorageProvider;
             if (storageProvider is null) return;
@@ -225,8 +217,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            var error = new ErrorDialogViewModel(ex.Message);
-            error.ShowDialog();
+            await this._dialogService.ShowErrorDialog(ex.Message);
         }
     }
 
@@ -238,8 +229,12 @@ public partial class MainWindowViewModel : ViewModelBase
             if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
                 desktop.MainWindow is null) return;
 
-            var userWantsToSave = await this.ShowUnsavedChangesDialog();
-            if (userWantsToSave is null) return;
+            if (this.UnsavedChanges)
+            {
+                var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
+                if (userWantsToSave is null) return;
+            }
+            
 
             var storageProvider = desktop.MainWindow?.StorageProvider;
             if (storageProvider is null) return;
@@ -258,8 +253,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            var error = new ErrorDialogViewModel(ex.Message);
-            error.ShowDialog();
+            await this._dialogService.ShowErrorDialog(ex.Message);
         }
     }
 
@@ -271,7 +265,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var dialog = new BulkAddWindow
         {
-            DataContext = new BulkAddViewModel(this)
+            DataContext = new BulkAddViewModel(this, this._dialogService)
         };
 
         dialog.ShowDialog(desktop.MainWindow!);
@@ -299,7 +293,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var dialog = new ImportDialog
         {
-            DataContext = new ImportDialogViewModel(this)
+            DataContext = new ImportDialogViewModel(this, this._dialogService)
         };
 
         dialog.ShowDialog(desktop.MainWindow!);
@@ -326,7 +320,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
             desktop.MainWindow is null) return;
 
-        var userWantsToSave = await this.ShowUnsavedChangesDialog();
+        var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedCancelDialog());
         if (userWantsToSave is null) return;
 
         var storageProvider = desktop.MainWindow?.StorageProvider;
@@ -352,8 +346,7 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             this.IsDbEnabled = true;
-            var error = new ErrorDialogViewModel(ex.Message);
-            error.ShowDialog();
+            await this._dialogService.ShowErrorDialog(ex.Message);
         }
     }
 
@@ -381,9 +374,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 (this.SearchViewModel as IDisposable)?.Dispose();
                 (this.TagEditorViewModel as IDisposable)?.Dispose();
 
-                this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this);
-                this.SearchViewModel = new SearchViewModel(this);
-                this.TagEditorViewModel = new TagEditorViewModel(this);
+                this.HierarchyTreeViewModel = new HierarchyTreeViewModel(this, this._dialogService);
+                this.SearchViewModel = new SearchViewModel(this, this._dialogService);
+                this.TagEditorViewModel = new TagEditorViewModel(this, this._dialogService);
 
                 this.HookTagEditor(this.TagEditorViewModel);
 
@@ -399,7 +392,7 @@ public partial class MainWindowViewModel : ViewModelBase
             catch (Exception ex)
             {
                 this.CloseDatabase();
-                this.ShowErrorDialog(ex.Message);
+                await this._dialogService.ShowErrorDialog(ex.Message);
             }
         });
     }
@@ -420,5 +413,22 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (tagEditor is null) return;
         tagEditor.PropertyChanged -= this.TagEditorOnPropertyChanged;
+    }
+
+    public async Task<bool> ConfirmQuitAsync()
+    {
+        if (!this.UnsavedChanges) return true;
+        var result = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
+        switch (result)
+        {
+            case true:
+                if (this.StartTagSaveCommand.CanExecute(null)) 
+                    await StartTagSaveCommand.ExecuteAsync(null);
+                return true;
+            case false:
+                return true;
+            default:
+                return false;
+        }
     }
 }

@@ -6,10 +6,11 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.UI.Assets;
+using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : ViewModelBase
+public partial class ImportDialogViewModel(MainWindowViewModel mainWindow, DialogService dialogService) : ViewModelBase
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(VisibleDatabaseFilePath))]
@@ -34,14 +35,17 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : Vie
     public string VisibleTemplateFilePath =>
         !string.IsNullOrWhiteSpace(this.TemplateFilePath) ? this.TemplateFilePath : Resources.ImportNoFilePicked;
 
-    private MainWindowViewModel MainWindow { get; } = mainWindow;
+    private MainWindowViewModel MainWindow => mainWindow;
+    private DialogService DialogService => dialogService;
 
     [RelayCommand]
     private async Task InitiateImport()
     {
-        var userWantsToSave = await this.MainWindow.ShowUnsavedChangesDialog();
-        if (userWantsToSave is null) return;
-
+        if (this.MainWindow.UnsavedChanges)
+        {
+            var userWantsToSave = await this.DialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
+            if (userWantsToSave is null) return;
+        }
         try
         {
             if (string.IsNullOrEmpty(this.DatabaseFilePath) || string.IsNullOrEmpty(this.TemplateFilePath)) return;
@@ -53,8 +57,7 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : Vie
         catch (Exception ex)
         {
             this.ImportStatus = Resources.ImportStatusFailed;
-            var error = new ErrorDialogViewModel(ex.Message);
-            error.ShowDialog();
+            await this.DialogService.ShowErrorDialog(ex.Message);
         }
     }
 
@@ -82,8 +85,7 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : Vie
         catch (Exception ex)
         {
             this.TemplateFilePath = string.Empty;
-            var error = new ErrorDialogViewModel(ex.Message);
-            error.ShowDialog();
+            await this.DialogService.ShowErrorDialog(ex.Message);
         }
     }
 
@@ -113,8 +115,7 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow) : Vie
         catch (Exception ex)
         {
             this.TemplateFilePath = string.Empty;
-            var error = new ErrorDialogViewModel(ex.Message);
-            error.ShowDialog();
+            await this.DialogService.ShowErrorDialog(ex.Message);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace TagHierarchyManager.UI;
 public class App : Application
 {
     private TagDatabaseService? TagDatabaseService { get; set; }
+    private DialogService? DialogService { get; set; }
 
     public override void Initialize()
     {
@@ -26,10 +27,11 @@ public class App : Application
             this.DisableAvaloniaDataAnnotationValidation();
 
             this.TagDatabaseService = new TagDatabaseService();
+            this.DialogService = new DialogService();
 
-            desktop.MainWindow = new MainWindow
+            desktop.MainWindow = new MainWindow(this.DialogService)
             {
-                DataContext = new MainWindowViewModel(this.TagDatabaseService)
+                DataContext = new MainWindowViewModel(this.TagDatabaseService, this.DialogService)
             };
         }
 

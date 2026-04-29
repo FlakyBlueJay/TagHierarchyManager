@@ -16,15 +16,17 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     private readonly Dictionary<int, HashSet<int>> _childNodeMap = new();
     private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
+    private readonly DialogService _dialogService;
 
     private readonly Dictionary<int, HashSet<TagItemViewModel>> _viewModelMap = new();
     [ObservableProperty] private TagItemViewModel? _contextMenuTag;
 
     [ObservableProperty] private TagItemViewModel? _selectedTag;
 
-    public HierarchyTreeViewModel(MainWindowViewModel mainWindow)
+    public HierarchyTreeViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
         this._mainWindow = mainWindow;
+        this._dialogService = dialogService;
         this._getParentNamesById = mainWindow.TagDatabaseService.GetParentNamesByIds;
         this.SubscribeToEvents();
     }
@@ -216,8 +218,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         }
         catch (Exception e)
         {
-            var error = new ErrorDialogViewModel(e.Message);
-            error.ShowDialog();
+            await this._dialogService.ShowErrorDialog(e.Message);
         }
     }
 
@@ -296,7 +297,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         this.TagDatabaseService.TagsWritten += this.TagDatabaseService_OnTagsWritten;
     }
 
-    private async void TagDatabaseService_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
+    private void TagDatabaseService_OnTagsWritten(object? sender, TagDatabaseService.TagWriteResult result)
     {
         _ = this.HandleTagsWrittenEventAsync(sender, result);
     }

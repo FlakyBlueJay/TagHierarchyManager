@@ -65,6 +65,11 @@
           <DependentUpon>UnsavedChangesDialog.axaml</DependentUpon>
           <SubType>Code</SubType>
         </Compile>
+
+        <Compile Update="Views\Dialogs\UniqueWarnDialog.axaml.cs">
+          <DependentUpon>UniqueWarnDialog.axaml</DependentUpon>
+          <SubType>Code</SubType>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>

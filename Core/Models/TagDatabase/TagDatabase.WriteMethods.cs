@@ -14,6 +14,7 @@ public partial class TagDatabase
     public async Task WriteTagToDatabase(Tag tag, SqliteTransaction? transaction = null)
     {
         this.CheckInitialisation();
+        tag.Validate();
         var isTransactionOwner = transaction == null;
         transaction ??= (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
 
@@ -27,12 +28,9 @@ public partial class TagDatabase
             Notes = tag.Notes,
             IsTopLevel = tag.IsTopLevel
         };
-        var originalId = 0;
 
         try
         {
-            originalId = tag.Id;
-
             var addCommand = this.currentConnection.CreateCommand();
             addCommand.Transaction = transaction;
             QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
@@ -47,7 +45,7 @@ public partial class TagDatabase
             tag.UpdatedAt = DateTime.Now;
 
             if (isTransactionOwner) await transaction.CommitAsync();
-            if (originalId != 0)
+            if (oldTag.Id != 0)
             {
                 this.Tags[index] = tag;
                 this.TagsWritten?.Invoke(this, new DatabaseEditResult([], [tag], []));
@@ -61,12 +59,10 @@ public partial class TagDatabase
         catch (Exception)
         {
             await transaction.RollbackAsync().ConfigureAwait(false);
-            if (oldTag.Id != 0)
-            {
-                var index = this.Tags.FindIndex(t => t.Id == tag.Id);
-                this.Tags[index] = oldTag;
-            }
-
+            if (oldTag.Id == 0) throw;
+            
+            var index = this.Tags.FindIndex(t => t.Id == tag.Id);
+            this.Tags[index] = oldTag;
             throw;
         }
         finally
@@ -78,6 +74,7 @@ public partial class TagDatabase
     public async Task WriteTagToDatabase(Tag tag, ExternalTransaction transaction)
     {
         this.CheckInitialisation();
+        tag.Validate();
 
         var oldTag = new Tag
         {
@@ -109,12 +106,10 @@ public partial class TagDatabase
         }
         catch (Exception)
         {
-            if (oldTag.Id != 0)
-            {
-                var index = this.Tags.FindIndex(t => t.Id == tag.Id);
-                this.Tags[index] = oldTag;
-            }
-
+            if (oldTag.Id == 0) throw;
+            
+            var index = this.Tags.FindIndex(t => t.Id == tag.Id);
+            this.Tags[index] = oldTag;
             throw;
         }
     }
@@ -154,6 +149,7 @@ public partial class TagDatabase
         }
     }
 
+    // deprecated - get parent IDs before saving and use SaveTagParentIds instead.
     private async Task SaveTagParents(SqliteTransaction transaction, int id, IReadOnlyCollection<string> parents,
         Tag? tag = null)
     {
