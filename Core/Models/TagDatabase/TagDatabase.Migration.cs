@@ -53,11 +53,8 @@ public partial class TagDatabase
                 disableForeignKeysCommand.ExecuteNonQuery();
 
                 // recreate tag table with non-unique constraints.
-                var nonUniqueTransaction =
-                    (SqliteTransaction)
-                    await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
                 var nonUniqueCommand = this.currentConnection.CreateCommand();
-                nonUniqueCommand.Transaction = nonUniqueTransaction;
+                nonUniqueCommand.Transaction = transaction;
                 nonUniqueCommand.CommandText =
                     $"""
                      CREATE TABLE "tag_new" (
@@ -79,7 +76,6 @@ public partial class TagDatabase
                      PRAGMA foreign_keys=ON;
                      """;
                 nonUniqueCommand.ExecuteNonQuery();
-                nonUniqueTransaction.Commit();
                 var reenableForeignKeysCommand = this.currentConnection.CreateCommand();
                 reenableForeignKeysCommand.CommandText = "PRAGMA foreign_keys=ON;";
                 reenableForeignKeysCommand.ExecuteNonQuery();

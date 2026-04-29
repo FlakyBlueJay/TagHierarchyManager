@@ -50,13 +50,6 @@ partial class TagDatabase
     /// </summary>
     /// <param name="name">The name of the tag to delete.</param>
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
-    public async Task DeleteTag(string name)
-    {
-        this.CheckInitialisation();
-        Tag? targetTag = await this.SelectTagFromDatabase(name);
-        this.PerformDeletionChecks(targetTag);
-        await this.ExecuteTagDeletion(targetTag!);
-    }
 
     private void DeleteFromCache(Tag targetTag)
     {
@@ -90,11 +83,19 @@ partial class TagDatabase
         try
         {
             int count = Convert.ToInt32(await command.ExecuteNonQueryAsync().ConfigureAwait(false));
-            if (count > 0) await transaction.CommitAsync().ConfigureAwait(false);
-            this.DeleteFromCache(targetTag);
-            TagsWritten?.Invoke(
-                this, new DatabaseEditResult([], [], [(targetTag.Id, targetTag.Name)])
+            if (count > 0)
+            {
+                await transaction.CommitAsync().ConfigureAwait(false);
+                this.DeleteFromCache(targetTag);
+                TagsWritten?.Invoke(
+                    this, new DatabaseEditResult([], [], [(targetTag.Id, targetTag.Name)])
                 );
+            }
+            else
+            {
+                transaction.RollbackAsync().ConfigureAwait(false);
+                throw new InvalidOperationException(ErrorMessages.TagNotFound);
+            }
         }
         catch (SqliteException)
         {

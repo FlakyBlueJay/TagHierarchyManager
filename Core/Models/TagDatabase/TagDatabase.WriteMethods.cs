@@ -59,7 +59,11 @@ public partial class TagDatabase
         catch (Exception)
         {
             await transaction.RollbackAsync().ConfigureAwait(false);
-            if (oldTag.Id == 0) throw;
+            if (oldTag.Id == 0)
+            {
+                tag.Id = 0;
+                throw;
+            }
             
             var index = this.Tags.FindIndex(t => t.Id == tag.Id);
             this.Tags[index] = oldTag;
@@ -80,9 +84,9 @@ public partial class TagDatabase
         {
             Id = tag.Id,
             Name = tag.Name,
-            ParentIds = tag.ParentIds,
-            TagBindings = tag.TagBindings,
-            Aliases = tag.Aliases,
+            ParentIds = [..tag.ParentIds],
+            TagBindings = [..tag.TagBindings],
+            Aliases = [..tag.Aliases],
             Notes = tag.Notes,
             IsTopLevel = tag.IsTopLevel
         };
@@ -106,7 +110,11 @@ public partial class TagDatabase
         }
         catch (Exception)
         {
-            if (oldTag.Id == 0) throw;
+            if (oldTag.Id == 0)
+            {
+                tag.Id = 0;
+                throw;
+            }
             
             var index = this.Tags.FindIndex(t => t.Id == tag.Id);
             this.Tags[index] = oldTag;
@@ -161,11 +169,8 @@ public partial class TagDatabase
         // process parents, grabbing the names first in case the user wants to change the parents.
         foreach (var parentName in parents)
         {
-            var retrievedTag = this.Tags.SingleOrDefault(t => t.Name == parentName)
-                               ?? await this.SelectTagFromDatabase(parentName).ConfigureAwait(false);
-            if (retrievedTag is null) throw new ArgumentException(ErrorMessages.TagNotFound);
-
-            parentIds.Add(retrievedTag.Id);
+            
+            
         }
 
         // clear existing tag parents so we have a clean slate.

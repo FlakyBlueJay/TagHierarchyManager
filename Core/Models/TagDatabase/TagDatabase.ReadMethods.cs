@@ -86,49 +86,6 @@ public partial class TagDatabase
     }
 
     /// <summary>
-    ///     Selects one specific tag by its exact name.
-    /// </summary>
-    /// <param name="name">The name of the tag.</param>
-    /// <param name="transaction">An optional SQLite transaction to run the command in.</param>
-    /// <returns>A <see cref="Task" /> representing the asynchronous operation, returning a Tag object or null.</returns>
-    public async Task<Tag?> SelectTagFromDatabase(string name, SqliteTransaction? transaction = null)
-    {
-        this.CheckInitialisation();
-        SqliteCommand command = this.currentConnection.CreateCommand();
-        if (transaction is not null) command.Transaction = transaction;
-        command.CommandText = """
-                                SELECT
-                                    tag.id,
-                                    tag.name,
-                                    tag.top_level,
-                                    tag.notes,
-                                    tag.tags_to_bind,
-                                    tag.also_known_as,
-                                    tag.date_created,
-                                    tag.date_modified,
-                                    GROUP_CONCAT(tag_parent_link.parent_tag_id, ';') AS parent_ids
-                                FROM tag
-                                LEFT JOIN tag_parent_link ON tag.id = tag_parent_link.target_tag_id
-                                WHERE tag.name = @tag_name
-                                GROUP BY tag.id
-                              """;
-        command.Parameters.AddWithValue("@tag_name", name);
-        List<Tag> tags = await this.ExecuteTagRetrievalDatabaseQuery(command).ConfigureAwait(false);
-        Tag? selectedTag = tags.FirstOrDefault();
-        if (selectedTag is null) return null;
-
-        // Fetch parents within the same transaction if provided
-        SqliteCommand parentCommand = this.currentConnection.CreateCommand();
-        if (transaction is not null) parentCommand.Transaction = transaction;
-        QueryProcessorHandler.ProcessTagParentSelectionCommand(parentCommand, selectedTag.Id);
-        List<Tag> parents = await this.ExecuteTagRetrievalDatabaseQuery(parentCommand, false).ConfigureAwait(false);
-        selectedTag.ParentIds = parents.Select(p => p.Id).ToList();
-        selectedTag.Parents = parents.Select(p => p.Name).ToList();
-
-        return selectedTag;
-    }
-
-    /// <summary>
     ///     Selects one specific tag by its exact ID in the database.
     /// </summary>
     /// <param name="id">The ID of the tag as it exists on the database.</param>
