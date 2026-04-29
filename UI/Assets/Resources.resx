@@ -294,6 +294,6 @@
         <value>Are you sure you want to delete this tag?</value>
     </data>
     <data name="DialogBodyUniqueWarn" xml:space="preserve">
-        <value>A tag already exists with this name and tag binding/s. Are you sure you want to save this tag?</value>
+        <value>A tag already exists with this name. Are you sure you want to save this tag?</value>
     </data>
 </root>

@@ -39,8 +39,13 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
     [RelayCommand(AllowConcurrentExecutions = false)]
     internal async Task NewTag()
     {
-        var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedCancelDialog());
-        if (userWantsToSave is null) return;
+        if (!this.TagDatabaseService.IsDatabaseOpen || !this._mainWindow.IsDbEnabled) return;
+
+        if (this._mainWindow.SelectedTag is not null && this.UnsavedChanges)
+        {
+            var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
+            if (userWantsToSave is null) return;
+        }
 
         this._mainWindow.SelectedTag = new TagItemViewModel(
             new Tag
@@ -64,7 +69,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
             var validatedUnique = this.TagDatabaseService.ValidateUnique(this._mainWindow.SelectedTag);
             if (!validatedUnique)
             {
-                // warn user
+                if (!await this._dialogService.ShowDialog<bool>(new UniqueWarnDialog())) return;
             }
             await this.TagDatabaseService.WriteTagsToDatabase([this._mainWindow.SelectedTag]);
             this._mainWindow.SelectedTag.RefreshParentsString();
