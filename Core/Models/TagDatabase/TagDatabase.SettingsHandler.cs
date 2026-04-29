@@ -5,6 +5,13 @@ namespace TagHierarchyManager.Models;
 
 public partial class TagDatabase
 {
+    public async Task SetDefaultTagBindingsAsync(List<string> value)
+    {
+        this.DefaultTagBindings = value;
+        this.CheckInitialisation();
+        await this.Settings.UpdateSettingAsync(SettingsHandler.DefaultTagBindingKey, string.Join(';', value)).ConfigureAwait(false);
+    }
+    
     /// <summary>
     ///     A class for handling settings for a <see cref="TagDatabase" /> at a lower level.
     /// </summary>

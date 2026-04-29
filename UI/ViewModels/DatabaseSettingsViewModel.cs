@@ -40,9 +40,9 @@ public partial class DatabaseSettingsViewModel : ViewModelBase
     public event Action? RequestClose;
 
     [RelayCommand]
-    private void SaveSettings()
+    private async Task SaveSettingsAsync()
     {
-        this._mainWindow.TagDatabaseService.SetDefaultTagBindings(this.DefaultTagBindings);
+        await this._mainWindow.TagDatabaseService.SetDefaultTagBindingsAsync(this.DefaultTagBindings);
         this.RequestClose?.Invoke();
     }
 }

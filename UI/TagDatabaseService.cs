@@ -173,8 +173,12 @@ public class TagDatabaseService : ObservableObject
             : this.Database.Search(searchQuery, mode);
     }
 
-    public void SetDefaultTagBindings(string input)
+    public async Task SetDefaultTagBindingsAsync(string input)
     {
+        if (this.Database is null) return;
+        var valueList = input.Split(";",
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(); 
+        await this.Database.SetDefaultTagBindingsAsync(valueList);
         this.Database?.DefaultTagBindings = input.Split(";",
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         this.NotifyDatabasePropertiesChanged();
