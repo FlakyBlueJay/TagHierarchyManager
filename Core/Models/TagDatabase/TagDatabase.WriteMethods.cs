@@ -22,9 +22,9 @@ public partial class TagDatabase
         {
             Id = tag.Id,
             Name = tag.Name,
-            ParentIds = tag.ParentIds,
-            TagBindings = tag.TagBindings,
-            Aliases = tag.Aliases,
+            ParentIds = [..tag.ParentIds],
+            TagBindings = [..tag.TagBindings],
+            Aliases = [..tag.Aliases],
             Notes = tag.Notes,
             IsTopLevel = tag.IsTopLevel
         };
