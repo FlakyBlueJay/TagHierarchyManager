@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.UI.Assets;
@@ -12,6 +13,7 @@ public partial class DatabaseSettingsViewModel : ViewModelBase
     [ObservableProperty] private string _databaseVersion;
     [ObservableProperty] private string _defaultTagBindings;
     [ObservableProperty] private string _tagRowsCount;
+    [ObservableProperty] private int _tagRelationshipsCount;
 
     [ObservableProperty] private string _windowTitle;
 
@@ -22,10 +24,17 @@ public partial class DatabaseSettingsViewModel : ViewModelBase
         this.WindowTitle = mainWindow.TagDatabaseService.DatabaseName;
         this.DatabaseVersion = string.Format(Resources.DatabaseSettingsDbVersion,
             mainWindow.TagDatabaseService.DatabaseVersion);
-        var tagRelationshipCount = mainWindow.TagDatabaseService.TagRelationshipCount;
+        this.TagRelationshipsCount = 0;
+        this.TagRowsCount = string.Empty;
+        this.DefaultTagBindings = string.Join("; ", mainWindow.TagDatabaseService.DefaultTagBindings);
+        _ = this.InitialiseAsync(mainWindow);
+    }
+
+    private async Task InitialiseAsync(MainWindowViewModel mainWindow)
+    {
+        var tagRelationshipCount = await mainWindow.TagDatabaseService.GetTagRelationshipCountAsync();
         this.TagRowsCount = string.Format(Resources.DatabaseSettingsTagCount,
             mainWindow.TagDatabaseService.TagCount, tagRelationshipCount);
-        this.DefaultTagBindings = string.Join("; ", mainWindow.TagDatabaseService.DefaultTagBindings);
     }
 
     public event Action? RequestClose;

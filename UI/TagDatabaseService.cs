@@ -31,7 +31,8 @@ public class TagDatabaseService : ObservableObject
     public bool IsDatabaseOpen => this.Database != null;
 
     public int TagCount => this.Database?.Tags.Count ?? 0;
-    public int TagRelationshipCount => this.Database?.GetTagRelationshipCount() ?? 0;
+    public async Task<int> GetTagRelationshipCountAsync() =>
+        await (this.Database?.GetTagRelationshipCountAsync() ?? Task.FromResult(0));
 
     private TagDatabase? Database { get; set; }
 
@@ -305,7 +306,6 @@ public class TagDatabaseService : ObservableObject
             this.OnPropertyChanged(nameof(this.TagCount));
             this.OnPropertyChanged(nameof(this.DefaultTagBindings));
             this.OnPropertyChanged(nameof(this.DatabaseVersion));
-            this.OnPropertyChanged(nameof(this.TagRelationshipCount));
 
             this.OnPropertyChanged(nameof(this.IsDatabaseOpen));
             this.OnPropertyChanged(nameof(this.DatabaseName));

@@ -75,13 +75,13 @@ public partial class TagDatabase
         return tags;
     }
 
-    public int GetTagRelationshipCount()
+    public async Task<int> GetTagRelationshipCountAsync()
     {
         this.CheckInitialisation();
         SqliteCommand command = this.currentConnection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM tag_parent_link";
         
-        int count = Convert.ToInt32(command.ExecuteScalar());
+        int count = Convert.ToInt32(await command.ExecuteScalarAsync());
         return count;
     }
 

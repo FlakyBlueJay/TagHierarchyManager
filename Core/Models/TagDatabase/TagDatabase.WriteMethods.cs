@@ -67,7 +67,7 @@ public partial class TagDatabase
         }
         finally
         {
-            await transaction.DisposeAsync().ConfigureAwait(false);
+            if (isTransactionOwner) await transaction.DisposeAsync().ConfigureAwait(false);
         }
     }
 

@@ -19,7 +19,6 @@ public class MusicBeeTagHierarchyExporter : IExporter
         ArgumentNullException.ThrowIfNull(db);
 
         List<Tag> topLevelTags = db.Tags.Where(tag => tag.IsTopLevel).OrderBy(tag => tag.Name).ToList();
-        topLevelTags = topLevelTags.OrderBy(tag => tag.Name).ToList();
         StringBuilder currentString = new();
         foreach (Tag topLevelTag in topLevelTags)
             ProcessRecursively(currentString, db, topLevelTag, string.Empty);

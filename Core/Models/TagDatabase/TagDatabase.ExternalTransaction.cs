@@ -38,6 +38,10 @@ public partial class TagDatabase
 
         public async Task RollbackAsync()
         {
+            foreach (var tag in this._newlyAddedTags)
+            {
+                tag.Id = 0;
+            }
             await this.Transaction.RollbackAsync();
         }
 
