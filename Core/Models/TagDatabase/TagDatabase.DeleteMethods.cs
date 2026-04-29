@@ -82,20 +82,12 @@ partial class TagDatabase
         command.Parameters.AddWithValue("@tag_id", targetTag.Id);
         try
         {
-            int count = Convert.ToInt32(await command.ExecuteNonQueryAsync().ConfigureAwait(false));
-            if (count > 0)
-            {
-                await transaction.CommitAsync().ConfigureAwait(false);
-                this.DeleteFromCache(targetTag);
-                TagsWritten?.Invoke(
-                    this, new DatabaseEditResult([], [], [(targetTag.Id, targetTag.Name)])
-                );
-            }
-            else
-            {
-                transaction.RollbackAsync().ConfigureAwait(false);
-                throw new InvalidOperationException(ErrorMessages.TagNotFound);
-            }
+            await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+            await transaction.CommitAsync().ConfigureAwait(false);
+            this.DeleteFromCache(targetTag);
+            TagsWritten?.Invoke(
+                this, new DatabaseEditResult([], [], [(targetTag.Id, targetTag.Name)])
+            );
         }
         catch (SqliteException)
         {
