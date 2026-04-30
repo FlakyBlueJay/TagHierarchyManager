@@ -12,9 +12,9 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class SearchViewModel : ViewModelBase, IDisposable
 {
+    private readonly DialogService _dialogService;
     private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
-    private readonly DialogService _dialogService;
     [ObservableProperty] private bool _searchAliases;
     [ObservableProperty] private TagDatabaseSearchMode _searchMode = TagDatabaseSearchMode.Fuzzy;
 

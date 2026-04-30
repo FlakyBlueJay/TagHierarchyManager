@@ -20,6 +20,8 @@ namespace TagHierarchyManager.UI.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     internal readonly Func<List<int>, List<string>> GetParentNamesById;
+
+    private readonly DialogService _dialogService;
     [ObservableProperty] private HierarchyTreeViewModel? _hierarchyTreeViewModel;
 
     [ObservableProperty] private bool _isDbEnabled;
@@ -36,8 +38,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private TagEditorViewModel? _tagEditorViewModel;
 
     [ObservableProperty] private bool _unsavedChanges;
-
-    private readonly DialogService _dialogService;
 
     public MainWindowViewModel(TagDatabaseService tagDatabaseService, DialogService dialogService)
     {
@@ -85,6 +85,23 @@ public partial class MainWindowViewModel : ViewModelBase
             this._selectedTag = value;
             this.OnPropertyChanged();
             this.TagEditorViewModel?.SelectedTag = value;
+        }
+    }
+
+    public async Task<bool> ConfirmQuitAsync()
+    {
+        if (!this.UnsavedChanges) return true;
+        var result = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
+        switch (result)
+        {
+            case true:
+                if (this.StartTagSaveCommand.CanExecute(null))
+                    await this.StartTagSaveCommand.ExecuteAsync(null);
+                return true;
+            case false:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -235,7 +252,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
                 if (userWantsToSave is null) return;
             }
-            
+
 
             var storageProvider = desktop.MainWindow?.StorageProvider;
             if (storageProvider is null) return;
@@ -414,22 +431,5 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (tagEditor is null) return;
         tagEditor.PropertyChanged -= this.TagEditorOnPropertyChanged;
-    }
-
-    public async Task<bool> ConfirmQuitAsync()
-    {
-        if (!this.UnsavedChanges) return true;
-        var result = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
-        switch (result)
-        {
-            case true:
-                if (this.StartTagSaveCommand.CanExecute(null)) 
-                    await StartTagSaveCommand.ExecuteAsync(null);
-                return true;
-            case false:
-                return true;
-            default:
-                return false;
-        }
     }
 }

@@ -11,8 +11,8 @@ namespace TagHierarchyManager.UI;
 
 public class App : Application
 {
-    private TagDatabaseService? TagDatabaseService { get; set; }
     private DialogService? DialogService { get; set; }
+    private TagDatabaseService? TagDatabaseService { get; set; }
 
     public override void Initialize()
     {

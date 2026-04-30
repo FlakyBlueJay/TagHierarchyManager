@@ -1,18 +1,20 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using TagHierarchyManager.UI.ViewModels;
 using TagHierarchyManager.UI.Services;
+using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Views;
 
 public partial class MainWindow : Window
 {
-    private bool _userWantsToQuit;
     private readonly DialogService _dialogService;
+    private bool _userWantsToQuit;
 
-    public MainWindow() : this(new DialogService()) { }
-    
+    public MainWindow() : this(new DialogService())
+    {
+    }
+
     public MainWindow(DialogService dialogService)
     {
         this.InitializeComponent();
@@ -39,7 +41,7 @@ public partial class MainWindow : Window
             if (this._userWantsToQuit) return;
             e.Cancel = true;
             if (this.ViewModel is not null && !await this.ViewModel.ConfirmQuitAsync()) return;
-        
+
             this._userWantsToQuit = true;
             this.Close();
         }

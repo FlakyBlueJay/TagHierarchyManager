@@ -1,25 +1,26 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
-             xmlns:local="clr-namespace:TagHierarchyManager.UI.Views"
-             x:Class="TagHierarchyManager.UI.Views.SaveAmbiguousDialog"
-             x:DataType="vm:SaveAmbiguousViewModel"
-             Title="" Width="800" Height="450">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
+        xmlns:local="clr-namespace:TagHierarchyManager.UI.Views"
+        x:Class="TagHierarchyManager.UI.Views.SaveAmbiguousDialog"
+        x:DataType="vm:SaveAmbiguousViewModel"
+        Title="" Width="800" Height="450">
     <Grid RowDefinitions="Auto, *, Auto" Margin="15">
         <StackPanel Grid.Row="0">
-            <TextBlock Classes="H1" Text="{x:Static assets:Resources.DialogSaveAmbiguousHeader}" Theme="{StaticResource TitleTextBlock}"/>
-            <TextBlock Text="{Binding DialogBody}" TextWrapping="Wrap"/>
+            <TextBlock Classes="H1" Text="{x:Static assets:Resources.DialogSaveAmbiguousHeader}"
+                       Theme="{StaticResource TitleTextBlock}" />
+            <TextBlock Text="{Binding DialogBody}" TextWrapping="Wrap" />
         </StackPanel>
         <Border Grid.Row="1" Margin="5 15 0 0 "
                 BorderBrush="{DynamicResource SemiColorTertiary}"
                 BorderThickness="1" CornerRadius="5">
             <ListBox Name="TagListBox" ItemsSource="{Binding Tags}"
                      SelectedItem="{Binding SelectedTag}"
-                     SelectionMode="AlwaysSelected" >
+                     SelectionMode="AlwaysSelected">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -34,8 +35,8 @@
                             </TextBlock>
                             <TextBlock
                                 Foreground="{DynamicResource SemiColorTertiary}"
-                                Text="{Binding CurrentTagBindings}" 
-                                IsVisible="{Binding CurrentTagBindings, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                Text="{Binding CurrentTagBindings}"
+                                IsVisible="{Binding CurrentTagBindings, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                             <TextBlock Name="Comma" Text=", "
                                        Foreground="{DynamicResource SemiColorTertiary}">
                                 <TextBlock.IsVisible>
@@ -46,11 +47,11 @@
                                 </TextBlock.IsVisible>
                             </TextBlock>
                             <TextBlock
-                                       Foreground="{DynamicResource SemiColorTertiary}"
-                                       Text="{Binding CurrentNotes, Converter={x:Static local:TruncationConverter.Instance}}"
-                                       IsVisible="{Binding CurrentNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                            <TextBlock 
-                                       Foreground="{DynamicResource SemiColorTertiary}" Name="EndBracket" Text=")">
+                                Foreground="{DynamicResource SemiColorTertiary}"
+                                Text="{Binding CurrentNotes, Converter={x:Static local:TruncationConverter.Instance}}"
+                                IsVisible="{Binding CurrentNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <TextBlock
+                                Foreground="{DynamicResource SemiColorTertiary}" Name="EndBracket" Text=")">
                                 <TextBlock.IsVisible>
                                     <MultiBinding Converter="{x:Static local:AnyNotNullOrEmptyMultiConverter.Instance}">
                                         <Binding Path="CurrentNotes" />
@@ -64,10 +65,10 @@
             </ListBox>
         </Border>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 20 0 0">
-            <Button Content="{x:Static assets:Resources.ButtonOk}" Click="OnOkButtonClick" Margin="0 0 5 0"/>
+            <Button Content="{x:Static assets:Resources.ButtonOk}" Click="OnOkButtonClick" Margin="0 0 5 0" />
             <Button Content="{x:Static assets:Resources.ButtonCancel}" Click="OnCancelButtonClick"
-                    Theme="{DynamicResource SolidButton}" Classes="Primary"/>
+                    Theme="{DynamicResource SolidButton}" Classes="Primary" />
         </StackPanel>
-        
+
     </Grid>
 </Window>

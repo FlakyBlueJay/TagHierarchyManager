@@ -20,7 +20,7 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
     [ObservableProperty] private string _editingParents = string.Empty;
 
     [ObservableProperty] private string _editingTagBindings = string.Empty;
-    
+
     private bool _isInitialising;
 
     public string Aliases =>

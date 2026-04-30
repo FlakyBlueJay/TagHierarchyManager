@@ -8,7 +8,7 @@ namespace TagHierarchyManager.UI.ViewModels;
 public partial class RecentsViewModel : ViewModelBase
 {
     private readonly MainWindowViewModel _mainWindow;
-    
+
     [ObservableProperty] private ObservableCollection<RecentsTagRow> _recentAdded = [];
     [ObservableProperty] private ObservableCollection<RecentsTagRow> _recentEdited = [];
 
@@ -25,7 +25,6 @@ public partial class RecentsViewModel : ViewModelBase
             if (Equals(tag.UpdatedAt, tag.CreatedAt)) continue;
             this.RecentEdited.Add(new RecentsTagRow(tag, tag.UpdatedAt));
         }
-            
     }
 
     public event Action? RequestClose;

@@ -36,8 +36,9 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow, Dialo
     public string VisibleTemplateFilePath =>
         !string.IsNullOrWhiteSpace(this.TemplateFilePath) ? this.TemplateFilePath : Resources.ImportNoFilePicked;
 
-    private MainWindowViewModel MainWindow => mainWindow;
     private DialogService DialogService => dialogService;
+
+    private MainWindowViewModel MainWindow => mainWindow;
 
     [RelayCommand]
     private async Task InitiateImport()
@@ -47,6 +48,7 @@ public partial class ImportDialogViewModel(MainWindowViewModel mainWindow, Dialo
             var userWantsToSave = await this.DialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
             if (userWantsToSave is null) return;
         }
+
         try
         {
             if (string.IsNullOrEmpty(this.DatabaseFilePath) || string.IsNullOrEmpty(this.TemplateFilePath)) return;

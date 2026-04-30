@@ -14,21 +14,20 @@
                  KeyDown="SearchTextBox_OnKeyDown" />
         <CheckBox Grid.Row="1" Name="SearchAliasesCheckBox"
                   Content="{x:Static assets:Resources.SearchEnableAliases}"
-                  IsChecked="{Binding SearchAliases}"/>
+                  IsChecked="{Binding SearchAliases}" />
         <Button Grid.Row="2"
                 Content="{x:Static assets:Resources.ButtonSearch}"
                 Margin="0 5 "
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Center"
-                Command="{Binding SearchCommand}">
-        </Button>
+                Command="{Binding SearchCommand}" />
         <ComboBox Grid.Row="3"
-                  Name="SearchModeComboBox" 
-                  HorizontalAlignment="Stretch" 
+                  Name="SearchModeComboBox"
+                  HorizontalAlignment="Stretch"
                   Margin="0 0 0 5"
                   ItemsSource="{Binding SearchModes}"
                   SelectedItem="{Binding SelectedSearchMode, Mode=TwoWay}"
-                  DisplayMemberBinding="{Binding DisplayName}"/>
+                  DisplayMemberBinding="{Binding DisplayName}" />
         <ListBox Name="SearchResultsListBox"
                  Grid.Row="4"
                  SelectionMode="Single"

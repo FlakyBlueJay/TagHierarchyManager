@@ -12,8 +12,8 @@ public partial class DatabaseSettingsViewModel : ViewModelBase
 
     [ObservableProperty] private string _databaseVersion;
     [ObservableProperty] private string _defaultTagBindings;
-    [ObservableProperty] private string _tagRowsCount;
     [ObservableProperty] private int _tagRelationshipsCount;
+    [ObservableProperty] private string _tagRowsCount;
 
     [ObservableProperty] private string _windowTitle;
 
@@ -30,14 +30,14 @@ public partial class DatabaseSettingsViewModel : ViewModelBase
         _ = this.InitialiseAsync(mainWindow);
     }
 
+    public event Action? RequestClose;
+
     private async Task InitialiseAsync(MainWindowViewModel mainWindow)
     {
         var tagRelationshipCount = await mainWindow.TagDatabaseService.GetTagRelationshipCountAsync();
         this.TagRowsCount = string.Format(Resources.DatabaseSettingsTagCount,
             mainWindow.TagDatabaseService.TagCount, tagRelationshipCount);
     }
-
-    public event Action? RequestClose;
 
     [RelayCommand]
     private async Task SaveSettingsAsync()

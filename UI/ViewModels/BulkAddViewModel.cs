@@ -13,16 +13,14 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class BulkAddViewModel : ViewModelBase
 {
-    private readonly MainWindowViewModel _mainWindow;
     private readonly DialogService _dialogService;
+    private readonly MainWindowViewModel _mainWindow;
 
     [ObservableProperty] private ObservableCollection<BulkAddTagRow> _selectedRows = [];
 
     [ObservableProperty] private ObservableCollection<BulkAddTagRow> _tags;
 
     [ObservableProperty] private string _windowTitle;
-    
-    private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
 
     public BulkAddViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
@@ -50,6 +48,8 @@ public partial class BulkAddViewModel : ViewModelBase
 
     public bool CanSave => this.Tags.Count > 0;
 
+    private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
+
     [RelayCommand]
     private void AddTag()
     {
@@ -61,7 +61,8 @@ public partial class BulkAddViewModel : ViewModelBase
         });
     }
 
-    partial void OnSelectedRowsChanged(ObservableCollection<BulkAddTagRow>? oldValue, ObservableCollection<BulkAddTagRow> newValue)
+    partial void OnSelectedRowsChanged(ObservableCollection<BulkAddTagRow>? oldValue,
+        ObservableCollection<BulkAddTagRow> newValue)
     {
         oldValue?.CollectionChanged -= this.OnSelectedRowsCollectionChanged;
         newValue.CollectionChanged += this.OnSelectedRowsCollectionChanged;
@@ -92,7 +93,6 @@ public partial class BulkAddViewModel : ViewModelBase
                 {
                     var tag = new Tag
                     {
-                        
                         Name = tagRow.Name,
                         IsTopLevel = tagRow.IsTopLevel,
                         Parents = !string.IsNullOrWhiteSpace(tagRow.Parents)

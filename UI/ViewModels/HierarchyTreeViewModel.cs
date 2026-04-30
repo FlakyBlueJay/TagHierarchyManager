@@ -15,9 +15,9 @@ namespace TagHierarchyManager.UI.ViewModels;
 public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 {
     private readonly Dictionary<int, HashSet<int>> _childNodeMap = new();
+    private readonly DialogService _dialogService;
     private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
-    private readonly DialogService _dialogService;
 
     private readonly Dictionary<int, HashSet<TagItemViewModel>> _viewModelMap = new();
     [ObservableProperty] private TagItemViewModel? _contextMenuTag;

@@ -24,6 +24,8 @@ public class DialogService
         return await dialog.ShowDialog<TResult>(ownerWindow);
     }
 
-    public Task ShowErrorDialog(string message) =>
-        this.ShowDialog<object>(new ErrorDialog(), new ErrorDialogViewModel(message));
+    public Task ShowErrorDialog(string message)
+    {
+        return this.ShowDialog<object>(new ErrorDialog(), new ErrorDialogViewModel(message));
+    }
 }

@@ -4,15 +4,15 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.Models;
 using TagHierarchyManager.UI.Assets;
-using TagHierarchyManager.UI.Views;
 using TagHierarchyManager.UI.Services;
+using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class TagEditorViewModel : ViewModelBase, IDisposable
 {
-    private readonly MainWindowViewModel _mainWindow;
     private readonly DialogService _dialogService;
+    private readonly MainWindowViewModel _mainWindow;
     [ObservableProperty] private TagItemViewModel? _selectedTag;
 
     [ObservableProperty] private int _selectedTagId;
@@ -69,9 +69,8 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
                 !this._mainWindow.IsDbEnabled) return;
             var validatedUnique = this.TagDatabaseService.ValidateUnique(this._mainWindow.SelectedTag);
             if (!validatedUnique)
-            {
-                if (!await this._dialogService.ShowDialog<bool>(new UniqueWarnDialog())) return;
-            }
+                if (!await this._dialogService.ShowDialog<bool>(new UniqueWarnDialog()))
+                    return;
             await this.TagDatabaseService.WriteTagsToDatabase([this._mainWindow.SelectedTag]);
             this._mainWindow.SelectedTag.RefreshParentsString();
             this._mainWindow.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful,

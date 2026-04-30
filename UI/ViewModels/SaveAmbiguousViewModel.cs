@@ -9,14 +9,13 @@ namespace TagHierarchyManager.UI.ViewModels;
 
 public partial class SaveAmbiguousViewModel : ViewModelBase
 {
-    
     [ObservableProperty] private Tag _currentTag;
-    
-    [ObservableProperty] private List<TagItemViewModel> _tags;
+
+    [ObservableProperty] private string _dialogBody;
 
     [ObservableProperty] private TagItemViewModel? _selectedTag;
 
-    [ObservableProperty] private string _dialogBody;
+    [ObservableProperty] private List<TagItemViewModel> _tags;
 
     public SaveAmbiguousViewModel(TagDatabaseService tagDatabaseService, Tag currentTag,
         List<Tag> tags)
@@ -25,5 +24,4 @@ public partial class SaveAmbiguousViewModel : ViewModelBase
         this._currentTag = currentTag;
         this._dialogBody = string.Format(Resources.DialogSaveAmbiguousBody, currentTag.Name);
     }
-    
 }

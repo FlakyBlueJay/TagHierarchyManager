@@ -31,8 +31,6 @@ public class TagDatabaseService : ObservableObject
     public bool IsDatabaseOpen => this.Database != null;
 
     public int TagCount => this.Database?.Tags.Count ?? 0;
-    public async Task<int> GetTagRelationshipCountAsync() =>
-        await (this.Database?.GetTagRelationshipCountAsync() ?? Task.FromResult(0));
 
     private TagDatabase? Database { get; set; }
 
@@ -147,6 +145,11 @@ public class TagDatabaseService : ObservableObject
         return this.Database?.Tags.FirstOrDefault(t => t.Id == id);
     }
 
+    public async Task<int> GetTagRelationshipCountAsync()
+    {
+        return await (this.Database?.GetTagRelationshipCountAsync() ?? Task.FromResult(0));
+    }
+
     public async Task LoadDatabase(string filePath)
     {
         TagDatabase db = new();
@@ -177,11 +180,18 @@ public class TagDatabaseService : ObservableObject
     {
         if (this.Database is null) return;
         var valueList = input.Split(";",
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(); 
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         await this.Database.SetDefaultTagBindingsAsync(valueList);
         this.Database?.DefaultTagBindings = input.Split(";",
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         this.NotifyDatabasePropertiesChanged();
+    }
+
+    public bool ValidateUnique(TagItemViewModel tag)
+    {
+        if (this.Database is null) return false;
+        return tag.EditingName == tag.CurrentName
+               || this.Database.Tags.All(t => t.Name != tag.EditingName);
     }
 
     public async Task WriteTagsToDatabase(List<TagItemViewModel> tags)
@@ -385,13 +395,6 @@ public class TagDatabaseService : ObservableObject
     {
         if (this.Database is null) return;
         this.Database.TagsWritten -= this.TagDatabase_OnTagsWritten;
-    }
-
-    public bool ValidateUnique(TagItemViewModel tag)
-    {
-        if (this.Database is null) return false;
-        return tag.EditingName == tag.CurrentName
-               || this.Database.Tags.All(t => t.Name != tag.EditingName);
     }
 
     public sealed record TagWriteResult(
