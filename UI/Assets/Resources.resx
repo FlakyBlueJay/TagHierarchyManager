@@ -296,4 +296,13 @@
     <data name="DialogBodyUniqueWarn" xml:space="preserve">
         <value>A tag already exists with this name. Are you sure you want to save this tag?</value>
     </data>
+    <data name="DialogSaveAmbiguousHeader" xml:space="preserve">
+        <value>Ambiguous parent name detected</value>
+    </data>
+    <data name="DialogSaveAmbiguousBody" xml:space="preserve">
+        <value>You are trying to save "{0}" with a parent whose name exists multiple times on the database. Please choose which parent this tag is intended to go to.</value>
+    </data>
+    <data name="DisplayNotesNoNotes" xml:space="preserve">
+        <value>No notes</value>
+    </data>
 </root>

@@ -23,8 +23,12 @@ public partial class TagDatabase
             // phase 2: add the parents and aliases.
             foreach (ImportedTag tag in importDict.Values)
             {
-                Tag? currentTag = this.Tags.SingleOrDefault(t => t.Name == tag.Name)
-                                  ?? await this.SelectTagFromDatabase(tag.Name).ConfigureAwait(false);
+                Tag? currentTag = this.Tags.SingleOrDefault(t => t.Name == tag.Name);
+                if (currentTag is null)
+                {
+                    //var currentTagList = await this.SelectTagsFromDatabase(tag.Name).ConfigureAwait(false);
+                    //currentTag = currentTagList[0];
+                }
                 if (currentTag is null)
                     throw new InvalidOperationException(ErrorMessages.TagNotFound);
                 // todo search parent here then save the parents.
@@ -53,7 +57,6 @@ public partial class TagDatabase
                                  VALUES (@name, @notes, @is_top_level, @tags_to_bind, @aliases, CURRENT_TIMESTAMP)
                                  """;
         addCommand.Parameters.AddWithValue("@name", tag.Name);
-        addCommand.Parameters.AddWithValue("@name_normalised", StringNormaliser.FormatStringForSearch(tag.Name));
         addCommand.Parameters.AddWithValue("@notes", tag.Notes);
         addCommand.Parameters.AddWithValue("@is_top_level", tag.IsTopLevel ? 1 : 0);
         addCommand.Parameters.AddWithValue("@tags_to_bind", string.Join(";", tag.TagBindings));

@@ -73,11 +73,11 @@ public abstract class TestBase
         // phase 2: add the parents
         foreach (var tag in sampleTags)
         {
-            foreach (string parent in tag.Parents)
+            foreach (var parentTag in tag.Parents.Select(parent => this.Database.Tags.First(p => p.Name == parent)))
             {
-                var parentTag = await this.Database.SelectTagFromDatabase(parent);
                 tag.ParentIds.Add(parentTag.Id);
             }
+
             await this.Database.WriteTagToDatabase(tag);
         }
             

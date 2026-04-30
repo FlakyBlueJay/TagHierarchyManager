@@ -88,38 +88,4 @@ public class TagDatabaseTagRetrievalTests : TestBase
         Assert.That(tags.Count, Is.EqualTo(expectedNames.Count));
         Assert.That(retrievedNames, Is.EquivalentTo(expectedNames));
     }
-
-    /// <summary>
-    ///     Tests if SelectTag is selecting tags correctly.
-    /// </summary>
-    /// <param name="inputTag">The tag to select.</param>
-    /// <returns>A <see cref="Task" /> representing the asynchronous test.</returns>
-    [Test]
-    [TestCaseSource(nameof(SelectTagTestCases))]
-    public async Task TagDatabase_SelectTag(Tag inputTag)
-    {
-        // Act
-        Tag? selectedTag = await this.Database.SelectTagFromDatabase(inputTag.Name);
-
-        // Assert
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(selectedTag!.Id, Is.Not.Null);
-            Assert.That(selectedTag.ParentIds.Count, Is.EqualTo(inputTag.Parents.Count));
-            Assert.That(selectedTag.Parents.Count, Is.EqualTo(inputTag.Parents.Count));
-            Assert.That(selectedTag.Parents, Is.EqualTo(inputTag.Parents));
-            Assert.That(selectedTag.Aliases.Count, Is.EqualTo(inputTag.Aliases.Count));
-            Assert.That(selectedTag.Aliases, Is.EquivalentTo(inputTag.Aliases));
-        }
-    }
-
-    /// <summary>
-    ///     Tests if selecting a non-existent tag results in null.
-    /// </summary>
-    [Test]
-    public void TagDatabase_SelectTag_ReturnNullOnTagNotFound()
-    {
-        const string nonexistentTagName = "This tag does not exist";
-        Assert.ThatAsync(async () => await this.Database.SelectTagFromDatabase(nonexistentTagName), Is.Null);
-    }
 }
