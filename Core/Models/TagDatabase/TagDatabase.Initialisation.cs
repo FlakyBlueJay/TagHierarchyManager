@@ -13,21 +13,6 @@ public partial class TagDatabase
     private const string InMemoryDbPath = ":memory:";
     private const string TagHierarchyDbFileExt = ".thdb";
 
-
-    /// <summary>
-    ///     Throws an exception if the database has not been initialised yet.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">
-    ///     Thrown when the database has not been initialised or currentConnection is
-    ///     null.
-    /// </exception>
-    [MemberNotNull(nameof(currentConnection), nameof(Connection))]
-    private void CheckInitialisation()
-    {
-        if (!this.Initialised || this.currentConnection is null || this.Connection is null)
-            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
-    }
-
     /// <summary>
     ///     Checks if the current connection exists and is open, and closes it.
     /// </summary>
@@ -69,12 +54,27 @@ public partial class TagDatabase
 
         if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException(ErrorMessages.TagDatabaseFilePathEmpty);
 
-        string fileExt = Path.GetExtension(filePath);
+        var fileExt = Path.GetExtension(filePath);
         if (fileExt != TagHierarchyDbFileExt) throw new ArgumentException(ErrorMessages.TagDatabaseInvalidFileExt);
 
         if (loadMode && !File.Exists(filePath)) throw new FileNotFoundException(null, filePath);
 
         return null;
+    }
+
+
+    /// <summary>
+    ///     Throws an exception if the database has not been initialised yet.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown when the database has not been initialised or currentConnection is
+    ///     null.
+    /// </exception>
+    [MemberNotNull(nameof(currentConnection), nameof(Connection))]
+    private void CheckInitialisation()
+    {
+        if (!this.Initialised || this.currentConnection is null || this.Connection is null)
+            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
     }
 
     private async Task CreateDatabaseAsync(string filePath, bool overwrite = false,
@@ -89,8 +89,8 @@ public partial class TagDatabase
             this.currentConnection = new SqliteConnection($"Data Source={filePath};Pooling=False");
 
             await this.currentConnection.OpenAsync().ConfigureAwait(false);
-            SqliteCommand command = this.currentConnection.CreateCommand();
-            
+            var command = this.currentConnection.CreateCommand();
+
             command.CommandText = """
                                   CREATE TABLE "tag" (
                                       "id"                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -143,7 +143,7 @@ public partial class TagDatabase
                 this.Logger.Error(ex, "SQLite failed executing statement:\n{SqlStatement}", command.CommandText);
                 throw;
             }
-            
+
             await this.FinishInitialisationAsync(tagsToImport).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -160,16 +160,16 @@ public partial class TagDatabase
     private async Task FinishInitialisationAsync(Dictionary<string, ImportedTag>? tagsToImport = null)
     {
         this.Logger.Information("[TagHierarchyDatabase.Initialise] Initialising...");
-        SqliteCommand command = this.currentConnection?.CreateCommand() ??
-                                throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
+        var command = this.currentConnection?.CreateCommand() ??
+                      throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
         command.CommandText = "SELECT * FROM SETTINGS;";
         try
         {
-            await using (SqliteDataReader reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+            await using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
             {
                 while (await reader.ReadAsync().ConfigureAwait(false))
                 {
-                    string currentSetting = reader.GetString(0);
+                    var currentSetting = reader.GetString(0);
                     switch (currentSetting)
                     {
                         case "version":
@@ -183,12 +183,12 @@ public partial class TagDatabase
                     }
                 }
             }
-            
+
             this.FilePath = this.currentConnection.DataSource;
             this.Name = this.currentConnection.DataSource != InMemoryDbPath
                 ? Path.GetFileNameWithoutExtension(this.currentConnection.DataSource)
                 : InMemoryDbName;
-            
+
             await this.PerformNeededMigrations();
 
             this.Initialised = true;
@@ -203,11 +203,10 @@ public partial class TagDatabase
                     this.Close();
                     throw;
                 }
-            
+
             if (tagsToImport is null)
                 this.Tags = await this.GetAllTagsFromDatabase();
-            
-            
+
 
             this.OnInitialisationComplete(EventArgs.Empty);
             Debug.WriteLine(
@@ -224,11 +223,8 @@ public partial class TagDatabase
     {
         if (connection is null)
         {
-            string? errorString = ValidateFilePath(filePath, true);
-            if (errorString is not null)
-            {
-                throw new ArgumentException(errorString);
-            }
+            var errorString = ValidateFilePath(filePath, true);
+            if (errorString is not null) throw new ArgumentException(errorString);
         }
 
         this.currentConnection = connection ?? new SqliteConnection($"Data Source={filePath};Pooling=False");
@@ -242,8 +238,8 @@ public partial class TagDatabase
 
     private async Task<bool> ValidateAsync(SqliteConnection connection)
     {
-        bool sqliteDatabaseCheck = await this.ValidateFileIsSqliteDatabaseAsync(connection).ConfigureAwait(false);
-        bool structureCheck = await this.ValidateDatabaseStructureAsync(connection).ConfigureAwait(false);
+        var sqliteDatabaseCheck = await this.ValidateFileIsSqliteDatabaseAsync(connection).ConfigureAwait(false);
+        var structureCheck = await this.ValidateDatabaseStructureAsync(connection).ConfigureAwait(false);
 
         return sqliteDatabaseCheck && structureCheck;
     }
@@ -252,7 +248,7 @@ public partial class TagDatabase
     {
         try
         {
-            SqliteCommand tableCheckCommand = connection.CreateCommand();
+            var tableCheckCommand = connection.CreateCommand();
             tableCheckCommand.CommandText = """
                                                 SELECT name FROM sqlite_master
                                                 WHERE name != 'sqlite_sequence'
@@ -260,13 +256,13 @@ public partial class TagDatabase
                                                 ORDER BY name
                                             """;
             this.Logger.Debug("[TagDatabaseObject.Load] Command created");
-            bool notTagDatabase = false;
-            await using (SqliteDataReader reader = await tableCheckCommand.ExecuteReaderAsync().ConfigureAwait(false))
+            var notTagDatabase = false;
+            await using (var reader = await tableCheckCommand.ExecuteReaderAsync().ConfigureAwait(false))
             {
                 while (await reader.ReadAsync().ConfigureAwait(false))
                 {
                     if (notTagDatabase) continue;
-                    string currentTable = reader.GetString(0);
+                    var currentTable = reader.GetString(0);
                     HashSet<string> allowedTables = ["tag", "tag_parent_link", "alias", "settings"];
                     if (!allowedTables.Contains(currentTable)) notTagDatabase = true;
                 }
@@ -293,14 +289,11 @@ public partial class TagDatabase
     {
         try
         {
-            SqliteCommand validityCheck = connection.CreateCommand();
+            var validityCheck = connection.CreateCommand();
             validityCheck.CommandText = "pragma schema_version;";
             int? schemaVersion = Convert.ToInt32(await validityCheck.ExecuteScalarAsync().ConfigureAwait(false),
                 CultureInfo.InvariantCulture);
-            if (schemaVersion == 0)
-            {
-                throw new ArgumentException(ErrorMessages.TagDatabaseInvalidFile);
-            }
+            if (schemaVersion == 0) throw new ArgumentException(ErrorMessages.TagDatabaseInvalidFile);
         }
         catch (SqliteException ex)
         {

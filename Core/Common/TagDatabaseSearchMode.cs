@@ -3,7 +3,7 @@ using TagHierarchyManager.Models;
 namespace TagHierarchyManager.Common;
 
 /// <summary>
-///     An enum representing the different search modes for the <see cref="TagDatabase"/>.
+///     An enum representing the different search modes for the <see cref="TagDatabase" />.
 /// </summary>
 public enum TagDatabaseSearchMode
 {
@@ -26,5 +26,5 @@ public enum TagDatabaseSearchMode
     /// <summary>
     ///     Represents a search mode where it must match the exact query.
     /// </summary>
-    ExactMatch = 3,
+    ExactMatch = 3
 }

@@ -3,8 +3,9 @@ using TagHierarchyManager.Models;
 namespace TagHierarchyManager.Importers;
 
 /// <summary>
-///     An abstract class implementing an importer, converting a file in a specific format to a Dictionary of <see cref="ImportedTag"/>s.<br/>
-///     The resulting Dictionary can then be used to fill a <see cref="TagDatabase"/> on creation.
+///     An abstract class implementing an importer, converting a file in a specific format to a Dictionary of
+///     <see cref="ImportedTag" />s.<br />
+///     The resulting Dictionary can then be used to fill a <see cref="TagDatabase" /> on creation.
 /// </summary>
 public abstract class Importer
 {
@@ -14,7 +15,7 @@ public abstract class Importer
     protected Importer()
     {
     }
-    
+
     /// <summary>
     ///     Gets or sets the name of the format, for use in file dialogs.
     /// </summary>
@@ -25,10 +26,13 @@ public abstract class Importer
     ///     Gets all the contained text of a given file, then sends that string to <see cref="ProcessDataToDatabaseAsync" />.
     /// </summary>
     /// <param name="filePath">The location of the file to be imported.</param>
-    /// <returns>A <see cref="Task" /> representing the asynchronous operation, returning a Dictionary of <see cref="ImportedTag"/> objects.</returns>
+    /// <returns>
+    ///     A <see cref="Task" /> representing the asynchronous operation, returning a Dictionary of
+    ///     <see cref="ImportedTag" /> objects.
+    /// </returns>
     public async Task<Dictionary<string, ImportedTag>> ImportFromFileAsync(string filePath)
     {
-        string importedData = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
+        var importedData = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
         return await this.ProcessDataToDatabaseAsync(importedData).ConfigureAwait(false);
     }
 

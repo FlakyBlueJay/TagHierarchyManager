@@ -1,6 +1,5 @@
 using Microsoft.Data.Sqlite;
 using TagHierarchyManager.Assets;
-using TagHierarchyManager.Utilities;
 
 namespace TagHierarchyManager.Models;
 
@@ -10,30 +9,31 @@ public partial class TagDatabase
     {
         if (this.currentConnection is null)
             throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
-        
-        await using SqliteTransaction transaction =
+
+        await using var transaction =
             (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
 
         try
         {
             // phase 1: add all the tags, without anything that relies on other tables.
-            foreach (ImportedTag tag in importDict.Values) await this.WriteImportedTagToDatabase(transaction, tag);
+            foreach (var tag in importDict.Values) await this.WriteImportedTagToDatabase(transaction, tag);
 
             this.Tags = await this.GetAllTagsFromDatabase(transaction: transaction).ConfigureAwait(false);
 
             // phase 2: add the parents and aliases.
-            foreach (ImportedTag tag in importDict.Values)
+            foreach (var tag in importDict.Values)
             {
-                Tag? currentTag = this.Tags.SingleOrDefault(t => t.Name == tag.Name);
+                var currentTag = this.Tags.SingleOrDefault(t => t.Name == tag.Name);
                 if (currentTag is null)
                 {
                     //var currentTagList = await this.SelectTagsFromDatabase(tag.Name).ConfigureAwait(false);
                     //currentTag = currentTagList[0];
                 }
+
                 if (currentTag is null)
                     throw new InvalidOperationException(ErrorMessages.TagDatabaseTagNotFound);
-                
-                
+
+
                 // todo search parent here then save the parent IDs.
                 await this.SaveTagParents(transaction, currentTag.Id, tag.Parents, currentTag).ConfigureAwait(false);
             }
@@ -52,8 +52,8 @@ public partial class TagDatabase
     {
         if (this.currentConnection is null)
             throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
-        
-        SqliteCommand addCommand = this.currentConnection.CreateCommand();
+
+        var addCommand = this.currentConnection.CreateCommand();
         addCommand.Transaction = transaction;
         addCommand.CommandText = """
                                  INSERT INTO tag (name, notes, top_level, tags_to_bind, also_known_as, date_modified)

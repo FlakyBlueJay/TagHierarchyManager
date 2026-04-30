@@ -10,7 +10,7 @@ public static class FileTypes
     /// </summary>
     public static List<(string FileExtension, string Name)> AllNonDatabaseFileTypes =>
     [
-        MusicBeeTagHierarchyTemplate,
+        MusicBeeTagHierarchyTemplate
     ];
 
     /// <summary>

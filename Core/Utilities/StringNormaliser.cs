@@ -17,10 +17,10 @@ public static class StringNormaliser
     {
         if (string.IsNullOrEmpty(input)) return input;
 
-        string decomposedString = input.Normalize(NormalizationForm.FormD);
+        var decomposedString = input.Normalize(NormalizationForm.FormD);
 
         StringBuilder sb = new();
-        foreach (char c in decomposedString.Where(c =>
+        foreach (var c in decomposedString.Where(c =>
                      CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)) sb.Append(c);
 
         return sb.ToString().ToLowerInvariant();

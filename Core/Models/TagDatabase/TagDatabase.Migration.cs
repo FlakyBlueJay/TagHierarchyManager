@@ -6,7 +6,7 @@ namespace TagHierarchyManager.Models;
 public partial class TagDatabase
 {
     /// <summary>
-    /// Performs necessary migrations from older database versions.
+    ///     Performs necessary migrations from older database versions.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the database's current connection is null.</exception>
     private async Task PerformNeededMigrations()
@@ -25,10 +25,10 @@ public partial class TagDatabase
                 var addDateAddedCommand = this.currentConnection.CreateCommand();
                 addDateAddedCommand.Transaction = transaction;
                 addDateAddedCommand.CommandText =
-                    $"""
-                     ALTER TABLE tag ADD COLUMN date_created DATETIME DEFAULT NULL;
-                     ALTER TABLE tag ADD COLUMN date_modified DATETIME DEFAULT NULL;
-                     """;
+                    """
+                    ALTER TABLE tag ADD COLUMN date_created DATETIME DEFAULT NULL;
+                    ALTER TABLE tag ADD COLUMN date_modified DATETIME DEFAULT NULL;
+                    """;
                 addDateAddedCommand.ExecuteNonQuery();
 
                 var updateModifiedCommand = this.currentConnection.CreateCommand();
@@ -37,7 +37,8 @@ public partial class TagDatabase
                 updateModifiedCommand.ExecuteNonQuery();
 
                 var deleteOldTableCommand = this.currentConnection.CreateCommand() ??
-                                            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
+                                            throw new InvalidOperationException(ErrorMessages
+                                                .TagDatabaseNotInitialised);
                 deleteOldTableCommand.Transaction = transaction;
                 deleteOldTableCommand.CommandText =
                     "DROP TABLE alias;";
@@ -57,25 +58,25 @@ public partial class TagDatabase
                 var nonUniqueCommand = this.currentConnection.CreateCommand();
                 nonUniqueCommand.Transaction = transaction;
                 nonUniqueCommand.CommandText =
-                    $"""
-                     CREATE TABLE "tag_new" (
-                         "id"                INTEGER PRIMARY KEY AUTOINCREMENT,
-                         "name"              TEXT NOT NULL,
-                         "notes"             TEXT DEFAULT '',
-                         "top_level"         INTEGER NOT NULL DEFAULT 0,
-                         "tags_to_bind"      TEXT DEFAULT '',
-                         "also_known_as"     TEXT DEFAULT '',
-                         "date_created"      DATETIME,
-                         "date_modified"     DATETIME
-                     );
+                    """
+                    CREATE TABLE "tag_new" (
+                        "id"                INTEGER PRIMARY KEY AUTOINCREMENT,
+                        "name"              TEXT NOT NULL,
+                        "notes"             TEXT DEFAULT '',
+                        "top_level"         INTEGER NOT NULL DEFAULT 0,
+                        "tags_to_bind"      TEXT DEFAULT '',
+                        "also_known_as"     TEXT DEFAULT '',
+                        "date_created"      DATETIME,
+                        "date_modified"     DATETIME
+                    );
 
-                     INSERT INTO tag_new SELECT * FROM tag;
+                    INSERT INTO tag_new SELECT * FROM tag;
 
-                     DROP TABLE tag;
+                    DROP TABLE tag;
 
-                     ALTER TABLE tag_new RENAME TO tag;
-                     PRAGMA foreign_keys=ON;
-                     """;
+                    ALTER TABLE tag_new RENAME TO tag;
+                    PRAGMA foreign_keys=ON;
+                    """;
                 nonUniqueCommand.ExecuteNonQuery();
                 var reenableForeignKeysCommand = this.currentConnection.CreateCommand();
                 reenableForeignKeysCommand.CommandText = "PRAGMA foreign_keys=ON;";

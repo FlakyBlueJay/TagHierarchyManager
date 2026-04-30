@@ -64,7 +64,7 @@ public partial class TagDatabase
                 tag.Id = 0;
                 throw;
             }
-            
+
             var index = this.Tags.FindIndex(t => t.Id == tag.Id);
             this.Tags[index] = oldTag;
             throw;
@@ -115,7 +115,7 @@ public partial class TagDatabase
                 tag.Id = 0;
                 throw;
             }
-            
+
             var index = this.Tags.FindIndex(t => t.Id == tag.Id);
             this.Tags[index] = oldTag;
             throw;
@@ -169,8 +169,6 @@ public partial class TagDatabase
         // process parents, grabbing the names first in case the user wants to change the parents.
         foreach (var parentName in parents)
         {
-            
-            
         }
 
         // clear existing tag parents so we have a clean slate.

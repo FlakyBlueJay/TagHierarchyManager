@@ -17,8 +17,8 @@ public partial class TagDatabase
         SqliteTransaction? transaction = null)
     {
         this.CheckInitialisation();
-        
-        SqliteCommand command = this.currentConnection.CreateCommand();
+
+        var command = this.currentConnection.CreateCommand();
         if (transaction is not null) command.Transaction = transaction;
         command.CommandText = """
                                   SELECT
@@ -36,7 +36,7 @@ public partial class TagDatabase
                                   GROUP BY tag.id
                               """;
 
-        List<Tag> tags = await this.ExecuteTagRetrievalDatabaseQuery(command).ConfigureAwait(false);
+        var tags = await this.ExecuteTagRetrievalDatabaseQuery(command).ConfigureAwait(false);
 
         tags.ForEach(tag => tag.Parents = tags
             .Where(t => tag.ParentIds.Contains(t.Id))
@@ -57,7 +57,7 @@ public partial class TagDatabase
     /// </returns>
     public List<Tag> GetTagChildren(int id)
     {
-        List<Tag> tags = this.Tags.Where(tag => tag.ParentIds.Contains(id)).ToList();
+        var tags = this.Tags.Where(tag => tag.ParentIds.Contains(id)).ToList();
         return tags;
     }
 
@@ -71,17 +71,17 @@ public partial class TagDatabase
     /// </returns>
     public List<Tag> GetTagChildren(string name)
     {
-        List<Tag> tags = this.Tags.Where(tag => tag.Parents.Contains(name)).ToList();
+        var tags = this.Tags.Where(tag => tag.Parents.Contains(name)).ToList();
         return tags;
     }
 
     public async Task<int> GetTagRelationshipCountAsync()
     {
         this.CheckInitialisation();
-        SqliteCommand command = this.currentConnection.CreateCommand();
+        var command = this.currentConnection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM tag_parent_link";
-        
-        int count = Convert.ToInt32(await command.ExecuteScalarAsync());
+
+        var count = Convert.ToInt32(await command.ExecuteScalarAsync());
         return count;
     }
 
@@ -94,7 +94,7 @@ public partial class TagDatabase
     public async Task<Tag?> SelectTagFromDatabase(int id, SqliteTransaction? transaction = null)
     {
         this.CheckInitialisation();
-        SqliteCommand command = this.currentConnection.CreateCommand();
+        var command = this.currentConnection.CreateCommand();
         command.CommandText = """
                               SELECT
                                   tag.id,
@@ -112,14 +112,14 @@ public partial class TagDatabase
                               GROUP BY tag.id
                               """;
         command.Parameters.AddWithValue("@tag_id", id);
-        List<Tag> tags = await this.ExecuteTagRetrievalDatabaseQuery(command).ConfigureAwait(false);
-        Tag? selectedTag = tags.FirstOrDefault();
+        var tags = await this.ExecuteTagRetrievalDatabaseQuery(command).ConfigureAwait(false);
+        var selectedTag = tags.FirstOrDefault();
         if (selectedTag is null) return null;
-        
-        SqliteCommand parentCommand = this.currentConnection.CreateCommand();
+
+        var parentCommand = this.currentConnection.CreateCommand();
         if (transaction is not null) parentCommand.Transaction = transaction;
         QueryProcessorHandler.ProcessTagParentSelectionCommand(parentCommand, selectedTag.Id);
-        List<Tag> parents = await this.ExecuteTagRetrievalDatabaseQuery(parentCommand, false).ConfigureAwait(false);
+        var parents = await this.ExecuteTagRetrievalDatabaseQuery(parentCommand, false).ConfigureAwait(false);
         selectedTag.ParentIds = parents.Select(p => p.Id).ToList();
         selectedTag.Parents = parents.Select(p => p.Name).ToList();
 
@@ -141,7 +141,7 @@ public partial class TagDatabase
 
         try
         {
-            await using SqliteDataReader reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+            await using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
             if (!reader.HasRows) return tags;
             while (await reader.ReadAsync().ConfigureAwait(false))
             {
@@ -150,13 +150,13 @@ public partial class TagDatabase
                     Id = reader.GetInt32(reader.GetOrdinal(IdColumnName)),
                     Name = reader.GetString(reader.GetOrdinal(NameColumnName)),
                     IsTopLevel = reader.GetBoolean(reader.GetOrdinal(TopLevelColumnName)),
-                    Notes = reader.GetString(reader.GetOrdinal(NotesColumnName)),
+                    Notes = reader.GetString(reader.GetOrdinal(NotesColumnName))
                 };
 
-                string tagBindList = reader.GetString(reader.GetOrdinal(TagBindingsColumnName));
+                var tagBindList = reader.GetString(reader.GetOrdinal(TagBindingsColumnName));
                 if (!string.IsNullOrEmpty(tagBindList)) addedTag.TagBindings = tagBindList.Split(';').ToList();
 
-                string altNameList = reader.GetString(reader.GetOrdinal(AliasesColumnName));
+                var altNameList = reader.GetString(reader.GetOrdinal(AliasesColumnName));
                 if (!string.IsNullOrEmpty(altNameList)) addedTag.Aliases = altNameList.Split(';').ToList();
 
                 if (!reader.IsDBNull(reader.GetOrdinal(DateCreatedColumnName)))
@@ -170,11 +170,11 @@ public partial class TagDatabase
                     var dbUpdatedAt = reader.GetDateTime(reader.GetOrdinal(DateModifiedColumnName));
                     addedTag.UpdatedAt = dbUpdatedAt;
                 }
-                
+
 
                 if (fetchParents && !reader.IsDBNull(reader.GetOrdinal(ParentIdsColumnName)))
                 {
-                    List<int> parents =
+                    var parents =
                         reader.GetString(reader.GetOrdinal(ParentIdsColumnName)).Split(';').Select(int.Parse).ToList();
                     addedTag.ParentIds = parents;
                 }

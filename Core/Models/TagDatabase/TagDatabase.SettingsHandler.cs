@@ -1,5 +1,4 @@
 using System.Globalization;
-using Microsoft.Data.Sqlite;
 using TagHierarchyManager.Assets;
 
 namespace TagHierarchyManager.Models;
@@ -10,9 +9,10 @@ public partial class TagDatabase
     {
         this.DefaultTagBindings = value;
         this.CheckInitialisation();
-        await this.Settings.UpdateSettingAsync(SettingsHandler.DefaultTagBindingKey, string.Join(';', value)).ConfigureAwait(false);
+        await this.Settings.UpdateSettingAsync(SettingsHandler.DefaultTagBindingKey, string.Join(';', value))
+            .ConfigureAwait(false);
     }
-    
+
     /// <summary>
     ///     A class for handling settings for a <see cref="TagDatabase" /> at a lower level.
     /// </summary>
@@ -31,7 +31,7 @@ public partial class TagDatabase
 
         private readonly Dictionary<string, string> defaultSettings = new()
         {
-            { DefaultTagBindingKey, "genre" },
+            { DefaultTagBindingKey, "genre" }
         };
 
         private static IReadOnlyList<string> RequiredSettingsKeys { get; } =
@@ -51,7 +51,7 @@ public partial class TagDatabase
 
             if (await this.CheckSettingExistenceAsync(key).ConfigureAwait(false))
                 throw new ArgumentException(string.Format(ErrorMessages.TagDatabaseSettingKeyExists, key));
-            SqliteCommand insertCommand = db.Connection.CreateCommand();
+            var insertCommand = db.Connection.CreateCommand();
 
             insertCommand.CommandText = $"""
                                              INSERT INTO settings (key, value)
@@ -79,7 +79,7 @@ public partial class TagDatabase
 
             if (!await this.CheckSettingExistenceAsync(key).ConfigureAwait(false))
                 throw new KeyNotFoundException(string.Format(ErrorMessages.TagDatabaseSettingKeyNotFound, key));
-            SqliteCommand command = db.Connection.CreateCommand();
+            var command = db.Connection.CreateCommand();
             command.CommandText = $"""
                                        DELETE FROM settings
                                        WHERE key == {SettingKeyParameter}
@@ -97,13 +97,13 @@ public partial class TagDatabase
         {
             db.CheckInitialisation();
             Dictionary<string, string> settingsDict = new();
-            SqliteCommand command = db.Connection.CreateCommand();
+            var command = db.Connection.CreateCommand();
             command.CommandText = "SELECT * FROM settings";
-            await using SqliteDataReader reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+            await using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
             while (await reader.ReadAsync().ConfigureAwait(false))
             {
-                string key = reader.GetString(0);
-                string value = reader.GetString(1);
+                var key = reader.GetString(0);
+                var value = reader.GetString(1);
                 settingsDict.Add(key, value);
             }
 
@@ -122,13 +122,13 @@ public partial class TagDatabase
 
             if (!await this.CheckSettingExistenceAsync(key).ConfigureAwait(false))
                 throw new KeyNotFoundException(string.Format(ErrorMessages.TagDatabaseSettingKeyNotFound, key));
-            SqliteCommand command = db.Connection.CreateCommand();
+            var command = db.Connection.CreateCommand();
             command.CommandText = $"""
                                        SELECT value FROM settings
                                        WHERE key == {SettingKeyParameter}
                                    """;
             command.Parameters.AddWithValue(SettingKeyParameter, key);
-            string? pokedSetting = (string?)await command.ExecuteScalarAsync().ConfigureAwait(false);
+            var pokedSetting = (string?)await command.ExecuteScalarAsync().ConfigureAwait(false);
             return pokedSetting;
         }
 
@@ -155,7 +155,7 @@ public partial class TagDatabase
 
             if (!await this.CheckSettingExistenceAsync(key).ConfigureAwait(false))
                 throw new KeyNotFoundException(string.Format(ErrorMessages.TagDatabaseSettingKeyNotFound, key));
-            SqliteCommand command = db.Connection.CreateCommand();
+            var command = db.Connection.CreateCommand();
             command.CommandText = $"""
                                        UPDATE settings
                                        SET value = {SettingValueParameter}
@@ -173,13 +173,13 @@ public partial class TagDatabase
         {
             db.CheckInitialisation();
 
-            SqliteCommand command = db.Connection.CreateCommand();
+            var command = db.Connection.CreateCommand();
             command.CommandText = $"""
                                        SELECT COUNT(*) FROM settings
                                        WHERE key = {SettingKeyParameter};
                                    """;
             command.Parameters.AddWithValue(SettingKeyParameter, key);
-            int count = Convert.ToInt32(await command.ExecuteScalarAsync().ConfigureAwait(false),
+            var count = Convert.ToInt32(await command.ExecuteScalarAsync().ConfigureAwait(false),
                 CultureInfo.InvariantCulture);
             return count > 0;
         }

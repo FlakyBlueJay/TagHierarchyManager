@@ -13,8 +13,8 @@ public partial class TagDatabase
         internal readonly SqliteTransaction Transaction = transaction;
 
         private readonly List<Tag> _newlyAddedTags = [];
-        private readonly List<Tag> _updatedTagSnapshots = [];
         private readonly List<Tag> _updatedTags = [];
+        private readonly List<Tag> _updatedTagSnapshots = [];
 
         public async Task CommitAsync()
         {
@@ -39,10 +39,7 @@ public partial class TagDatabase
 
         public async Task RollbackAsync()
         {
-            foreach (var tag in this._newlyAddedTags)
-            {
-                tag.Id = 0;
-            }
+            foreach (var tag in this._newlyAddedTags) tag.Id = 0;
 
             foreach (var tag in this._updatedTagSnapshots)
             {
@@ -50,7 +47,7 @@ public partial class TagDatabase
                 if (index != -1)
                     db.Tags[index] = tag;
             }
-            
+
             await this.Transaction.RollbackAsync();
         }
 
@@ -72,7 +69,7 @@ public partial class TagDatabase
                 Notes = tag.Notes,
                 IsTopLevel = tag.IsTopLevel,
                 CreatedAt = tag.CreatedAt,
-                UpdatedAt = tag.UpdatedAt,
+                UpdatedAt = tag.UpdatedAt
             });
             this._updatedTags.Add(tag);
         }

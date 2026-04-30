@@ -35,7 +35,7 @@ public partial class TagDatabase
         {
             ProcessTagParentSelectionInt(command, id);
         }
-        
+
         /// <summary>
         ///     Generates an SQLITE INSERT command for saving the tag to the database.
         /// </summary>

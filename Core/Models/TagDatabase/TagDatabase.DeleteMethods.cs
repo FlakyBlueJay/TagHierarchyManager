@@ -13,8 +13,8 @@ partial class TagDatabase
     public void ClearTags()
     {
         this.CheckInitialisation();
-        using SqliteTransaction transaction = this.currentConnection.BeginTransaction();
-        SqliteCommand deleteCommand = this.currentConnection.CreateCommand();
+        using var transaction = this.currentConnection.BeginTransaction();
+        var deleteCommand = this.currentConnection.CreateCommand();
         deleteCommand.CommandText = """
                                     -- noinspection SqlWithoutWhere
                                     DELETE FROM tag
@@ -41,7 +41,7 @@ partial class TagDatabase
     public async Task DeleteTag(int id)
     {
         this.CheckInitialisation();
-        Tag? targetTag = await this.SelectTagFromDatabase(id);
+        var targetTag = await this.SelectTagFromDatabase(id);
         this.PerformDeletionChecks(targetTag);
         await this.ExecuteTagDeletion(targetTag!);
     }
@@ -51,7 +51,6 @@ partial class TagDatabase
     /// </summary>
     /// <param name="name">The name of the tag to delete.</param>
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
-
     private void DeleteFromCache(Tag targetTag)
     {
         Debug.WriteLine($"Deleting tag {targetTag.Name} ({targetTag.Id}) from cache.");
@@ -62,19 +61,16 @@ partial class TagDatabase
                 tag.ParentIds.Remove(targetTag.Id);
                 tag.Parents.Remove(targetTag.Name);
             });
-        
-        Tag? cachedTag = this.Tags.FirstOrDefault(t => t.Id == targetTag.Id);
-        if (cachedTag != null)
-        {
-            this.Tags.Remove(cachedTag);
-        }
+
+        var cachedTag = this.Tags.FirstOrDefault(t => t.Id == targetTag.Id);
+        if (cachedTag != null) this.Tags.Remove(cachedTag);
     }
 
     private async Task ExecuteTagDeletion(Tag targetTag)
     {
-        await using SqliteTransaction transaction =
+        await using var transaction =
             (SqliteTransaction)await this.currentConnection!.BeginTransactionAsync().ConfigureAwait(false);
-        SqliteCommand command = this.currentConnection.CreateCommand();
+        var command = this.currentConnection.CreateCommand();
         command.Transaction = transaction;
         command.CommandText = """
                                 DELETE FROM tag
@@ -86,7 +82,7 @@ partial class TagDatabase
             await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             await transaction.CommitAsync().ConfigureAwait(false);
             this.DeleteFromCache(targetTag);
-            TagsWritten?.Invoke(
+            this.TagsWritten?.Invoke(
                 this, new DatabaseEditResult([], [], [(targetTag.Id, targetTag.Name)])
             );
         }

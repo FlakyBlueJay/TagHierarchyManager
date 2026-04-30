@@ -3,8 +3,10 @@ using TagHierarchyManager.Common;
 using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager.Importers;
+
 /// <summary>
-///     Implements an importer for converting a MusicBee tag hierarchy template to a Dictionary of <see cref="ImportedTag"/>s.
+///     Implements an importer for converting a MusicBee tag hierarchy template to a Dictionary of
+///     <see cref="ImportedTag" />s.
 /// </summary>
 /// TODO add manual intervention for tags with duplicate names.
 public class MusicBeeTagHierarchyImporter : Importer
@@ -13,7 +15,7 @@ public class MusicBeeTagHierarchyImporter : Importer
     private const string TagBindingSeparator = "::";
 
     private static readonly string[] CommentSymbols = [";", "//"];
-    
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="MusicBeeTagHierarchyImporter" /> class.
     /// </summary>
@@ -23,23 +25,26 @@ public class MusicBeeTagHierarchyImporter : Importer
     }
 
     /// <summary>
-    ///     Converts a MusicBee tag hierarchy template into a Dictionary of <see cref="ImportedTag"/>s.
+    ///     Converts a MusicBee tag hierarchy template into a Dictionary of <see cref="ImportedTag" />s.
     /// </summary>
     /// <param name="importedData">The tag hierarchy data string.</param>
-    /// <returns>A <see cref="Task" /> representing the asynchronous operation, returning a Dictionary of <see cref="ImportedTag"/>s.</returns>
+    /// <returns>
+    ///     A <see cref="Task" /> representing the asynchronous operation, returning a Dictionary of
+    ///     <see cref="ImportedTag" />s.
+    /// </returns>
     protected override async Task<Dictionary<string, ImportedTag>> ProcessDataToDatabaseAsync(string importedData)
     {
         importedData = importedData.TrimEnd();
-        
-        ValidateHierarchyData(importedData);
-        
-        Dictionary<string, ImportedTag> tagsToImport = new();
-        
-        int previousIndentLevel = 0;
-        List<string> parentStack = [];
-        int lineCounter = 1;
 
-        string lastTagName = string.Empty;
+        ValidateHierarchyData(importedData);
+
+        Dictionary<string, ImportedTag> tagsToImport = new();
+
+        var previousIndentLevel = 0;
+        List<string> parentStack = [];
+        var lineCounter = 1;
+
+        var lastTagName = string.Empty;
         using StringReader reader = new(importedData);
         while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
         {
@@ -47,7 +52,7 @@ public class MusicBeeTagHierarchyImporter : Importer
 
             TagHierarchyLine parsedLine = new(line, lineCounter);
             UpdateParentStack(parentStack, parsedLine, previousIndentLevel, lastTagName);
-            
+
             ImportTag(tagsToImport, parsedLine, parentStack);
 
             lastTagName = parsedLine.TagName;
@@ -64,12 +69,43 @@ public class MusicBeeTagHierarchyImporter : Importer
             currentTag.TagBindings.Add(tagBinding);
     }
 
+    private static void ImportTag(Dictionary<string, ImportedTag> importDict, TagHierarchyLine line,
+        List<string> parentStack)
+    {
+        var existingTag = importDict.GetValueOrDefault(line.TagName);
+        if (existingTag is null)
+        {
+            ImportedTag newTag = new()
+            {
+                Name = line.TagName,
+                IsTopLevel = parentStack.Count <= 0
+            };
+            importDict[line.TagName] = newTag;
+        }
+
+        ProcessParents(importDict[line.TagName], parentStack);
+        AddTagBindingIfMissing(importDict[line.TagName], line.Binding);
+    }
+
     private static bool IsEmptyOrComment(string line)
     {
         if (CommentSymbols.Any(symbol => line.StartsWith(symbol, StringComparison.Ordinal)))
             return true;
 
         return string.IsNullOrEmpty(line) || string.IsNullOrWhiteSpace(line);
+    }
+
+
+    private static void ProcessParents(ImportedTag tag, List<string> parentStack)
+    {
+        if (parentStack.Count == 0)
+        {
+            tag.IsTopLevel = true;
+            return;
+        }
+
+        var parentName = parentStack[^1];
+        if (tag.Name != parentName) tag.Parents.Add(parentName);
     }
 
     private static void UpdateParentStack(List<string> parentStack, TagHierarchyLine currentLine, int previousIndent,
@@ -97,40 +133,8 @@ public class MusicBeeTagHierarchyImporter : Importer
         // TODO change on the fly instead of erroring out?
         if (tagHierarchyData.Contains('\t')) throw new ArgumentException(ErrorMessages.ImporterMusicBeeTabsDetected);
 
-        if (tagHierarchyData.StartsWith(' ')) throw new ArgumentException(ErrorMessages.ImporterMusicBeeStartsWithSpace);
-    }
-
-    private static void ImportTag(Dictionary<string, ImportedTag> importDict, TagHierarchyLine line, List<string> parentStack)
-    {
-        ImportedTag? existingTag = importDict.GetValueOrDefault(line.TagName);
-        if (existingTag is null)
-        {
-            ImportedTag newTag = new()
-            {
-                Name = line.TagName,
-                IsTopLevel = parentStack.Count <= 0,
-            };
-            importDict[line.TagName] = newTag;
-        }
-        
-        ProcessParents(importDict[line.TagName], parentStack);
-        AddTagBindingIfMissing(importDict[line.TagName], line.Binding);
-    }
-    
-    
-    private static void ProcessParents(ImportedTag tag, List<string> parentStack)
-    {
-        if (parentStack.Count == 0)
-        {
-            tag.IsTopLevel = true;
-            return;
-        }
-
-        string parentName = parentStack[^1];
-        if (tag.Name != parentName)
-        {
-            tag.Parents.Add(parentName);
-        }
+        if (tagHierarchyData.StartsWith(' '))
+            throw new ArgumentException(ErrorMessages.ImporterMusicBeeStartsWithSpace);
     }
 
     private struct TagHierarchyLine
@@ -143,9 +147,9 @@ public class MusicBeeTagHierarchyImporter : Importer
         public TagHierarchyLine(string line, int lineCounter)
         {
             this.LineNumber = lineCounter;
-            string trimmedLine = line.TrimStart();
+            var trimmedLine = line.TrimStart();
 
-            int separatorIndex = trimmedLine.LastIndexOf(TagBindingSeparator, StringComparison.Ordinal);
+            var separatorIndex = trimmedLine.LastIndexOf(TagBindingSeparator, StringComparison.Ordinal);
             if (separatorIndex != -1)
             {
                 this.TagName = trimmedLine[..separatorIndex];
@@ -156,7 +160,7 @@ public class MusicBeeTagHierarchyImporter : Importer
                 this.TagName = trimmedLine;
             }
 
-            int indentRemainder = (line.Length - trimmedLine.Length) % IndentSize;
+            var indentRemainder = (line.Length - trimmedLine.Length) % IndentSize;
             if (indentRemainder != 0)
                 throw new ArgumentException(
                     string.Format(ErrorMessages.ImporterMusicBeeIndentUneven, lineCounter));

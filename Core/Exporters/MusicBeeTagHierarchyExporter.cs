@@ -18,9 +18,9 @@ public class MusicBeeTagHierarchyExporter : IExporter
     {
         ArgumentNullException.ThrowIfNull(db);
 
-        List<Tag> topLevelTags = db.Tags.Where(tag => tag.IsTopLevel).OrderBy(tag => tag.Name).ToList();
+        var topLevelTags = db.Tags.Where(tag => tag.IsTopLevel).OrderBy(tag => tag.Name).ToList();
         StringBuilder currentString = new();
-        foreach (Tag topLevelTag in topLevelTags)
+        foreach (var topLevelTag in topLevelTags)
             ProcessRecursively(currentString, db, topLevelTag, string.Empty);
 
         return currentString.ToString();
@@ -29,7 +29,7 @@ public class MusicBeeTagHierarchyExporter : IExporter
     private static void ProcessRecursively(StringBuilder currentString, TagDatabase db, Tag currentTag,
         string indent = "")
     {
-        List<Tag> tagChildren = db.GetTagChildren(currentTag.Id).OrderBy(tag => tag.Name).ToList();
+        var tagChildren = db.GetTagChildren(currentTag.Id).OrderBy(tag => tag.Name).ToList();
         if (tagChildren.Count > 0)
         {
             currentString.AppendLine(indent + currentTag.Name);
@@ -45,13 +45,13 @@ public class MusicBeeTagHierarchyExporter : IExporter
                 ProcessTagBindings(currentTag, indent, currentString);
         }
 
-        foreach (Tag childTag in tagChildren)
+        foreach (var childTag in tagChildren)
             ProcessRecursively(currentString, db, childTag, indent);
     }
 
     private static void ProcessTagBindings(Tag currentTag, string indent, StringBuilder builder)
     {
-        foreach (string line in
+        foreach (var line in
                  currentTag.TagBindings.Select(tagBinding => indent + currentTag.Name + $"::{tagBinding}"))
             builder.AppendLine(line);
     }

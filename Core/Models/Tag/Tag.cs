@@ -5,12 +5,18 @@ namespace TagHierarchyManager.Models;
 /// <summary>
 ///     An object representing a tag entry in a tag hierarchy database.
 /// </summary>
-public partial class Tag
+public class Tag
 {
     /// <summary>
     ///     Gets or sets a list of strings containing aliases (or "also known as"), saved in the database as semicolons.
     /// </summary>
     public List<string> Aliases { get; set; } = [];
+
+    /// <summary>
+    ///     Gets or sets the date the tag was created.
+    ///     Defaults to null to cater to migrated databases to prevent inaccurate information.
+    /// </summary>
+    public DateTime? CreatedAt { get; set; }
 
     /// <summary>
     ///     Gets or sets he internal ID of a tag entry.<br /><br />
@@ -34,7 +40,7 @@ public partial class Tag
     ///     This is mainly for internal use by the user.
     /// </summary>
     public string Notes { get; set; } = string.Empty;
-    
+
     /// <summary>
     ///     Gets or sets a list of the tag entry's parent IDs for interaction with the database.
     /// </summary>
@@ -51,12 +57,6 @@ public partial class Tag
     ///     A tag can have no bindings, if the user wants to use it as a category and not a tag in itself.
     /// </summary>
     public List<string> TagBindings { get; set; } = [];
-
-    /// <summary>
-    ///     Gets or sets the date the tag was created.
-    ///     Defaults to null to cater to migrated databases to prevent inaccurate information.
-    /// </summary>
-    public DateTime? CreatedAt { get; set; }
 
     /// <summary>
     ///     Gets or sets the date the tag was modified.
@@ -82,17 +82,17 @@ public partial class Tag
     {
         if (string.IsNullOrWhiteSpace(this.Name))
             throw new TagValidationException(ErrorMessages.TagNameIsBlank);
-        
+
         if (!this.IsTopLevel && this.ParentIds.Count == 0 && this.Parents.Count == 0)
             throw new TagValidationException(
                 string.Format(ErrorMessages.TagOrphanAttempt, this.Name)
-                );
+            );
 
         if (this.Parents.Contains(this.Name) || this.ParentIds.Contains(this.Id))
             throw new TagValidationException(
                 string.Format(ErrorMessages.TagSelfParentAttempt, this.Name)
             );
-        
+
         return true;
     }
 }
