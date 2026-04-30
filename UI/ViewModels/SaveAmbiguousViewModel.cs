@@ -3,6 +3,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
 using TagHierarchyManager.UI.Assets;
+using TagHierarchyManager.UI.Services;
 
 namespace TagHierarchyManager.UI.ViewModels;
 

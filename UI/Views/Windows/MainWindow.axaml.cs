@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using TagHierarchyManager.UI.ViewModels;
+using TagHierarchyManager.UI.Services;
 
 namespace TagHierarchyManager.UI.Views;
 

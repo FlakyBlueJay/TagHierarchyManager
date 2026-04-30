@@ -32,7 +32,9 @@ public partial class TagDatabase
                 }
                 if (currentTag is null)
                     throw new InvalidOperationException(ErrorMessages.TagDatabaseTagNotFound);
-                // todo search parent here then save the parents.
+                
+                
+                // todo search parent here then save the parent IDs.
                 await this.SaveTagParents(transaction, currentTag.Id, tag.Parents, currentTag).ConfigureAwait(false);
             }
 

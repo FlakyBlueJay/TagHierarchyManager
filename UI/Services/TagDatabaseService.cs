@@ -15,7 +15,7 @@ using TagHierarchyManager.UI.Assets;
 using TagHierarchyManager.UI.ViewModels;
 using TagHierarchyManager.UI.Views;
 
-namespace TagHierarchyManager.UI;
+namespace TagHierarchyManager.UI.Services;
 
 public class TagDatabaseService : ObservableObject
 {

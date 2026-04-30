@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.Models;
+using TagHierarchyManager.UI.Services;
 
 namespace TagHierarchyManager.UI.ViewModels;
 

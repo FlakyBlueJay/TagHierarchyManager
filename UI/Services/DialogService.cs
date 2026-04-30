@@ -7,7 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using TagHierarchyManager.UI.ViewModels;
 using TagHierarchyManager.UI.Views;
 
-namespace TagHierarchyManager.UI;
+namespace TagHierarchyManager.UI.Services;
 
 public class DialogService
 {

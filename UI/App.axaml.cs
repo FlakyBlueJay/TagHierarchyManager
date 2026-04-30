@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using TagHierarchyManager.UI.Services;
 using TagHierarchyManager.UI.ViewModels;
 using TagHierarchyManager.UI.Views;
 
