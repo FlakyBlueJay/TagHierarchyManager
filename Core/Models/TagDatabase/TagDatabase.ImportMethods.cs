@@ -24,18 +24,22 @@ public partial class TagDatabase
             foreach (var tag in importDict.Values)
             {
                 var currentTag = this.Tags.SingleOrDefault(t => t.Name == tag.Name);
-                if (currentTag is null)
-                {
-                    //var currentTagList = await this.SelectTagsFromDatabase(tag.Name).ConfigureAwait(false);
-                    //currentTag = currentTagList[0];
-                }
 
+                // todo collect tags requiring manual intervention here?
+                
                 if (currentTag is null)
                     throw new InvalidOperationException(ErrorMessages.TagDatabaseTagNotFound);
-
-
-                // todo search parent here then save the parent IDs.
-                await this.SaveTagParents(transaction, currentTag.Id, tag.Parents, currentTag).ConfigureAwait(false);
+                
+                var parentIds = new List<int>();
+                foreach (var parentTags in tag.Parents.Select(parentName => this.Tags.Where(t => t.Name == parentName).ToList()))
+                {
+                    if (parentTags.Count > 1)
+                        throw new NotImplementedException("Manual intervention required, not implemented yet.");
+                    parentIds.Add(parentTags[0].Id);
+                }
+                
+                if (parentIds.Count == 0) continue;
+                await this.WriteImportedParentsToDatabase(transaction, currentTag.Id, parentIds).ConfigureAwait(false);
             }
 
             await transaction.CommitAsync().ConfigureAwait(false);
@@ -65,5 +69,28 @@ public partial class TagDatabase
         addCommand.Parameters.AddWithValue("@tags_to_bind", string.Join(";", tag.TagBindings));
         addCommand.Parameters.AddWithValue("@aliases", string.Join(";", tag.Aliases));
         await addCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
+    }
+
+    private async Task WriteImportedParentsToDatabase(SqliteTransaction transaction, int targetId, List<int> parentIds)
+    {
+        var valuesClauses = new List<string>();
+        var parameters = new List<SqliteParameter>();
+
+        for (var i = 0; i < parentIds.Count; i++)
+        {
+            valuesClauses.Add($"(@target_tag_id_{i}, @parent_tag_id_{i})");
+            parameters.Add(new SqliteParameter($"@target_tag_id_{i}", targetId));
+            parameters.Add(new SqliteParameter($"@parent_tag_id_{i}", parentIds[i]));
+        }
+
+        var query =
+            $"INSERT INTO tag_parent_link (target_tag_id, parent_tag_id) VALUES {string.Join(", ", valuesClauses)};";
+        
+        var parentCommand = this.currentConnection.CreateCommand();
+        parentCommand.Transaction = transaction;
+        parentCommand.CommandText = query;
+        parentCommand.Parameters.AddRange(parameters);
+        await parentCommand.PrepareAsync();
+        await parentCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
     }
 }

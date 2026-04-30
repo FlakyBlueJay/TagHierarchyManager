@@ -204,8 +204,8 @@ public partial class TagDatabase
                     throw;
                 }
 
-            if (tagsToImport is null)
-                this.Tags = await this.GetAllTagsFromDatabase();
+            
+            this.Tags = await this.GetAllTagsFromDatabase();
 
 
             this.OnInitialisationComplete(EventArgs.Empty);

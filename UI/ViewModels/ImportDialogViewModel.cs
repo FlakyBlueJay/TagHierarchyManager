@@ -11,6 +11,7 @@ using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
+// todo handle manual interventions
 public partial class ImportDialogViewModel(MainWindowViewModel mainWindow, DialogService dialogService) : ViewModelBase
 {
     [ObservableProperty]
