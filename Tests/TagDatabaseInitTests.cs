@@ -30,10 +30,10 @@ public class TagDatabaseInitTests : TestBase
     {
         // Arrange
         const string invalidDbName = "invalid_file.thdb";
-        string invalidDbPath = Path.Combine(TestDbsDir, invalidDbName);
+        var invalidDbPath = Path.Combine(TestDbsDir, invalidDbName);
         try
         {
-            await using FileStream file = File.Open(invalidDbPath, FileMode.CreateNew);
+            await using var file = File.Open(invalidDbPath, FileMode.CreateNew);
         }
         catch (IOException)
         {
@@ -41,7 +41,7 @@ public class TagDatabaseInitTests : TestBase
         }
 
         TagDatabase dummyDb = new();
-        
+
         // Act/Assert
         Exception? ex = Assert.ThrowsAsync<ArgumentException>(async () => await dummyDb.LoadAsync(invalidDbPath));
     }
@@ -71,7 +71,7 @@ public class TagDatabaseInitTests : TestBase
         // Arrange
         SqliteConnection invalidConnection = new("Data Source=:memory:");
         await invalidConnection.OpenAsync();
-        SqliteCommand command = invalidConnection.CreateCommand();
+        var command = invalidConnection.CreateCommand();
         command.CommandText = """
                               CREATE TABLE "invalid" (
                                   "id"    INTEGER
@@ -93,7 +93,7 @@ public class TagDatabaseInitTests : TestBase
     public async Task TagDatabaseInit_NewTagDatabase_ReturnsInitializedDatabase()
     {
         // Arrange/Act
-        bool isInitialised = false;
+        var isInitialised = false;
         TagDatabase db = new();
         db.InitialisationComplete += (_, _) => { isInitialised = true; };
         await db.CreateAsync(":memory:");

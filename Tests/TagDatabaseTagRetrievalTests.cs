@@ -28,13 +28,13 @@ public class TagDatabaseTagRetrievalTests : TestBase
     public async Task TagDatabase_GetAllTags_AllTags()
     {
         // Arrange
-        List<string> expectedNames = TestSampleTags.AllTags()
+        var expectedNames = TestSampleTags.AllTags()
             .Select(tag => tag.Name)
             .ToList();
 
         // Act
-        List<Tag> tags = await this.Database.GetAllTagsFromDatabase();
-        List<string> retrievedNames = tags.Select(tag => tag.Name).ToList();
+        var tags = await this.Database.GetAllTagsFromDatabase();
+        var retrievedNames = tags.Select(tag => tag.Name).ToList();
 
         // Assert
         Assert.That(tags.Count, Is.EqualTo(expectedNames.Count));
@@ -50,14 +50,14 @@ public class TagDatabaseTagRetrievalTests : TestBase
     public async Task TagDatabase_GetAllTags_AllTopLevelTags()
     {
         // Arrange
-        List<string> expectedNames = TestSampleTags.AllTags()
+        var expectedNames = TestSampleTags.AllTags()
             .Where(tag => tag.IsTopLevel)
             .Select(tag => tag.Name)
             .ToList();
 
         // Act
-        List<Tag> tags = await this.Database.GetAllTagsFromDatabase(true);
-        List<string> retrievedNames = tags.Select(tag => tag.Name).ToList();
+        var tags = await this.Database.GetAllTagsFromDatabase(true);
+        var retrievedNames = tags.Select(tag => tag.Name).ToList();
 
         // Assert
         Assert.That(tags.Count, Is.EqualTo(expectedNames.Count));
@@ -72,17 +72,17 @@ public class TagDatabaseTagRetrievalTests : TestBase
     public void TagDatabase_GetTagChildren()
     {
         // Arrange
-        string tagNameToQuery = TestSampleTags.Ambient.Name;
+        var tagNameToQuery = TestSampleTags.Ambient.Name;
         List<string> expectedNames =
         [
             TestSampleTags.DarkAmbient.Name,
             TestSampleTags.TribalAmbient.Name,
-            TestSampleTags.SpaceAmbient.Name,
+            TestSampleTags.SpaceAmbient.Name
         ];
 
         // Act
-        List<Tag> tags = this.Database.GetTagChildren(tagNameToQuery);
-        List<string> retrievedNames = tags.Select(tag => tag.Name).ToList();
+        var tags = this.Database.GetTagChildren(tagNameToQuery);
+        var retrievedNames = tags.Select(tag => tag.Name).ToList();
 
         // Assert
         Assert.That(tags.Count, Is.EqualTo(expectedNames.Count));

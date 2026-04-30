@@ -55,7 +55,7 @@ public class TagObjectTests : TestBase
         {
             Name = "Ritual Ambient",
             Parents = ["Ambient"],
-            IsTopLevel = false,
+            IsTopLevel = false
         };
 
         // Act
@@ -88,11 +88,11 @@ public class TagObjectTests : TestBase
             TagBindings = tagBindings,
             Parents = parentNames,
             Notes = notes,
-            Aliases = aliases,
+            Aliases = aliases
         };
 
         // Act
-        bool tagValidated = testTag.Validate();
+        var tagValidated = testTag.Validate();
 
         // Assert
         Assert.That(tagValidated, Is.EqualTo(true));
@@ -109,7 +109,7 @@ public class TagObjectTests : TestBase
         Tag invalidTag = new()
         {
             Name = "Orphan Tag Test",
-            IsTopLevel = false,
+            IsTopLevel = false
         };
 
         // Act/Assert
@@ -128,7 +128,7 @@ public class TagObjectTests : TestBase
         {
             Name = "Ritual Ambient",
             Parents = [],
-            IsTopLevel = false,
+            IsTopLevel = false
         };
 
         // Assert
@@ -147,7 +147,7 @@ public class TagObjectTests : TestBase
         {
             Name = "Ambient",
             Parents = ["Ambient"],
-            IsTopLevel = false,
+            IsTopLevel = false
         };
 
         // Act/Assert

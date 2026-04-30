@@ -22,7 +22,7 @@ public class SettingsTests : TestBase
     {
         // Arrange/Act
         await this.Database.Settings.CreateSettingAsync(AddedTestKey, AddedTestValue);
-        string? retrievedSetting = await this.Database.Settings.GetSettingValueAsync(AddedTestKey);
+        var retrievedSetting = await this.Database.Settings.GetSettingValueAsync(AddedTestKey);
 
         // Assert
         Assert.That(retrievedSetting, Is.EqualTo(AddedTestValue));
@@ -39,7 +39,7 @@ public class SettingsTests : TestBase
         await this.AddTestSetting();
 
         // Act/Assert
-        ArgumentException ex = Assert.ThrowsAsync<ArgumentException>(async () =>
+        var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
             await this.Database.Settings.CreateSettingAsync(AddedTestKey, AddedTestValue)) !;
     }
 
@@ -58,8 +58,8 @@ public class SettingsTests : TestBase
         await this.Database.SetDefaultTagBindingsAsync(changedTagBindings);
 
         // Assert
-        string? settingValueString = await this.Database.Settings.GetSettingValueAsync(ExpectedTagBindKey);
-        List<string> changedTagBindingsList = settingValueString!
+        var settingValueString = await this.Database.Settings.GetSettingValueAsync(ExpectedTagBindKey);
+        var changedTagBindingsList = settingValueString!
             .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         Assert.That(settingValueString, Is.EqualTo(string.Join(';', this.Database.DefaultTagBindings)));
         Assert.That(changedTagBindingsList, Is.EquivalentTo(changedTagBindings));
@@ -102,7 +102,7 @@ public class SettingsTests : TestBase
     [Test]
     public void DeleteSetting_ThrowKeyNotFoundExceptionIfSettingNotFound()
     {
-        KeyNotFoundException ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+        var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
             await this.Database.Settings.DeleteSettingAsync(NonExistentKey)) !;
     }
 
@@ -117,7 +117,7 @@ public class SettingsTests : TestBase
     public async Task GetAllSettings_RequiredSettingsKeysValidated(string key)
     {
         // Arrange/Act
-        Dictionary<string, string> retrievedKeys = await this.Database.Settings.GetAllSettingsAsync();
+        var retrievedKeys = await this.Database.Settings.GetAllSettingsAsync();
 
         // Assert
         Assert.That(retrievedKeys.Keys, Contains.Item(key));
@@ -134,7 +134,7 @@ public class SettingsTests : TestBase
         await this.AddTestSetting();
 
         // Act
-        Dictionary<string, string> retrievedKeys = await this.Database.Settings.GetAllSettingsAsync();
+        var retrievedKeys = await this.Database.Settings.GetAllSettingsAsync();
 
         // Assert
         Assert.That(retrievedKeys.Keys, Contains.Item(AddedTestKey));
@@ -176,7 +176,7 @@ public class SettingsTests : TestBase
     [Test]
     public void UpdateSetting_ThrowKeyNotFoundExceptionIfSettingNotFound()
     {
-        KeyNotFoundException? ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+        var ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
             await this.Database.Settings.UpdateSettingAsync(NonExistentKey, "testvalue"));
     }
 

@@ -75,7 +75,7 @@ public class TagDatabaseSearchTests : TestBase
                                                   tag.Name.ToLower() == TestQuery.ToLower())
                 .Select(tag => tag.Name)
                 .ToList()
-        },
+        }
     };
 
     /// <summary>
@@ -91,8 +91,8 @@ public class TagDatabaseSearchTests : TestBase
         const string query = "ambionte";
 
         // Act
-        List<Tag> tags = this.Database.Search(query, TagDatabaseSearchMode.Fuzzy);
-        List<Tag> tagsWithAliases = this.Database.SearchWithAliases(query, TagDatabaseSearchMode.Fuzzy);
+        var tags = this.Database.Search(query, TagDatabaseSearchMode.Fuzzy);
+        var tagsWithAliases = this.Database.SearchWithAliases(query, TagDatabaseSearchMode.Fuzzy);
         // Assert
         Assert.That(tags.Count, Is.EqualTo(0));
         Assert.That(tagsWithAliases.Count, Is.EqualTo(0));
@@ -122,13 +122,13 @@ public class TagDatabaseSearchTests : TestBase
             IsTopLevel = false,
             TagBindings = ["genre", "style"],
             Parents = ["Ambient", "Electronic"],
-            Aliases = ["áéíóúçýỷủ"],
+            Aliases = ["áéíóúçýỷủ"]
         };
         await this.Database.WriteTagToDatabase(normalisedTest);
 
         // Act
-        List<Tag> tags = this.Database.SearchWithAliases(query, mode);
-        List<string> tagNames = tags.Select(tag => tag.Name).ToList();
+        var tags = this.Database.SearchWithAliases(query, mode);
+        var tagNames = tags.Select(tag => tag.Name).ToList();
 
         // Assert
         Assert.That(tags.Count, Is.EqualTo(1));
@@ -165,9 +165,9 @@ public class TagDatabaseSearchTests : TestBase
         TestName = "TagDatabase_SearchForTags_WithResults_NoAKAsExactMatch")]
     public void TagDatabase_SearchForTags_SearchResultsNoAlias(TagDatabaseSearchMode mode, string expectedResultKey)
     {
-        List<Tag> retrievedTags = this.Database.Search(TestQuery, mode);
+        var retrievedTags = this.Database.Search(TestQuery, mode);
 
-        List<string> retrievedTagNames = retrievedTags.Select(tag => tag.Name).ToList();
+        var retrievedTagNames = retrievedTags.Select(tag => tag.Name).ToList();
 
         Assert.That(retrievedTagNames, Is.EquivalentTo(this.expectedSearchResults[expectedResultKey]));
     }
@@ -190,9 +190,9 @@ public class TagDatabaseSearchTests : TestBase
         TestName = "TagDatabase_SearchForTags_WithResults_WithAKAsExactMatch")]
     public void TagDatabase_SearchForTags_SearchResultsWithAlias(TagDatabaseSearchMode mode, string expectedResultKey)
     {
-        List<Tag> retrievedTags = this.Database.SearchWithAliases(TestQuery, mode);
+        var retrievedTags = this.Database.SearchWithAliases(TestQuery, mode);
 
-        List<string> retrievedTagNames = retrievedTags.Select(tag => tag.Name).ToList();
+        var retrievedTagNames = retrievedTags.Select(tag => tag.Name).ToList();
 
         Assert.That(retrievedTagNames, Is.EquivalentTo(this.expectedSearchResults[expectedResultKey]));
     }

@@ -51,17 +51,17 @@ public class ImporterTests : TestBase
                                       Scenes & Movements
                                           Demoscene::movement
                                       """;
-        string tempFilePath = Path.GetTempFileName();
+        var tempFilePath = Path.GetTempFileName();
         await File.WriteAllTextAsync(tempFilePath, expectedExport);
 
 
         // Act
         TagDatabase db = new();
-        Dictionary<string, ImportedTag> testData =
+        var testData =
             await new MusicBeeTagHierarchyImporter().ImportFromFileAsync(tempFilePath);
         await db.CreateAsync(":memory:", tagsToImport: testData);
 
-        string exportedTagHierarchy = new MusicBeeTagHierarchyExporter().ExportDatabase(db);
+        var exportedTagHierarchy = new MusicBeeTagHierarchyExporter().ExportDatabase(db);
         exportedTagHierarchy = exportedTagHierarchy.ReplaceLineEndings("\n").TrimEnd();
 
         // Assert
@@ -90,7 +90,7 @@ public class ImporterTests : TestBase
     [TestCase(" Ambient")]
     public async Task ImportAsync_ImportMusicBeeTagHierarchy_ArgumentExceptionThrown(string brokenHierarchy)
     {
-        string tempFilePath = Path.GetTempFileName();
+        var tempFilePath = Path.GetTempFileName();
         await File.WriteAllTextAsync(tempFilePath, brokenHierarchy);
 
         Importer importer = new MusicBeeTagHierarchyImporter();
@@ -121,7 +121,7 @@ public class ImporterTests : TestBase
     public async Task ImportAsync_ImportMusicBeeTagHierarchy_TagHierarchyDataExceptionThrown(string brokenHierarchy,
         int lineNumber)
     {
-        string tempFilePath = Path.GetTempFileName();
+        var tempFilePath = Path.GetTempFileName();
         await File.WriteAllTextAsync(tempFilePath, brokenHierarchy);
         Importer importer = new MusicBeeTagHierarchyImporter();
         Exception? ex =

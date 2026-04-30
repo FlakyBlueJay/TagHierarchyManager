@@ -50,38 +50,32 @@ public abstract class TestBase
             nameof(SettingsTests),
             nameof(TagObjectTests),
             nameof(TagDatabaseWriteTests),
-            nameof(ImporterTests),
+            nameof(ImporterTests)
         ];
 
-        string? className = TestContext.CurrentContext.Test.ClassName;
+        var className = TestContext.CurrentContext.Test.ClassName;
         Logger.Debug("[TestBase.PopulateSampleData] Current class name: {ClassName}", className);
         if (className == null || ignoredClasses.Contains(className.Replace("TagHierarchyManager.Tests.", string.Empty)))
         {
-            Logger.Debug("[TestBase.PopulateSampleData] Ignoring as class name {ClassName} in ignoredClasses", className);
+            Logger.Debug("[TestBase.PopulateSampleData] Ignoring as class name {ClassName} in ignoredClasses",
+                className);
             return;
         }
 
-        List<Tag> sampleTags = TestSampleTags.AllTags();
+        var sampleTags = TestSampleTags.AllTags();
         this.Database.ClearTags();
-        
+
         // phase 1: add with no parents.
-        foreach (var tag in sampleTags)
-        {
-            await this.Database.WriteTagToDatabase(tag);
-        }
-        
+        foreach (var tag in sampleTags) await this.Database.WriteTagToDatabase(tag);
+
         // phase 2: add the parents
         foreach (var tag in sampleTags)
         {
             foreach (var parentTag in tag.Parents.Select(parent => this.Database.Tags.First(p => p.Name == parent)))
-            {
                 tag.ParentIds.Add(parentTag.Id);
-            }
 
             await this.Database.WriteTagToDatabase(tag);
         }
-            
-            
     }
 
     // do not use in Test1_Init. That needs to be tested at a lower level.
@@ -117,7 +111,7 @@ public abstract class TestBase
         {
             Name = "Ambient",
             IsTopLevel = true,
-            TagBindings = ExpectedTagBindings,
+            TagBindings = ExpectedTagBindings
         };
 
         /// <summary>
@@ -129,7 +123,7 @@ public abstract class TestBase
             IsTopLevel = false,
             TagBindings = ExpectedTagBindings,
             Parents = ["Ambient", "Post-Industrial"],
-            Aliases = ["Ambient Industrial"],
+            Aliases = ["Ambient Industrial"]
         };
 
         /// <summary>
@@ -139,7 +133,7 @@ public abstract class TestBase
         {
             Name = "Electronic",
             IsTopLevel = true,
-            TagBindings = ExpectedTagBindings,
+            TagBindings = ExpectedTagBindings
         };
 
         /// <summary>
@@ -149,7 +143,7 @@ public abstract class TestBase
         {
             Name = "Industrial & Noise",
             IsTopLevel = true,
-            TagBindings = ExpectedTagBindings,
+            TagBindings = ExpectedTagBindings
         };
 
         /// <summary>
@@ -160,7 +154,7 @@ public abstract class TestBase
             Name = "Post-Industrial",
             IsTopLevel = false,
             TagBindings = ExpectedTagBindings,
-            Parents = ["Industrial & Noise"],
+            Parents = ["Industrial & Noise"]
         };
 
         /// <summary>
@@ -172,7 +166,7 @@ public abstract class TestBase
             IsTopLevel = false,
             TagBindings = ExpectedTagBindings,
             Parents = ["Dark Ambient"],
-            Aliases = ["Ritual Dark Ambient", "Dark Ritual Ambient"],
+            Aliases = ["Ritual Dark Ambient", "Dark Ritual Ambient"]
         };
 
         /// <summary>
@@ -183,7 +177,7 @@ public abstract class TestBase
             Name = "Space Ambient",
             IsTopLevel = false,
             TagBindings = ExpectedTagBindings,
-            Parents = ["Ambient", "Electronic"],
+            Parents = ["Ambient", "Electronic"]
         };
 
         /// <summary>
@@ -195,7 +189,7 @@ public abstract class TestBase
             IsTopLevel = false,
             TagBindings = ExpectedTagBindings,
             Parents = ["Ambient"],
-            Aliases = ["Ethnic Ambient", "Ethno Ambient"],
+            Aliases = ["Ethnic Ambient", "Ethno Ambient"]
         };
 
         /// <summary>
@@ -213,7 +207,7 @@ public abstract class TestBase
                 DarkAmbient,
                 RitualAmbient,
                 SpaceAmbient,
-                TribalAmbient,
+                TribalAmbient
             ];
         }
     }
