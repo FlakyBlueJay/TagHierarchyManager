@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.Data.Sqlite;
+using TagHierarchyManager.Assets;
 
 namespace TagHierarchyManager.Models;
 
@@ -49,7 +50,7 @@ public partial class TagDatabase
             db.CheckInitialisation();
 
             if (await this.CheckSettingExistenceAsync(key).ConfigureAwait(false))
-                throw new ArgumentException(ErrorMessages.SettingKeyAlreadyExists(key));
+                throw new ArgumentException(string.Format(ErrorMessages.TagDatabaseSettingKeyExists, key));
             SqliteCommand insertCommand = db.Connection.CreateCommand();
 
             insertCommand.CommandText = $"""
@@ -74,10 +75,10 @@ public partial class TagDatabase
             db.CheckInitialisation();
 
             if (RequiredSettingsKeys.Contains(key))
-                throw new InvalidOperationException(ErrorMessages.SettingIsRequired);
+                throw new InvalidOperationException(ErrorMessages.TagDatabaseDeletingRequiredSetting);
 
             if (!await this.CheckSettingExistenceAsync(key).ConfigureAwait(false))
-                throw new KeyNotFoundException(ErrorMessages.SettingKeyNotFound(key));
+                throw new KeyNotFoundException(string.Format(ErrorMessages.TagDatabaseSettingKeyNotFound, key));
             SqliteCommand command = db.Connection.CreateCommand();
             command.CommandText = $"""
                                        DELETE FROM settings
@@ -120,7 +121,7 @@ public partial class TagDatabase
             db.CheckInitialisation();
 
             if (!await this.CheckSettingExistenceAsync(key).ConfigureAwait(false))
-                throw new KeyNotFoundException(ErrorMessages.SettingKeyNotFound(key));
+                throw new KeyNotFoundException(string.Format(ErrorMessages.TagDatabaseSettingKeyNotFound, key));
             SqliteCommand command = db.Connection.CreateCommand();
             command.CommandText = $"""
                                        SELECT value FROM settings
@@ -153,7 +154,7 @@ public partial class TagDatabase
             db.CheckInitialisation();
 
             if (!await this.CheckSettingExistenceAsync(key).ConfigureAwait(false))
-                throw new KeyNotFoundException(ErrorMessages.SettingKeyNotFound(key));
+                throw new KeyNotFoundException(string.Format(ErrorMessages.TagDatabaseSettingKeyNotFound, key));
             SqliteCommand command = db.Connection.CreateCommand();
             command.CommandText = $"""
                                        UPDATE settings

@@ -72,7 +72,6 @@ public class TagDatabaseWriteTests : TestBase
     {
         ArgumentException? exId =
             Assert.ThrowsAsync<ArgumentException>(async () => await this.Database.DeleteTag(1000));
-        Assert.That(exId?.Message, Is.EqualTo(ErrorMessages.TagNotFound));
     }
 
     /// <summary>

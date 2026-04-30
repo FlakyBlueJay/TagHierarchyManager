@@ -1,3 +1,4 @@
+using TagHierarchyManager.Assets;
 using TagHierarchyManager.Common;
 using TagHierarchyManager.Models;
 
@@ -6,7 +7,7 @@ namespace TagHierarchyManager.Importers;
 ///     Implements an importer for converting a MusicBee tag hierarchy template to a Dictionary of <see cref="ImportedTag"/>s.
 /// </summary>
 /// TODO add manual intervention for tags with duplicate names.
-public partial class MusicBeeTagHierarchyImporter : Importer
+public class MusicBeeTagHierarchyImporter : Importer
 {
     private const int IndentSize = 4; // MusicBee is strict about having an indent size of 4 spaces.
     private const string TagBindingSeparator = "::";
@@ -78,7 +79,7 @@ public partial class MusicBeeTagHierarchyImporter : Importer
         {
             if (currentLine.IndentLevel - previousIndent > 1)
                 throw new ArgumentException(
-                    ErrorMessages.TagHierarchyIndentIsExcessive(currentLine.LineNumber));
+                    string.Format(ErrorMessages.ImporterMusicBeeIndentExcessive, currentLine.LineNumber));
 
             if (!string.IsNullOrEmpty(parentName)) parentStack.Add(parentName);
         }
@@ -87,16 +88,16 @@ public partial class MusicBeeTagHierarchyImporter : Importer
             if (currentLine.IndentLevel <= parentStack.Count)
                 parentStack.RemoveRange(currentLine.IndentLevel, parentStack.Count - currentLine.IndentLevel);
             else
-                throw new InvalidOperationException(ErrorMessages.TagHierarchyPopAttemptOutOfRange);
+                throw new InvalidOperationException(ErrorMessages.ImporterMusicBeePopOutOfRange);
         }
     }
 
     private static void ValidateHierarchyData(string tagHierarchyData)
     {
         // TODO change on the fly instead of erroring out?
-        if (tagHierarchyData.Contains('\t')) throw new ArgumentException(ErrorMessages.TagHierarchyTabsDetected);
+        if (tagHierarchyData.Contains('\t')) throw new ArgumentException(ErrorMessages.ImporterMusicBeeTabsDetected);
 
-        if (tagHierarchyData.StartsWith(' ')) throw new ArgumentException(ErrorMessages.TagHierarchyStartsWithSpace);
+        if (tagHierarchyData.StartsWith(' ')) throw new ArgumentException(ErrorMessages.ImporterMusicBeeStartsWithSpace);
     }
 
     private static void ImportTag(Dictionary<string, ImportedTag> importDict, TagHierarchyLine line, List<string> parentStack)
@@ -158,7 +159,7 @@ public partial class MusicBeeTagHierarchyImporter : Importer
             int indentRemainder = (line.Length - trimmedLine.Length) % IndentSize;
             if (indentRemainder != 0)
                 throw new ArgumentException(
-                    ErrorMessages.TagHierarchyIndentIsUneven(lineCounter));
+                    string.Format(ErrorMessages.ImporterMusicBeeIndentUneven, lineCounter));
 
             this.IndentLevel = (line.Length - trimmedLine.Length) / IndentSize;
         }

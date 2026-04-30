@@ -1,3 +1,5 @@
+using TagHierarchyManager.Assets;
+
 namespace TagHierarchyManager.Models;
 
 /// <summary>
@@ -79,13 +81,17 @@ public partial class Tag
     public bool Validate()
     {
         if (string.IsNullOrWhiteSpace(this.Name))
-            throw new TagValidationException("Tag name cannot be blank.");
+            throw new TagValidationException(ErrorMessages.TagNameIsBlank);
         
         if (!this.IsTopLevel && this.ParentIds.Count == 0 && this.Parents.Count == 0)
-            throw new TagValidationException(ErrorMessages.OrphanTagAttempt(this.Name));
+            throw new TagValidationException(
+                string.Format(ErrorMessages.TagOrphanAttempt, this.Name)
+                );
 
         if (this.Parents.Contains(this.Name) || this.ParentIds.Contains(this.Id))
-            throw new TagValidationException(ErrorMessages.MakingSelfParentAttempt(this.Name));
+            throw new TagValidationException(
+                string.Format(ErrorMessages.TagSelfParentAttempt, this.Name)
+            );
         
         return true;
     }

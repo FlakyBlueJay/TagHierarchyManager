@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Data.Sqlite;
+using TagHierarchyManager.Assets;
 
 namespace TagHierarchyManager.Models;
 
@@ -98,9 +99,9 @@ partial class TagDatabase
 
     private void PerformDeletionChecks(Tag? targetTag)
     {
-        if (targetTag is null) throw new ArgumentException(ErrorMessages.TagNotFound);
+        if (targetTag is null) throw new ArgumentException(ErrorMessages.TagDatabaseTagNotFound);
 
         if (this.GetTagChildren(targetTag.Id).Count > 0)
-            throw new InvalidOperationException(ErrorMessages.TagHasChildren);
+            throw new InvalidOperationException(ErrorMessages.TagDatabaseTagHasChildren);
     }
 }

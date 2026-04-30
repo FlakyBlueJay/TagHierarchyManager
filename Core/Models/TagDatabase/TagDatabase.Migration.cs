@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using TagHierarchyManager.Assets;
 
 namespace TagHierarchyManager.Models;
 
@@ -11,7 +12,7 @@ public partial class TagDatabase
     private async Task PerformNeededMigrations()
     {
         if (this.currentConnection is null)
-            throw new InvalidOperationException(ErrorMessages.DbNotInitialised);
+            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
         var transaction =
             (SqliteTransaction)
             await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
@@ -36,7 +37,7 @@ public partial class TagDatabase
                 updateModifiedCommand.ExecuteNonQuery();
 
                 var deleteOldTableCommand = this.currentConnection.CreateCommand() ??
-                                            throw new InvalidOperationException(ErrorMessages.DbNotInitialised);
+                                            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
                 deleteOldTableCommand.Transaction = transaction;
                 deleteOldTableCommand.CommandText =
                     "DROP TABLE alias;";

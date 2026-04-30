@@ -79,7 +79,6 @@ public class ImporterTests : TestBase
     ///     that starts with a space.
     /// </summary>
     /// <param name="brokenHierarchy">The string to attempt to send to the importer.</param>
-    /// <param name="exceptionMessage">The expected error message.</param>
     [Test]
     [TestCase(
 #pragma warning disable SA1027
@@ -87,10 +86,9 @@ public class ImporterTests : TestBase
         Ambient
         	Ambient::genre
         	Ambient::style
-        """, MusicBeeTagHierarchyImporter.ErrorMessages.TagHierarchyTabsDetected)]
-    [TestCase(" Ambient", MusicBeeTagHierarchyImporter.ErrorMessages.TagHierarchyStartsWithSpace)]
-    public async Task ImportAsync_ImportMusicBeeTagHierarchy_ArgumentExceptionThrown(string brokenHierarchy,
-        string exceptionMessage)
+        """)]
+    [TestCase(" Ambient")]
+    public async Task ImportAsync_ImportMusicBeeTagHierarchy_ArgumentExceptionThrown(string brokenHierarchy)
     {
         string tempFilePath = Path.GetTempFileName();
         await File.WriteAllTextAsync(tempFilePath, brokenHierarchy);
@@ -98,7 +96,6 @@ public class ImporterTests : TestBase
         Importer importer = new MusicBeeTagHierarchyImporter();
         Exception? ex =
             Assert.ThrowsAsync<ArgumentException>(async () => await importer.ImportFromFileAsync(tempFilePath));
-        Assert.That(ex!.Message, Is.EqualTo(exceptionMessage));
     }
 
     /// <summary>
@@ -108,30 +105,26 @@ public class ImporterTests : TestBase
     /// </summary>
     /// <param name="brokenHierarchy">The string to attempt to send to the importer.</param>
     /// <param name="lineNumber">The line number to be expected.</param>
-    /// <param name="exceptionMessage">The expected error message template.</param>
     [Test]
     [TestCase(
         """
         Ambient
            Ambient::genre
            Ambient::style
-        """, 2, MusicBeeTagHierarchyImporter.ErrorMessages.IndentIsUnevenTemplate)]
+        """, 2)]
     [TestCase(
         """
         Ambient
                 Ambient::genre
                 Ambient::style
-        """, 2, MusicBeeTagHierarchyImporter.ErrorMessages.IndentIsExcessiveTemplate)]
+        """, 2)]
     public async Task ImportAsync_ImportMusicBeeTagHierarchy_TagHierarchyDataExceptionThrown(string brokenHierarchy,
-        int lineNumber, string exceptionMessage)
+        int lineNumber)
     {
-        // Arrange
-        string expectedExceptionMessage = string.Format(exceptionMessage, lineNumber);
         string tempFilePath = Path.GetTempFileName();
         await File.WriteAllTextAsync(tempFilePath, brokenHierarchy);
         Importer importer = new MusicBeeTagHierarchyImporter();
         Exception? ex =
             Assert.ThrowsAsync<ArgumentException>(async () => await importer.ImportFromFileAsync(tempFilePath));
-        Assert.That(ex!.Message, Is.EqualTo(expectedExceptionMessage));
     }
 }

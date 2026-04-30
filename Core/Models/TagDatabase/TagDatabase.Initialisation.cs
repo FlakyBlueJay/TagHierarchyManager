@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.Data.Sqlite;
+using TagHierarchyManager.Assets;
 
 namespace TagHierarchyManager.Models;
 
@@ -24,7 +25,7 @@ public partial class TagDatabase
     private void CheckInitialisation()
     {
         if (!this.Initialised || this.currentConnection is null || this.Connection is null)
-            throw new InvalidOperationException(ErrorMessages.DbNotInitialised);
+            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
     }
 
     /// <summary>
@@ -66,12 +67,12 @@ public partial class TagDatabase
     {
         if (filePath == InMemoryDbPath) return null;
 
-        if (string.IsNullOrEmpty(filePath)) return ErrorMessages.FilePathIsEmpty;
+        if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException(ErrorMessages.TagDatabaseFilePathEmpty);
 
         string fileExt = Path.GetExtension(filePath);
-        if (fileExt != TagHierarchyDbFileExt) return ErrorMessages.InvalidFileExtension;
+        if (fileExt != TagHierarchyDbFileExt) throw new ArgumentException(ErrorMessages.TagDatabaseInvalidFileExt);
 
-        if (loadMode && !File.Exists(filePath)) return ErrorMessages.FilePathNotFound;
+        if (loadMode && !File.Exists(filePath)) throw new FileNotFoundException(null, filePath);
 
         return null;
     }
@@ -83,11 +84,7 @@ public partial class TagDatabase
         {
             if (overwrite && File.Exists(filePath)) File.Delete(filePath);
 
-            string? errorString = ValidateFilePath(filePath);
-            if (errorString is not null)
-            {
-                throw new ArgumentException(errorString);
-            }
+            ValidateFilePath(filePath);
 
             this.currentConnection = new SqliteConnection($"Data Source={filePath};Pooling=False");
 
@@ -164,7 +161,7 @@ public partial class TagDatabase
     {
         this.Logger.Information("[TagHierarchyDatabase.Initialise] Initialising...");
         SqliteCommand command = this.currentConnection?.CreateCommand() ??
-                                throw new InvalidOperationException(ErrorMessages.DbNotInitialised);
+                                throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
         command.CommandText = "SELECT * FROM SETTINGS;";
         try
         {
@@ -278,14 +275,14 @@ public partial class TagDatabase
             if (notTagDatabase)
             {
                 this.Close();
-                throw new ArgumentException(ErrorMessages.DbNotValid);
+                throw new ArgumentException(ErrorMessages.TagDatabaseInvalidStructure);
             }
         }
         catch (SqliteException ex)
         {
             this.Close();
             if (ex.SqliteErrorCode == 1)
-                throw new ArgumentException(ErrorMessages.DbNotValid);
+                throw new ArgumentException(ErrorMessages.TagDatabaseInvalidStructure);
             throw;
         }
 
@@ -302,14 +299,14 @@ public partial class TagDatabase
                 CultureInfo.InvariantCulture);
             if (schemaVersion == 0)
             {
-                throw new ArgumentException(ErrorMessages.DbFileNotValid);
+                throw new ArgumentException(ErrorMessages.TagDatabaseInvalidFile);
             }
         }
         catch (SqliteException ex)
         {
             this.Close();
             if (ex.SqliteErrorCode == 26)
-                throw new ArgumentException(ErrorMessages.DbFileNotValid);
+                throw new ArgumentException(ErrorMessages.TagDatabaseInvalidFile);
             throw;
         }
 

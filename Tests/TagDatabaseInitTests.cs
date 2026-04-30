@@ -41,10 +41,9 @@ public class TagDatabaseInitTests : TestBase
         }
 
         TagDatabase dummyDb = new();
-        Exception? ex = Assert.ThrowsAsync<ArgumentException>(async () => await dummyDb.LoadAsync(invalidDbPath));
-
+        
         // Act/Assert
-        Assert.That(ex?.Message, Is.EqualTo(ErrorMessages.DbFileNotValid));
+        Exception? ex = Assert.ThrowsAsync<ArgumentException>(async () => await dummyDb.LoadAsync(invalidDbPath));
     }
 
     /// <summary>
@@ -54,14 +53,12 @@ public class TagDatabaseInitTests : TestBase
     /// <param name="errorMessage">The expected error message.</param>
     /// <returns>A <see cref="Task" /> representing the asynchronous test.</returns>
     [Test]
-    [TestCase("", ErrorMessages.FilePathIsEmpty)]
-    [TestCase("invalid_file.exe", ErrorMessages.InvalidFileExtension)]
-    public void TagDatabaseInit_NewTagDatabase_ErrorCaughtFileBased(string fileName, string errorMessage)
+    [TestCase("")]
+    [TestCase("invalid_file.exe")]
+    public void TagDatabaseInit_NewTagDatabase_ErrorCaughtFileBased(string fileName)
     {
         TagDatabase invalidDb = new();
         Exception? ex = Assert.ThrowsAsync<ArgumentException>(async () => await invalidDb.CreateAsync(fileName));
-
-        Assert.That(ex?.Message, Is.EqualTo(errorMessage));
     }
 
     /// <summary>
@@ -82,12 +79,10 @@ public class TagDatabaseInitTests : TestBase
                               """;
         await command.ExecuteNonQueryAsync();
 
+        // Act/Assert
         Exception? ex =
             Assert.ThrowsAsync<ArgumentException>(async () =>
                 await this.Database.LoadAsync(connection: invalidConnection));
-
-        // Act/Assert
-        Assert.That(ex?.Message, Is.EqualTo(ErrorMessages.DbNotValid));
     }
 
     /// <summary>

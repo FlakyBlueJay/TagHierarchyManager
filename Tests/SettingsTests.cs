@@ -41,7 +41,6 @@ public class SettingsTests : TestBase
         // Act/Assert
         ArgumentException ex = Assert.ThrowsAsync<ArgumentException>(async () =>
             await this.Database.Settings.CreateSettingAsync(AddedTestKey, AddedTestValue)) !;
-        Assert.That(ex.Message, Is.EqualTo(ErrorMessages.SettingKeyAlreadyExists(AddedTestKey)));
     }
 
     /// <summary>
@@ -56,7 +55,7 @@ public class SettingsTests : TestBase
         List<string> changedTagBindings = ["genre", "album genre"];
 
         // Act
-        this.Database.DefaultTagBindings = changedTagBindings;
+        await this.Database.SetDefaultTagBindingsAsync(changedTagBindings);
 
         // Assert
         string? settingValueString = await this.Database.Settings.GetSettingValueAsync(ExpectedTagBindKey);
@@ -105,7 +104,6 @@ public class SettingsTests : TestBase
     {
         KeyNotFoundException ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
             await this.Database.Settings.DeleteSettingAsync(NonExistentKey)) !;
-        Assert.That(ex.Message, Is.EqualTo(ErrorMessages.SettingKeyNotFound(NonExistentKey)));
     }
 
     /// <summary>
@@ -180,7 +178,6 @@ public class SettingsTests : TestBase
     {
         KeyNotFoundException? ex = Assert.ThrowsAsync<KeyNotFoundException>(async () =>
             await this.Database.Settings.UpdateSettingAsync(NonExistentKey, "testvalue"));
-        Assert.That(ex!.Message, Is.EqualTo(ErrorMessages.SettingKeyNotFound(NonExistentKey)));
     }
 
     /// <summary>

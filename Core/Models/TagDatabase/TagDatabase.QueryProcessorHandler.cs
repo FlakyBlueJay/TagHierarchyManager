@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using TagHierarchyManager.Assets;
 
 namespace TagHierarchyManager.Models;
 
@@ -79,7 +80,7 @@ public partial class TagDatabase
         private static void ProcessTagParentSelectionInt(SqliteCommand command, int id)
         {
             if (id == 0)
-                throw new ArgumentException(ErrorMessages.EmptyParameters);
+                throw new ArgumentException(ErrorMessages.TagDatabaseEmptyParameters);
 
             command.CommandText = TagParentSelectionBaseCommand;
             command.Parameters.AddWithValue("@target_id", id);

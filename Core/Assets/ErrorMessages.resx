@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="TagSelfParentAttempt" xml:space="preserve">
+        <value>Tag {0} has itself in Parents, which is invalid.</value>
+    </data>
+    <data name="TagOrphanAttempt" xml:space="preserve">
+        <value>Tag {0} has no parents specified and is not top-level, which is invalid.</value>
+    </data>
+    <data name="TagNameIsBlank" xml:space="preserve">
+        <value>Tag {0} has no parents specified and is not top-level, which is invalid.</value>
+    </data>
+    <data name="TagDatabaseInvalidFile" xml:space="preserve">
+        <value>This is not a valid SQLite database.</value>
+    </data>
+    <data name="TagDatabaseInvalidStructure" xml:space="preserve">
+        <value>This is not a valid database file for the Tag Hierarchy Manager application.</value>
+    </data>
+    <data name="TagDatabaseInvalidFileExt" xml:space="preserve">
+        <value>File extension must be .thdb.</value>
+    </data>
+    <data name="TagDatabaseNotInitialised" xml:space="preserve">
+        <value>The tag hierarchy database has not been initialised.</value>
+    </data>
+    <data name="TagDatabaseEmptyParameters" xml:space="preserve">
+        <value>No usable parameters received.</value>
+    </data>
+    <data name="TagDatabaseFilePathEmpty" xml:space="preserve">
+        <value>File path cannot be empty.</value>
+    </data>
+    <data name="TagDatabaseDeletingRequiredSetting" xml:space="preserve">
+        <value>This setting is required and cannot be deleted.</value>
+    </data>
+    <!-- In the future, I'll make it so you can change the parents of a deleted tag's children. -->
+    <data name="TagDatabaseTagHasChildren" xml:space="preserve">
+        <value>The tag requested has child tags and cannot currently be deleted. Delete its children first and try again.</value>
+    </data>
+    <data name="TagDatabaseTagNotFound" xml:space="preserve">
+        <value>The tag requested does not exist in the database.</value>
+    </data>
+    <data name="TagDatabaseSettingKeyExists" xml:space="preserve">
+        <value>Setting {0} already exists in the database.</value>
+    </data>
+    <data name="TagDatabaseSettingKeyNotFound" xml:space="preserve">
+        <value>Setting {0} was not found in the settings table.</value>
+    </data>
+    <data name="TagDatabaseSqliteGeneric" xml:space="preserve">
+        <value>Cannot execute function on database due to SQLite error. Error code: {0}</value>
+    </data>
+    <data name="ImporterMusicBeeIndentExcessive" xml:space="preserve">
+        <value>Excessive indent was detected at line {0}.</value>
+    </data>
+    <data name="ImporterMusicBeeIndentUneven" xml:space="preserve">
+        <value>Uneven indent was found at line {0}.</value>
+    </data>
+    <data name="ImporterMusicBeePopOutOfRange" xml:space="preserve">
+        <value>Process exited abruptly due to an error with handling the indent. (current line's indent level was greater than the amount of tags in the parent stack)</value>
+    </data>
+    <data name="ImporterMusicBeeStartsWithSpace" xml:space="preserve">
+        <value>Tag hierarchy starts with a space, which is not valid for a tag hierarchy template's structure.</value>
+    </data>
+    <data name="ImporterMusicBeeTabsDetected" xml:space="preserve">
+        <value>Tab characters were detected, which is an invalid structure for MusicBee tag hierarchy templates.</value>
+    </data>
+    
+</root>

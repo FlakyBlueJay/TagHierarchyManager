@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using TagHierarchyManager.Assets;
 using TagHierarchyManager.Utilities;
 
 namespace TagHierarchyManager.Models;
@@ -8,7 +9,7 @@ public partial class TagDatabase
     private async Task ImportAsync(Dictionary<string, ImportedTag> importDict)
     {
         if (this.currentConnection is null)
-            throw new InvalidOperationException(ErrorMessages.DbNotInitialised);
+            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
         
         await using SqliteTransaction transaction =
             (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
@@ -30,7 +31,7 @@ public partial class TagDatabase
                     //currentTag = currentTagList[0];
                 }
                 if (currentTag is null)
-                    throw new InvalidOperationException(ErrorMessages.TagNotFound);
+                    throw new InvalidOperationException(ErrorMessages.TagDatabaseTagNotFound);
                 // todo search parent here then save the parents.
                 await this.SaveTagParents(transaction, currentTag.Id, tag.Parents, currentTag).ConfigureAwait(false);
             }
@@ -48,7 +49,7 @@ public partial class TagDatabase
     private async Task WriteImportedTagToDatabase(SqliteTransaction transaction, ImportedTag tag)
     {
         if (this.currentConnection is null)
-            throw new InvalidOperationException(ErrorMessages.DbNotInitialised);
+            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
         
         SqliteCommand addCommand = this.currentConnection.CreateCommand();
         addCommand.Transaction = transaction;
