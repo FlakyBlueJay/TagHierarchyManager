@@ -76,6 +76,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
             this._mainWindow.StatusBlockText = string.Format(Resources.StatusBlockTagSaveSuccessful,
                 this._mainWindow.SelectedTag.CurrentName);
             this.UnsavedChanges = false;
+            this.OnPropertyChanged(nameof(this.CanDeleteSelectedTag));
         }
         catch (Exception ex)
         {
@@ -110,6 +111,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
         if (value is null) return;
         value.BeginEdit();
         this.UnsavedChanges = false;
+        this.OnPropertyChanged(nameof(this.CanDeleteSelectedTag));
     }
 
     partial void OnSelectedTagIdChanged(int value)
