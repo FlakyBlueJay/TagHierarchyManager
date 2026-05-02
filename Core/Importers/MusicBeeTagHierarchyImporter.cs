@@ -4,6 +4,18 @@ using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager.Importers;
 
+/// TODO Manual intervention for ambiguous duplicate-name tags during import.
+/// Identity is name-based merging by default. When the same tag name appears
+/// under disjoint parent sets within a single file, the user may have meant
+/// distinct tags (e.g. Atmosphere/Spiritual the mood vs Religion/Spiritual the
+/// genre) rather than one merged tag. Current behaviour merges silently.
+///
+/// Scope when implementing:
+/// - Detect ambiguity at end of parsing, before database writing.
+/// - One-shot UI prompt to resolve each case.
+/// - No cross-import persistence — each import is a fresh database.
+/// - No automatic merging of tags with identical names, or with parents detected as being identical.
+
 /// <summary>
 ///     Implements an importer for converting a MusicBee tag hierarchy template to a Dictionary of
 ///     <see cref="ImportedTag" />s.
@@ -62,7 +74,7 @@ public class MusicBeeTagHierarchyImporter : Importer
 
         return tagsToImport;
     }
-
+    
     private static void AddTagBindingIfMissing(ImportedTag currentTag, string tagBinding)
     {
         if (!string.IsNullOrEmpty(tagBinding))

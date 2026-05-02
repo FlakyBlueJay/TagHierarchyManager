@@ -16,28 +16,22 @@ public partial class TagDatabase
         try
         {
             // phase 1: add all the tags, without anything that relies on other tables.
-            foreach (var tag in importDict.Values) await this.WriteImportedTagToDatabase(transaction, tag);
-
+            var nameToId = new Dictionary<string, int>();
+            foreach (var tag in importDict.Values)
+            {
+                var id = await this.WriteImportedTagToDatabase(transaction, tag);
+                nameToId[tag.Name] = id;
+            }
+            
             this.Tags = await this.GetAllTagsFromDatabase(transaction: transaction).ConfigureAwait(false);
-
+            
             // phase 2: add the parents and aliases.
             foreach (var tag in importDict.Values)
             {
                 var currentTag = this.Tags.SingleOrDefault(t => t.Name == tag.Name);
 
-                // todo collect tags requiring manual intervention here?
-                
-                if (currentTag is null)
-                    throw new InvalidOperationException(ErrorMessages.TagDatabaseTagNotFound);
-                
-                var parentIds = new List<int>();
-                foreach (var parentTags in tag.Parents.Select(parentName => this.Tags.Where(t => t.Name == parentName).ToList()))
-                {
-                    if (parentTags.Count > 1)
-                        throw new NotImplementedException("Manual intervention required, not implemented yet.");
-                    parentIds.Add(parentTags[0].Id);
-                }
-                
+                var parentIds = tag.Parents.Select(parentName => nameToId[parentName]).ToList();    
+
                 if (parentIds.Count == 0) continue;
                 await this.WriteImportedParentsToDatabase(transaction, currentTag.Id, parentIds).ConfigureAwait(false);
             }
@@ -52,7 +46,7 @@ public partial class TagDatabase
     }
 
 
-    private async Task WriteImportedTagToDatabase(SqliteTransaction transaction, ImportedTag tag)
+    private async Task<int> WriteImportedTagToDatabase(SqliteTransaction transaction, ImportedTag tag)
     {
         if (this.currentConnection is null)
             throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
@@ -62,13 +56,15 @@ public partial class TagDatabase
         addCommand.CommandText = """
                                  INSERT INTO tag (name, notes, top_level, tags_to_bind, also_known_as, date_modified)
                                  VALUES (@name, @notes, @is_top_level, @tags_to_bind, @aliases, CURRENT_TIMESTAMP)
+                                 RETURNING last_insert_rowid();
                                  """;
         addCommand.Parameters.AddWithValue("@name", tag.Name);
         addCommand.Parameters.AddWithValue("@notes", tag.Notes);
         addCommand.Parameters.AddWithValue("@is_top_level", tag.IsTopLevel ? 1 : 0);
         addCommand.Parameters.AddWithValue("@tags_to_bind", string.Join(";", tag.TagBindings));
         addCommand.Parameters.AddWithValue("@aliases", string.Join(";", tag.Aliases));
-        await addCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
+        var newId = Convert.ToInt32(await addCommand.ExecuteScalarAsync().ConfigureAwait(false));
+        return newId;
     }
 
     private async Task WriteImportedParentsToDatabase(SqliteTransaction transaction, int targetId, List<int> parentIds)
