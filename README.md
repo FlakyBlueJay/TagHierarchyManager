@@ -15,7 +15,7 @@ JetBrains Rider is strongly recommended for developing for this project, Visual 
 Visual Studio Code is not recommended by upstream (Avalonia UI) due to limitations, but might work too.
 
 ### LLM Use
-Anthropic's Claude LLMs (Sonnet 4.6, Opus 4.7) has been used to improve performance and reliability of the code, due to personal medical reasons.
+Anthropic's Claude LLMs (Sonnet 4.6, Opus 4.7) has been used by myself, to improve performance and reliability of the code, due to personal medical reasons.
 
 For that reason, contributions using LLMs are accepted, but **you take responsibility for all contributions you submit** and you are expected to understand the code you submit, without deflecting to an LLM.
 
