@@ -1,0 +1,39 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="TagHierarchyManager.UI.Controls.MultiValueAutoCompleteBox"
+             xmlns:controls="clr-namespace:TagHierarchyManager.UI.Controls"
+             xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels">
+    <Grid>
+        <TextBox Name="MultiValueAutoCompleteBoxTextBox"
+                 Text="{Binding Text,
+                 RelativeSource={RelativeSource AncestorType=controls:MultiValueAutoCompleteBox}}"
+                 Watermark="{Binding Watermark,
+                 RelativeSource={RelativeSource AncestorType=controls:MultiValueAutoCompleteBox}}"
+                 TextChanged="TextBox_OnTextChanged"
+                 GotFocus="TextBox_OnGotFocus" LostFocus="TextBox_OnLostFocus"/>
+        
+        <Popup Name="MultiValueAutoCompletePopup"
+               Placement="Bottom"
+               IsLightDismissEnabled="False"
+               IsOpen="False">
+            <Border CornerRadius="10" Background="#555555">
+                <ListBox Name="MultiValueAutoCompleteListBox"
+                         SelectionMode="Single"
+                         MaxHeight="500"
+                         SelectionChanged="ListBox_OnSelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:TagItemViewModel">
+                            <TextBlock Text="{Binding CurrentName}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+            
+                  
+              
+        </Popup>
+    </Grid>
+</UserControl>
