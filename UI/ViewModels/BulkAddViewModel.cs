@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -21,6 +23,11 @@ public partial class BulkAddViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<BulkAddTagRow> _tags;
 
     [ObservableProperty] private string _windowTitle;
+    
+    private List<TagItemViewModel> AutoCompleteTags =>
+        this.TagDatabaseService.GetAllTags()
+            .Select(t => new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds)).ToList();
+
 
     public BulkAddViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
@@ -35,7 +42,8 @@ public partial class BulkAddViewModel : ViewModelBase
             {
                 Name = "",
                 IsTopLevel = false,
-                TagBindings = string.Join("; ", this.TagDatabaseService.DefaultTagBindings)
+                TagBindings = string.Join("; ", this.TagDatabaseService.DefaultTagBindings),
+                AutoCompleteTags = this.AutoCompleteTags
             }
         ];
 
@@ -57,7 +65,8 @@ public partial class BulkAddViewModel : ViewModelBase
         {
             Name = "",
             IsTopLevel = false,
-            TagBindings = string.Join("; ", this._mainWindow.TagDatabaseService.DefaultTagBindings)
+            TagBindings = string.Join("; ", this._mainWindow.TagDatabaseService.DefaultTagBindings),
+            AutoCompleteTags = this.AutoCompleteTags
         });
     }
 
@@ -133,7 +142,7 @@ public partial class BulkAddViewModel : ViewModelBase
         }
     }
 
-    public class BulkAddTagRow
+    public class BulkAddTagRow()
     {
         public string Aliases { get; set; } = string.Empty;
         public bool IsTopLevel { get; set; }
@@ -142,5 +151,7 @@ public partial class BulkAddViewModel : ViewModelBase
 
         public string Parents { get; set; } = string.Empty;
         public string TagBindings { get; set; } = string.Empty;
+        public List<TagItemViewModel> AutoCompleteTags { get; init; } = [];
+        
     }
 }

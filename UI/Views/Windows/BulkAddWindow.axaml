@@ -9,6 +9,7 @@
         Width="1100" Height="450"
         x:Class="TagHierarchyManager.UI.Views.BulkAddWindow"
         Title="{x:Static assets:Resources.TitleBulkAdd}"
+        xmlns:controls="clr-namespace:TagHierarchyManager.UI.Controls"
         KeyDown="BulkAddWindow_OnKeyDown">
     <Grid
         RowDefinitions="*, Auto"
@@ -33,8 +34,20 @@
                                             Binding="{Binding IsTopLevel}" />
                     <DataGridTextColumn Header="{x:Static assets:Resources.HeaderName}" Binding="{Binding Name}"
                                         MinWidth="200" />
-                    <DataGridTextColumn Header="{x:Static assets:Resources.HeaderParents}" Binding="{Binding Parents}"
-                                        MinWidth="200" />
+                    <DataGridTemplateColumn Header="{x:Static assets:Resources.HeaderParents}" MinWidth="200" >
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="vm:BulkAddViewModel+BulkAddTagRow">
+                                <TextBlock Text="{Binding Parents}" Margin="10 10"
+                                           VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate DataType="vm:BulkAddViewModel+BulkAddTagRow">
+                                <controls:MultiValueAutoCompleteBox Text="{Binding Parents}"
+                                                                    ItemsSource="{Binding AutoCompleteTags}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn Header="{x:Static assets:Resources.HeaderTagBindings}"
                                         Binding="{Binding TagBindings}" />
                     <DataGridTextColumn Header="{x:Static assets:Resources.HeaderAliases}" Binding="{Binding Aliases}"
