@@ -103,7 +103,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
         {
             var filtered = this.ItemsSource
                 .Where(t => t.CurrentName.Contains(itemName, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+                .OrderBy(t=> t.CurrentName, StringComparer.OrdinalIgnoreCase).ToList();
             foreach (var item in filtered)
                 this.FilteredItems.Add(item);
             
