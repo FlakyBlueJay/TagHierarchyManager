@@ -6,16 +6,21 @@
              xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TagHierarchyManager.UI.Views.Controls.TagEditor"
-             x:DataType="vm:TagEditorViewModel">
+             x:DataType="vm:TagEditorViewModel"
+             xmlns:controls="clr-namespace:TagHierarchyManager.UI.Controls">
     <Grid RowDefinitions="Auto, Auto, Auto, Auto, *, Auto"
           IsEnabled="{Binding SelectedTag, Converter={x:Static ObjectConverters.IsNotNull}}">
         <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName, FallbackValue=''}"
                  Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch"
                  Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
-        <TextBox Grid.Row="1" Name="ParentsTextBox"
-                 Text="{Binding SelectedTag.EditingParents, FallbackValue=''}"
-                 Watermark="{x:Static assets:Resources.WatermarkTagParents}" HorizontalAlignment="Stretch"
-                 Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
+        <controls:MultiValueAutoCompleteBox Grid.Row="1"
+                                            Name="ParentsTextBox"
+                                            Text="{Binding SelectedTag.EditingParents, FallbackValue=''}"
+                                            Watermark="{x:Static assets:Resources.WatermarkTagParents}"
+                                            HorizontalAlignment="Stretch"
+                                            ItemsSource="{Binding AutoCompleteTags}"
+                                            Margin="0 0 0 5"/>
+        <!-- TODO handle textchanged event here too - atm multivalueautocompletebox does not expose that. -->
         <TextBox Grid.Row="2" Name="BindingsTextBox"
                  Text="{Binding SelectedTag.EditingTagBindings, FallbackValue=''}"
                  Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch"

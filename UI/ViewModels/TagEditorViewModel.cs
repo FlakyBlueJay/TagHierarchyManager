@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,10 +16,14 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
     private readonly DialogService _dialogService;
     private readonly MainWindowViewModel _mainWindow;
     [ObservableProperty] private TagItemViewModel? _selectedTag;
-
+    
     [ObservableProperty] private int _selectedTagId;
     [ObservableProperty] private bool _unsavedChanges;
-
+    
+    public List<TagItemViewModel> AutoCompleteTags =>
+        this.TagDatabaseService.GetAllTags()
+            .Select(t => new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds)).ToList();
+    
     public TagEditorViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
         this._mainWindow = mainWindow;
@@ -136,5 +142,6 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
         foreach (var deletedTag in tags.Deleted)
             if (this._mainWindow.SelectedTag?.Id == deletedTag.id)
                 this._mainWindow.SelectedTag = null;
+        this.OnPropertyChanged(nameof(this.AutoCompleteTags));
     }
 }
