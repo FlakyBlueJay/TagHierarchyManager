@@ -19,8 +19,8 @@
                                             Watermark="{x:Static assets:Resources.WatermarkTagParents}"
                                             HorizontalAlignment="Stretch"
                                             ItemsSource="{Binding AutoCompleteTags}"
-                                            Margin="0 0 0 5" />
-        <!-- TODO handle textchanged event here too - atm multivalueautocompletebox does not expose that. -->
+                                            Margin="0 0 0 5"
+                                            TextChanged="OnTagTextboxEdited" />
         <TextBox Grid.Row="2" Name="BindingsTextBox"
                  Text="{Binding SelectedTag.EditingTagBindings, FallbackValue=''}"
                  Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch"

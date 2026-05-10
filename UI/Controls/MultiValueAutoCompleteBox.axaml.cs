@@ -19,6 +19,10 @@ public partial class MultiValueAutoCompleteBox : UserControl
         AvaloniaProperty.Register<MultiValueAutoCompleteBox, IEnumerable<TagItemViewModel>?>(
             nameof(ItemsSource), []);
 
+    private static readonly RoutedEvent<TextChangedEventArgs> TextChangedEvent =
+        RoutedEvent.Register<MultiValueAutoCompleteBox, TextChangedEventArgs>(nameof(TextChanged),
+            RoutingStrategies.Bubble);
+
     public static readonly StyledProperty<string> TextProperty =
         AvaloniaProperty.Register<MultiValueAutoCompleteBox, string>(
             nameof(Text), string.Empty, defaultBindingMode: BindingMode.TwoWay);
@@ -51,6 +55,14 @@ public partial class MultiValueAutoCompleteBox : UserControl
             this.MultiValueAutoCompleteBoxTextBox.Focus();
             e.Handled = true;
         };
+        this.MultiValueAutoCompleteBoxTextBox.TextChanged +=
+            (s, e) => this.RaiseEvent(new TextChangedEventArgs(TextChangedEvent));
+    }
+
+    public event EventHandler<TextChangedEventArgs>? TextChanged
+    {
+        add => this.AddHandler(TextChangedEvent, value);
+        remove => this.RemoveHandler(TextChangedEvent, value);
     }
 
     public IEnumerable<TagItemViewModel>? ItemsSource
