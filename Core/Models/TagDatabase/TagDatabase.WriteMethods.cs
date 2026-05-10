@@ -16,7 +16,7 @@ public partial class TagDatabase
         this.CheckInitialisation();
         tag.Validate();
         var isTransactionOwner = transaction == null;
-        transaction ??= (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
+        transaction ??= (SqliteTransaction)await this._currentConnection.BeginTransactionAsync().ConfigureAwait(false);
 
         var oldTag = new Tag
         {
@@ -31,7 +31,7 @@ public partial class TagDatabase
 
         try
         {
-            var addCommand = this.currentConnection.CreateCommand();
+            var addCommand = this._currentConnection.CreateCommand();
             addCommand.Transaction = transaction;
             QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
 
@@ -93,7 +93,7 @@ public partial class TagDatabase
 
         try
         {
-            var addCommand = this.currentConnection.CreateCommand();
+            var addCommand = this._currentConnection.CreateCommand();
             addCommand.Transaction = transaction.Transaction;
             QueryProcessorHandler.ProcessTagSaveCommand(addCommand, tag);
 
@@ -129,7 +129,7 @@ public partial class TagDatabase
         this.CheckInitialisation();
 
         // clear existing tag parents so we have a clean slate.
-        var deleteCommand = this.currentConnection.CreateCommand();
+        var deleteCommand = this._currentConnection.CreateCommand();
         deleteCommand.Transaction = transaction;
         deleteCommand.CommandText = """
                                         DELETE FROM tag_parent_link
@@ -139,7 +139,7 @@ public partial class TagDatabase
         await deleteCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
 
         // process + add parent links
-        var parentCommand = this.currentConnection.CreateCommand();
+        var parentCommand = this._currentConnection.CreateCommand();
         parentCommand.Transaction = transaction;
         parentCommand.CommandText = """
                                         INSERT INTO tag_parent_link (target_tag_id, parent_tag_id)

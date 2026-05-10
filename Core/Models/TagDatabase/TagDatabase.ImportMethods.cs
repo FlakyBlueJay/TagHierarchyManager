@@ -7,11 +7,11 @@ public partial class TagDatabase
 {
     private async Task ImportAsync(Dictionary<string, ImportedTag> importDict)
     {
-        if (this.currentConnection is null)
+        if (this._currentConnection is null)
             throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
 
         await using var transaction =
-            (SqliteTransaction)await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
+            (SqliteTransaction)await this._currentConnection.BeginTransactionAsync().ConfigureAwait(false);
 
         try
         {
@@ -60,7 +60,7 @@ public partial class TagDatabase
         var query =
             $"INSERT INTO tag_parent_link (target_tag_id, parent_tag_id) VALUES {string.Join(", ", valuesClauses)};";
 
-        var parentCommand = this.currentConnection.CreateCommand();
+        var parentCommand = this._currentConnection.CreateCommand();
         parentCommand.Transaction = transaction;
         parentCommand.CommandText = query;
         parentCommand.Parameters.AddRange(parameters);
@@ -71,10 +71,10 @@ public partial class TagDatabase
 
     private async Task<int> WriteImportedTagToDatabase(SqliteTransaction transaction, ImportedTag tag)
     {
-        if (this.currentConnection is null)
+        if (this._currentConnection is null)
             throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
 
-        var addCommand = this.currentConnection.CreateCommand();
+        var addCommand = this._currentConnection.CreateCommand();
         addCommand.Transaction = transaction;
         addCommand.CommandText = """
                                  INSERT INTO tag (name, notes, top_level, tags_to_bind, also_known_as, date_modified)

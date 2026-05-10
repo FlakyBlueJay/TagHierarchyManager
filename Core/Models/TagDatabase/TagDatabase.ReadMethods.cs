@@ -18,7 +18,7 @@ public partial class TagDatabase
     {
         this.CheckInitialisation();
 
-        var command = this.currentConnection.CreateCommand();
+        var command = this._currentConnection.CreateCommand();
         if (transaction is not null) command.Transaction = transaction;
         command.CommandText = """
                                   SELECT
@@ -78,7 +78,7 @@ public partial class TagDatabase
     public async Task<int> GetTagRelationshipCountAsync()
     {
         this.CheckInitialisation();
-        var command = this.currentConnection.CreateCommand();
+        var command = this._currentConnection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM tag_parent_link";
 
         var count = Convert.ToInt32(await command.ExecuteScalarAsync());
@@ -94,7 +94,7 @@ public partial class TagDatabase
     public async Task<Tag?> SelectTagFromDatabase(int id, SqliteTransaction? transaction = null)
     {
         this.CheckInitialisation();
-        var command = this.currentConnection.CreateCommand();
+        var command = this._currentConnection.CreateCommand();
         command.CommandText = """
                               SELECT
                                   tag.id,
@@ -116,7 +116,7 @@ public partial class TagDatabase
         var selectedTag = tags.FirstOrDefault();
         if (selectedTag is null) return null;
 
-        var parentCommand = this.currentConnection.CreateCommand();
+        var parentCommand = this._currentConnection.CreateCommand();
         if (transaction is not null) parentCommand.Transaction = transaction;
         QueryProcessorHandler.ProcessTagParentSelectionCommand(parentCommand, selectedTag.Id);
         var parents = await this.ExecuteTagRetrievalDatabaseQuery(parentCommand, false).ConfigureAwait(false);

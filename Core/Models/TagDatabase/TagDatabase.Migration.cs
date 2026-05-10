@@ -11,18 +11,18 @@ public partial class TagDatabase
     /// <exception cref="InvalidOperationException">Thrown if the database's current connection is null.</exception>
     private async Task PerformNeededMigrations()
     {
-        if (this.currentConnection is null)
+        if (this._currentConnection is null)
             throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
         var transaction =
             (SqliteTransaction)
-            await this.currentConnection.BeginTransactionAsync().ConfigureAwait(false);
+            await this._currentConnection.BeginTransactionAsync().ConfigureAwait(false);
 
         try
         {
             if (this.Version < 2)
             {
                 // version 2 adds a date column to tag and removes the aliases table.
-                var addDateAddedCommand = this.currentConnection.CreateCommand();
+                var addDateAddedCommand = this._currentConnection.CreateCommand();
                 addDateAddedCommand.Transaction = transaction;
                 addDateAddedCommand.CommandText =
                     """
@@ -31,12 +31,12 @@ public partial class TagDatabase
                     """;
                 addDateAddedCommand.ExecuteNonQuery();
 
-                var updateModifiedCommand = this.currentConnection.CreateCommand();
+                var updateModifiedCommand = this._currentConnection.CreateCommand();
                 updateModifiedCommand.Transaction = transaction;
                 updateModifiedCommand.CommandText = "UPDATE tag SET date_modified = CURRENT_TIMESTAMP;";
                 updateModifiedCommand.ExecuteNonQuery();
 
-                var deleteOldTableCommand = this.currentConnection.CreateCommand() ??
+                var deleteOldTableCommand = this._currentConnection.CreateCommand() ??
                                             throw new InvalidOperationException(ErrorMessages
                                                 .TagDatabaseNotInitialised);
                 deleteOldTableCommand.Transaction = transaction;
@@ -49,13 +49,13 @@ public partial class TagDatabase
             {
                 // version 3 removes the unique constraint on the name column in the tag table.
                 // disable foreign keys first
-                var disableForeignKeysCommand = this.currentConnection.CreateCommand();
+                var disableForeignKeysCommand = this._currentConnection.CreateCommand();
                 disableForeignKeysCommand.Transaction = transaction;
                 disableForeignKeysCommand.CommandText = "PRAGMA foreign_keys=OFF;";
                 disableForeignKeysCommand.ExecuteNonQuery();
 
                 // recreate tag table with non-unique constraints.
-                var nonUniqueCommand = this.currentConnection.CreateCommand();
+                var nonUniqueCommand = this._currentConnection.CreateCommand();
                 nonUniqueCommand.Transaction = transaction;
                 nonUniqueCommand.CommandText =
                     """
@@ -78,12 +78,12 @@ public partial class TagDatabase
                     PRAGMA foreign_keys=ON;
                     """;
                 nonUniqueCommand.ExecuteNonQuery();
-                var reenableForeignKeysCommand = this.currentConnection.CreateCommand();
+                var reenableForeignKeysCommand = this._currentConnection.CreateCommand();
                 reenableForeignKeysCommand.CommandText = "PRAGMA foreign_keys=ON;";
                 reenableForeignKeysCommand.ExecuteNonQuery();
             }
 
-            var versionBumpCommand = this.currentConnection.CreateCommand();
+            var versionBumpCommand = this._currentConnection.CreateCommand();
             versionBumpCommand.CommandText = "UPDATE settings SET value = @newVersion WHERE key = 'version'";
             versionBumpCommand.Parameters.AddWithValue("@newVersion", LatestVersion);
             versionBumpCommand.ExecuteNonQuery();
@@ -97,7 +97,7 @@ public partial class TagDatabase
         }
         finally
         {
-            var forceEnableFkCommand = this.currentConnection.CreateCommand();
+            var forceEnableFkCommand = this._currentConnection.CreateCommand();
             forceEnableFkCommand.CommandText = "PRAGMA foreign_keys = ON;";
             await forceEnableFkCommand.ExecuteNonQueryAsync();
         }

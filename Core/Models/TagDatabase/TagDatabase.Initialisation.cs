@@ -18,9 +18,9 @@ public partial class TagDatabase
     /// </summary>
     public void Close()
     {
-        if (this.currentConnection?.State != ConnectionState.Open) return;
-        this.currentConnection.Close();
-        this.currentConnection.Dispose();
+        if (this._currentConnection?.State != ConnectionState.Open) return;
+        this._currentConnection.Close();
+        this._currentConnection.Dispose();
         this.Initialised = false;
     }
 
@@ -67,13 +67,13 @@ public partial class TagDatabase
     ///     Throws an exception if the database has not been initialised yet.
     /// </summary>
     /// <exception cref="InvalidOperationException">
-    ///     Thrown when the database has not been initialised or currentConnection is
+    ///     Thrown when the database has not been initialised or _currentConnection is
     ///     null.
     /// </exception>
-    [MemberNotNull(nameof(currentConnection), nameof(Connection))]
+    [MemberNotNull(nameof(_currentConnection), nameof(Connection))]
     private void CheckInitialisation()
     {
-        if (!this.Initialised || this.currentConnection is null || this.Connection is null)
+        if (!this.Initialised || this._currentConnection is null || this.Connection is null)
             throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
     }
 
@@ -86,12 +86,14 @@ public partial class TagDatabase
 
             ValidateFilePath(filePath);
 
-            this.currentConnection = new SqliteConnection($"Data Source={filePath};Pooling=False");
+            this._currentConnection = new SqliteConnection($"Data Source={filePath};Pooling=False");
 
-            await this.currentConnection.OpenAsync().ConfigureAwait(false);
-            var command = this.currentConnection.CreateCommand();
+            await this._currentConnection.OpenAsync().ConfigureAwait(false);
+            var command = this._currentConnection.CreateCommand();
 
-            command.CommandText = """
+            var defaultBindingString = string.Join(';', this._defaultBindings);
+            
+            command.CommandText = $"""
                                   CREATE TABLE "tag" (
                                       "id"                INTEGER PRIMARY KEY AUTOINCREMENT,
                                       "name"              TEXT NOT NULL,
@@ -117,7 +119,7 @@ public partial class TagDatabase
                                   );
 
                                   INSERT INTO "main"."settings" ("key", "value") VALUES ('version', '2');
-                                  INSERT INTO "main"."settings" ("key", "value") VALUES ('default_tag_bind', 'genre');
+                                  INSERT INTO "main"."settings" ("key", "value") VALUES ('default_tag_bind', '{defaultBindingString}');
 
                                   CREATE TRIGGER DoNotChangeRequiredKeys BEFORE UPDATE ON settings
                                   FOR EACH ROW
@@ -160,7 +162,7 @@ public partial class TagDatabase
     private async Task FinishInitialisationAsync(Dictionary<string, ImportedTag>? tagsToImport = null)
     {
         this.Logger.Information("[TagHierarchyDatabase.Initialise] Initialising...");
-        var command = this.currentConnection?.CreateCommand() ??
+        var command = this._currentConnection?.CreateCommand() ??
                       throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
         command.CommandText = "SELECT * FROM SETTINGS;";
         try
@@ -184,9 +186,9 @@ public partial class TagDatabase
                 }
             }
 
-            this.FilePath = this.currentConnection.DataSource;
-            this.Name = this.currentConnection.DataSource != InMemoryDbPath
-                ? Path.GetFileNameWithoutExtension(this.currentConnection.DataSource)
+            this.FilePath = this._currentConnection.DataSource;
+            this.Name = this._currentConnection.DataSource != InMemoryDbPath
+                ? Path.GetFileNameWithoutExtension(this._currentConnection.DataSource)
                 : InMemoryDbName;
 
             await this.PerformNeededMigrations();
@@ -227,12 +229,12 @@ public partial class TagDatabase
             if (errorString is not null) throw new ArgumentException(errorString);
         }
 
-        this.currentConnection = connection ?? new SqliteConnection($"Data Source={filePath};Pooling=False");
-        if (connection is null) await this.currentConnection.OpenAsync().ConfigureAwait(false);
+        this._currentConnection = connection ?? new SqliteConnection($"Data Source={filePath};Pooling=False");
+        if (connection is null) await this._currentConnection.OpenAsync().ConfigureAwait(false);
 
         this.Logger.Debug("[TagDatabaseObject.Load] Connection opened: {@FilePath}", filePath);
 
-        if (await this.ValidateAsync(this.currentConnection).ConfigureAwait(false))
+        if (await this.ValidateAsync(this._currentConnection).ConfigureAwait(false))
             await this.FinishInitialisationAsync().ConfigureAwait(false);
     }
 

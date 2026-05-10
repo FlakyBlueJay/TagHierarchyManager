@@ -93,7 +93,6 @@ public partial class BulkAddViewModel : ViewModelBase
     private async Task SaveTags()
     {
         if (!this.CanSave) return;
-        var currentTagRow = 0;
         try
         {
             if (!this._mainWindow.TagDatabaseService.IsDatabaseOpen) return;
@@ -120,7 +119,6 @@ public partial class BulkAddViewModel : ViewModelBase
                             : [],
                         Notes = !string.IsNullOrEmpty(tagRow.Notes) ? tagRow.Notes : string.Empty
                     };
-                    currentTagRow++;
                     return tag;
                 })
                 .ToList();

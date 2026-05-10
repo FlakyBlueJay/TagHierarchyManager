@@ -19,9 +19,9 @@ public partial class TagDatabase
     private const string ParentIdsColumnName = "parent_ids";
     private const string TagBindingsColumnName = "tags_to_bind";
     private const string TopLevelColumnName = "top_level";
-    private SqliteConnection? currentConnection;
+    private SqliteConnection? _currentConnection;
 
-    private List<string> defaultBindings = ["genre"];
+    private List<string> _defaultBindings = ["genre"];
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="TagDatabase" /> class.
@@ -72,7 +72,7 @@ public partial class TagDatabase
     /// <summary>
     ///     Gets the SQLite connection associated with the <see cref="TagDatabase" />.
     /// </summary>
-    private SqliteConnection? Connection => this.currentConnection;
+    private SqliteConnection? Connection => this._currentConnection;
 
     /// <summary>
     ///     Gets a Logger object, using the Serilog library.
@@ -87,7 +87,7 @@ public partial class TagDatabase
     public async Task<ExternalTransaction> BeginExternalTransactionAsync()
     {
         this.CheckInitialisation();
-        var transaction = (SqliteTransaction)await this.currentConnection.BeginTransactionAsync();
+        var transaction = (SqliteTransaction)await this._currentConnection.BeginTransactionAsync();
         return new ExternalTransaction(this, transaction);
     }
 }

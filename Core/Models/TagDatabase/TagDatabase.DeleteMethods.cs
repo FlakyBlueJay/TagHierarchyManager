@@ -13,8 +13,8 @@ partial class TagDatabase
     public void ClearTags()
     {
         this.CheckInitialisation();
-        using var transaction = this.currentConnection.BeginTransaction();
-        var deleteCommand = this.currentConnection.CreateCommand();
+        using var transaction = this._currentConnection.BeginTransaction();
+        var deleteCommand = this._currentConnection.CreateCommand();
         deleteCommand.CommandText = """
                                     -- noinspection SqlWithoutWhere
                                     DELETE FROM tag
@@ -69,8 +69,8 @@ partial class TagDatabase
     private async Task ExecuteTagDeletion(Tag targetTag)
     {
         await using var transaction =
-            (SqliteTransaction)await this.currentConnection!.BeginTransactionAsync().ConfigureAwait(false);
-        var command = this.currentConnection.CreateCommand();
+            (SqliteTransaction)await this._currentConnection!.BeginTransactionAsync().ConfigureAwait(false);
+        var command = this._currentConnection.CreateCommand();
         command.Transaction = transaction;
         command.CommandText = """
                                 DELETE FROM tag
