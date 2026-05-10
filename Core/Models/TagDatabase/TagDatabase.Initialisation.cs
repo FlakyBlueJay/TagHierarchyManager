@@ -204,7 +204,7 @@ public partial class TagDatabase
                     throw;
                 }
 
-            
+
             this.Tags = await this.GetAllTagsFromDatabase();
 
 

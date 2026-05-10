@@ -34,7 +34,7 @@
                                             Binding="{Binding IsTopLevel}" />
                     <DataGridTextColumn Header="{x:Static assets:Resources.HeaderName}" Binding="{Binding Name}"
                                         MinWidth="200" />
-                    <DataGridTemplateColumn Header="{x:Static assets:Resources.HeaderParents}" MinWidth="200" >
+                    <DataGridTemplateColumn Header="{x:Static assets:Resources.HeaderParents}" MinWidth="200">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate DataType="vm:BulkAddViewModel+BulkAddTagRow">
                                 <TextBlock Text="{Binding Parents}" Margin="10 10"
@@ -44,7 +44,7 @@
                         <DataGridTemplateColumn.CellEditingTemplate>
                             <DataTemplate DataType="vm:BulkAddViewModel+BulkAddTagRow">
                                 <controls:MultiValueAutoCompleteBox Text="{Binding Parents}"
-                                                                    ItemsSource="{Binding AutoCompleteTags}"/>
+                                                                    ItemsSource="{Binding AutoCompleteTags}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellEditingTemplate>
                     </DataGridTemplateColumn>

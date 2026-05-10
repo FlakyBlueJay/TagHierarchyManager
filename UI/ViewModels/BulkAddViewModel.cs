@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -23,10 +22,6 @@ public partial class BulkAddViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<BulkAddTagRow> _tags;
 
     [ObservableProperty] private string _windowTitle;
-    
-    private List<TagItemViewModel> AutoCompleteTags =>
-        this.TagDatabaseService.GetAllTags()
-            .Select(t => new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds)).ToList();
 
 
     public BulkAddViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
@@ -55,6 +50,10 @@ public partial class BulkAddViewModel : ViewModelBase
     public bool CanDeleteRows => this.Tags.Count - this.SelectedRows.Count > 0 && this.Tags.Count > 1;
 
     public bool CanSave => this.Tags.Count > 0;
+
+    private List<TagItemViewModel> AutoCompleteTags =>
+        this.TagDatabaseService.GetAllTags()
+            .Select(t => new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds)).ToList();
 
     private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
 
@@ -142,16 +141,15 @@ public partial class BulkAddViewModel : ViewModelBase
         }
     }
 
-    public class BulkAddTagRow()
+    public class BulkAddTagRow
     {
         public string Aliases { get; set; } = string.Empty;
+        public List<TagItemViewModel> AutoCompleteTags { get; init; } = [];
         public bool IsTopLevel { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
 
         public string Parents { get; set; } = string.Empty;
         public string TagBindings { get; set; } = string.Empty;
-        public List<TagItemViewModel> AutoCompleteTags { get; init; } = [];
-        
     }
 }

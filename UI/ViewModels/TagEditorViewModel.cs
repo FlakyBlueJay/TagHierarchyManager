@@ -16,20 +16,20 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
     private readonly DialogService _dialogService;
     private readonly MainWindowViewModel _mainWindow;
     [ObservableProperty] private TagItemViewModel? _selectedTag;
-    
+
     [ObservableProperty] private int _selectedTagId;
     [ObservableProperty] private bool _unsavedChanges;
-    
-    public List<TagItemViewModel> AutoCompleteTags =>
-        this.TagDatabaseService.GetAllTags()
-            .Select(t => new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds)).ToList();
-    
+
     public TagEditorViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
         this._mainWindow = mainWindow;
         this._dialogService = dialogService;
         this.TagDatabaseService.TagsWritten += this.TagDatabaseService_OnTagsWritten;
     }
+
+    public List<TagItemViewModel> AutoCompleteTags =>
+        this.TagDatabaseService.GetAllTags()
+            .Select(t => new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds)).ToList();
 
     public bool CanDeleteSelectedTag => this._mainWindow.SelectedTag is not null
                                         && this._mainWindow.SelectedTag.Id > 0

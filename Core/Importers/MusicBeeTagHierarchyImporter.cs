@@ -61,7 +61,7 @@ public class MusicBeeTagHierarchyImporter : Importer
 
         return tagsToImport;
     }
-    
+
     private static void AddTagBindingIfMissing(ImportedTag currentTag, string tagBinding)
     {
         if (!string.IsNullOrEmpty(tagBinding))
