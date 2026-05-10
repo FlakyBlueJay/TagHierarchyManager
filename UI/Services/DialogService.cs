@@ -15,7 +15,7 @@ public class DialogService
 {
     public async Task<TResult?> ShowDialog<TResult>(Window dialog, object? dataContext = null)
     {
-        var ownerWindow = this.GetOwnerWindow();
+        var ownerWindow = GetOwnerWindow();
         dialog.DataContext = dataContext;
         return await dialog.ShowDialog<TResult>(ownerWindow);
     }
@@ -25,13 +25,7 @@ public class DialogService
         return this.ShowDialog<object>(new ErrorDialog(), new ErrorDialogViewModel(message));
     }
 
-    public Task ShowAmbiguousSaveDialog(Tag tag, List<Tag> parentTags)
-    {
-        var viewModel = new SaveAmbiguousViewModel(tag, parentTags);   
-        return this.ShowDialog<object>(new SaveAmbiguousDialog(), viewModel);
-    }
-
-    private Window GetOwnerWindow()
+    private static Window GetOwnerWindow()
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
             throw new InvalidOperationException("Not in a desktop environment.");
