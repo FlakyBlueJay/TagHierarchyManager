@@ -12,9 +12,9 @@
                  RelativeSource={RelativeSource AncestorType=controls:MultiValueAutoCompleteBox}}"
                  Watermark="{Binding Watermark,
                  RelativeSource={RelativeSource AncestorType=controls:MultiValueAutoCompleteBox}}"
-                 TextChanged="TextBox_OnTextChanged"
-                 GotFocus="TextBox_OnGotFocus" LostFocus="TextBox_OnLostFocus"/>
-        
+                 TextChanged="TextBox_OnTextChanged" KeyDown="TextBox_OnKeyDown"
+                 GotFocus="TextBox_OnGotFocus" LostFocus="TextBox_OnLostFocus" />
+
         <Popup Name="MultiValueAutoCompletePopup"
                Placement="Bottom"
                IsLightDismissEnabled="False"
@@ -23,17 +23,17 @@
                 <ListBox Name="MultiValueAutoCompleteListBox"
                          SelectionMode="Single"
                          MaxHeight="500"
-                         SelectionChanged="ListBox_OnSelectionChanged">
+                         PointerReleased="ListBox_OnPointerReleased"
+                         KeyDown="ListBox_OnKeyDown">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:TagItemViewModel">
-                            <TextBlock Text="{Binding CurrentName}"/>
+                            <TextBlock Text="{Binding CurrentName}" />
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
             </Border>
-            
-                  
-              
+
+
         </Popup>
     </Grid>
 </UserControl>

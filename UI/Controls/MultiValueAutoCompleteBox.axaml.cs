@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -14,55 +15,68 @@ namespace TagHierarchyManager.UI.Controls;
 
 public partial class MultiValueAutoCompleteBox : UserControl
 {
+    public static readonly StyledProperty<IEnumerable<TagItemViewModel>?> ItemsSourceProperty =
+        AvaloniaProperty.Register<MultiValueAutoCompleteBox, IEnumerable<TagItemViewModel>?>(
+            nameof(ItemsSource), []);
+
+    public static readonly StyledProperty<string> TextProperty =
+        AvaloniaProperty.Register<MultiValueAutoCompleteBox, string>(
+            nameof(Text), string.Empty, defaultBindingMode: BindingMode.TwoWay);
+
+    public static readonly StyledProperty<string> WatermarkProperty =
+        AvaloniaProperty.Register<MultiValueAutoCompleteBox, string>(
+            nameof(Watermark), string.Empty);
+
+    private bool _isTextBoxActive;
+
+    private string _lastTypedRawText = string.Empty;
+
+    private bool _suppressPopup;
+
     public MultiValueAutoCompleteBox()
     {
-        InitializeComponent();
+        this.InitializeComponent();
         this.MultiValueAutoCompletePopup.PlacementTarget = this.MultiValueAutoCompleteBoxTextBox;
         this.MultiValueAutoCompleteListBox.ItemsSource = this.FilteredItems;
         this.MultiValueAutoCompleteBoxTextBox
             .GetPropertyChangedObservable(BoundsProperty)
-            .Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs>(
-                e => this.MultiValueAutoCompleteListBox.Width = ((Rect)e.NewValue!).Width));
+            .Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs>(e =>
+                this.MultiValueAutoCompleteListBox.Width = ((Rect)e.NewValue!).Width));
+        this.KeyDown += (_, e) =>
+        {
+            if (e.Key != Key.Escape) return;
+            if (this.MultiValueAutoCompleteBoxTextBox.Text is null) return;
+            this._lastTypedRawText = this.MultiValueAutoCompleteBoxTextBox.Text;
+            this.FilteredItems.Clear();
+            this.MultiValueAutoCompleteBoxTextBox.Focus();
+            e.Handled = true;
+        };
     }
-    
-    public static readonly StyledProperty<string> TextProperty =
-        AvaloniaProperty.Register<MultiValueAutoCompleteBox, string>(
-            nameof(Text), defaultValue: string.Empty, defaultBindingMode: BindingMode.TwoWay);
-    
-    public static readonly StyledProperty<string> WatermarkProperty =
-        AvaloniaProperty.Register<MultiValueAutoCompleteBox, string>(
-            nameof(Watermark), defaultValue: string.Empty);
-    
-    public static readonly StyledProperty<IEnumerable<TagItemViewModel>?> ItemsSourceProperty =
-        AvaloniaProperty.Register<MultiValueAutoCompleteBox, IEnumerable<TagItemViewModel>?>(
-            nameof(ItemsSource), defaultValue: []);
 
-    private bool _isTextBoxFocused;
-    
-    private bool CanShowPopup => this._isTextBoxFocused && this.FilteredItems.Any();
-    
-    public string Text
-    {
-        get => GetValue(TextProperty);
-        set => SetValue(TextProperty, value);
-    }
-    
-    public string Watermark
-    {
-        get => GetValue(WatermarkProperty);
-        set => SetValue(WatermarkProperty, value);
-    }
-    
     public IEnumerable<TagItemViewModel>? ItemsSource
     {
-        get => GetValue(ItemsSourceProperty);
-        set => SetValue(ItemsSourceProperty, value);
+        get => this.GetValue(ItemsSourceProperty);
+        set => this.SetValue(ItemsSourceProperty, value);
     }
-    
-    public ObservableCollection<TagItemViewModel> FilteredItems { get; set; } = [];
 
-    private string _lastTypedRawText = string.Empty;
-    
+    public string Text
+    {
+        get => this.GetValue(TextProperty);
+        set => this.SetValue(TextProperty, value);
+    }
+
+    public string Watermark
+    {
+        get => this.GetValue(WatermarkProperty);
+        set => this.SetValue(WatermarkProperty, value);
+    }
+
+    private bool CanShowPopup => (this._isTextBoxActive ||
+                                  (this.MultiValueAutoCompleteListBox?.IsKeyboardFocusWithin ?? false))
+                                 && this.FilteredItems.Any();
+
+    private ObservableCollection<TagItemViewModel> FilteredItems { get; } = [];
+
     public void TextBox_OnTextChanged(object? sender, TextChangedEventArgs e)
     {
         if (sender is not TextBox box) return;
@@ -71,22 +85,13 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this._lastTypedRawText = rawText;
         this.Text = rawText;
     }
-    
-    private void TextBox_OnGotFocus(object? sender, GotFocusEventArgs e)
-    {
-        this._isTextBoxFocused = true;
-    }
-    
-    private void TextBox_OnLostFocus(object? sender, RoutedEventArgs e)
-    {
-        this._isTextBoxFocused = false;
-        this.UpdatePopupIsVisible();
-    }
-    
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        System.Diagnostics.Debug.WriteLine($"CanShowPopup: {this.CanShowPopup}, focused: {this._isTextBoxFocused}, items: {this.FilteredItems.Count}");
+        Debug.WriteLine(
+            $"CanShowPopup: {this.CanShowPopup}, focused: {this._isTextBoxActive}, items: {this.FilteredItems.Count}");
+        // ReSharper disable once InvertIf
         if (change.Property == TextProperty)
         {
             var last = this.Text.Split(';').Last();
@@ -94,7 +99,38 @@ public partial class MultiValueAutoCompleteBox : UserControl
             this.RepopulateFilteredItems(last);
         }
     }
-    
+
+    private void ApplyListBoxSelection(ListBox box, TagItemViewModel tag)
+    {
+        this._suppressPopup = true;
+        box.SelectedItem = null;
+
+        var lastSemicolon = this._lastTypedRawText.LastIndexOf(';');
+        var prefix = lastSemicolon >= 0 ? this._lastTypedRawText[..lastSemicolon].TrimEnd() + "; " : string.Empty;
+        var result = $"{prefix}{tag.CurrentName}";
+        this.Text = result;
+        this.MultiValueAutoCompletePopup.IsOpen = false;
+        this.MultiValueAutoCompleteBoxTextBox.Text = result;
+        this.MultiValueAutoCompleteBoxTextBox.CaretIndex = result.Length;
+        this.MultiValueAutoCompleteBoxTextBox.Focus();
+        this._lastTypedRawText = result;
+        this._suppressPopup = false;
+    }
+
+    private void ListBox_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (sender is not ListBox { SelectedItem: TagItemViewModel tag } listBox) return;
+
+        if (e.Key == Key.Enter)
+            this.ApplyListBoxSelection(listBox, tag);
+    }
+
+    private void ListBox_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (sender is not ListBox { SelectedItem: TagItemViewModel tag } listBox) return;
+        this.ApplyListBoxSelection(listBox, tag);
+    }
+
     private void RepopulateFilteredItems(string itemName)
     {
         this.FilteredItems.Clear();
@@ -103,37 +139,38 @@ public partial class MultiValueAutoCompleteBox : UserControl
         {
             var filtered = this.ItemsSource
                 .Where(t => t.CurrentName.Contains(itemName, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(t=> t.CurrentName, StringComparer.OrdinalIgnoreCase).ToList();
+                .OrderBy(t => t.CurrentName, StringComparer.OrdinalIgnoreCase).ToList();
             foreach (var item in filtered)
                 this.FilteredItems.Add(item);
-            
         }
-        
+
         this.UpdatePopupIsVisible();
     }
 
-    private bool _isApplyingSelection;
+    private void TextBox_OnGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        this._isTextBoxActive = true;
+    }
+
+    private void TextBox_OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Down) return;
+        if (!this.MultiValueAutoCompletePopup.IsOpen) return;
+        this.MultiValueAutoCompleteListBox.SelectedIndex = 0;
+        var first = this.MultiValueAutoCompleteListBox.ContainerFromIndex(0);
+        first?.Focus();
+        e.Handled = true;
+    }
+
+    private void TextBox_OnLostFocus(object? sender, RoutedEventArgs e)
+    {
+        this._isTextBoxActive = false;
+        this.UpdatePopupIsVisible();
+    }
+
     private void UpdatePopupIsVisible()
     {
-        if (this._isApplyingSelection) return;
+        if (this._suppressPopup) return;
         this.MultiValueAutoCompletePopup.IsOpen = this.CanShowPopup;
-    }
-    
-    private void ListBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (sender is not ListBox listBox || listBox.SelectedItem is not TagItemViewModel tag) return;
-        this._isApplyingSelection = true;
-        listBox.SelectedItem = null;
-        
-        var lastSemicolon = this._lastTypedRawText.LastIndexOf(';');
-        var prefix = lastSemicolon >= 0 ? this._lastTypedRawText[..(lastSemicolon)].TrimEnd() + "; " : string.Empty;
-        var result = $"{prefix}{tag.CurrentName}";
-        this.Text = result;
-        this.MultiValueAutoCompletePopup.IsOpen = false;
-        this.MultiValueAutoCompleteBoxTextBox.Text = result;
-        this.MultiValueAutoCompleteBoxTextBox.CaretIndex = result.Length;
-        this.MultiValueAutoCompleteBoxTextBox.Focus();
-        this._lastTypedRawText = result;
-        this._isApplyingSelection = false;
     }
 }
