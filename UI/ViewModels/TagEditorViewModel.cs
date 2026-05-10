@@ -53,7 +53,8 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
             var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
             if (userWantsToSave is null) return;
         }
-
+        
+        this.UnsavedChanges = false;
         this._mainWindow.SelectedTag = new TagItemViewModel(
             new Tag
             {
@@ -62,7 +63,6 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
                 TagBindings = this.TagDatabaseService.DefaultTagBindings
             }
         );
-        this.UnsavedChanges = true;
     }
 
     [RelayCommand]

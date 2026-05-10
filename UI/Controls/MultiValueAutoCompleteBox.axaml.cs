@@ -19,7 +19,9 @@ public partial class MultiValueAutoCompleteBox : UserControl
         AvaloniaProperty.Register<MultiValueAutoCompleteBox, IEnumerable<TagItemViewModel>?>(
             nameof(ItemsSource), []);
 
-    private static readonly RoutedEvent<TextChangedEventArgs> TextChangedEvent =
+    // ReSharper disable once MemberCanBePrivate.Global
+    // this is just wrong, setting this private will cause the app to crash on boot.
+    public static readonly RoutedEvent<TextChangedEventArgs> TextChangedEvent =
         RoutedEvent.Register<MultiValueAutoCompleteBox, TextChangedEventArgs>(nameof(TextChanged),
             RoutingStrategies.Bubble);
 
