@@ -29,7 +29,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
 
     public List<TagItemViewModel> AutoCompleteTags =>
         this.TagDatabaseService.GetAllTags()
-            .Select(t => new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds)).ToList();
+            .Select(t => new TagItemViewModel(t)).ToList();
 
     public bool CanDeleteSelectedTag => this._mainWindow.SelectedTag is not null
                                         && this._mainWindow.SelectedTag.Id > 0
@@ -60,8 +60,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
                 Name = string.Empty,
                 IsTopLevel = true,
                 TagBindings = this.TagDatabaseService.DefaultTagBindings
-            },
-            this.TagDatabaseService.GetParentNamesByIds
+            }
         );
         this.UnsavedChanges = true;
     }
@@ -127,7 +126,7 @@ public partial class TagEditorViewModel : ViewModelBase, IDisposable
         this._mainWindow.SelectedTag =
             tag is null
                 ? null
-                : new TagItemViewModel(tag, this.TagDatabaseService.GetParentNamesByIds);
+                : new TagItemViewModel(tag);
     }
 
     [RelayCommand]

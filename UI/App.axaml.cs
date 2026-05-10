@@ -26,10 +26,10 @@ public class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             this.DisableAvaloniaDataAnnotationValidation();
-
-            this.TagDatabaseService = new TagDatabaseService();
+            
             this.DialogService = new DialogService();
-
+            this.TagDatabaseService = new TagDatabaseService(this.DialogService);
+            
             desktop.MainWindow = new MainWindow(this.DialogService)
             {
                 DataContext = new MainWindowViewModel(this.TagDatabaseService, this.DialogService)

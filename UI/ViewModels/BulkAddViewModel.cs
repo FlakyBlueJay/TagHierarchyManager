@@ -53,7 +53,7 @@ public partial class BulkAddViewModel : ViewModelBase
 
     private List<TagItemViewModel> AutoCompleteTags =>
         this.TagDatabaseService.GetAllTags()
-            .Select(t => new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds)).ToList();
+            .Select(t => new TagItemViewModel(t)).ToList();
 
     private TagDatabaseService TagDatabaseService => this._mainWindow.TagDatabaseService;
 
@@ -126,7 +126,7 @@ public partial class BulkAddViewModel : ViewModelBase
             await this._mainWindow.TagDatabaseService.WriteTagsToDatabase(
                 tags.Select(t =>
                 {
-                    var tVm = new TagItemViewModel(t, this.TagDatabaseService.GetParentNamesByIds);
+                    var tVm = new TagItemViewModel(t);
                     tVm.BeginEdit();
                     return tVm;
                 }).ToList());

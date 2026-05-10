@@ -33,7 +33,7 @@ public partial class RecentsViewModel : ViewModelBase
     {
         var tag = this._mainWindow.TagDatabaseService.GetTagById(tagRow.Id);
         if (tag is null) return;
-        this._mainWindow.SelectedTag = new TagItemViewModel(tag, this._mainWindow.GetParentNamesById);
+        this._mainWindow.SelectedTag = new TagItemViewModel(tag);
         this.RequestClose?.Invoke();
     }
 

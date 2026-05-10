@@ -16,7 +16,6 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 {
     private readonly Dictionary<int, HashSet<int>> _childNodeMap = new();
     private readonly DialogService _dialogService;
-    private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
 
     private readonly Dictionary<int, HashSet<TagItemViewModel>> _viewModelMap = new();
@@ -28,7 +27,6 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         this._mainWindow = mainWindow;
         this._dialogService = dialogService;
-        this._getParentNamesById = mainWindow.TagDatabaseService.GetParentNamesByIds;
         this.SubscribeToEvents();
     }
 
@@ -62,7 +60,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         {
             var buildingTopLevelNodes = new List<TagItemViewModel>();
             foreach (var tagNode in
-                     topLevelTags.Select(tag => new TagItemViewModel(tag, this._getParentNamesById)))
+                     topLevelTags.Select(tag => new TagItemViewModel(tag)))
             {
                 buildingTopLevelNodes.Add(tagNode);
                 this.AddTagNodeToViewModelMap(tagNode);
@@ -96,7 +94,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         {
             foreach (var childNode in from child in childTags
                      where !ancestors.Contains(child.Id)
-                     select new TagItemViewModel(child, this._getParentNamesById))
+                     select new TagItemViewModel(child))
             {
                 if (!this._childNodeMap.ContainsKey(childNode.Id))
                     this._childNodeMap.Add(childNode.Tag.Id, []);
@@ -122,7 +120,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
         foreach (var parent in parentViewModels.Where(parent => parent.CurrentChildren.All(c => c.Id != tag.Id)))
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var tagNode = new TagItemViewModel(tag, this._getParentNamesById);
+                var tagNode = new TagItemViewModel(tag);
                 this.AddAllChildren(tagNode, childLookup, []);
 
                 var index = 0;
@@ -152,7 +150,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
     {
         if (this.TopLevelTagNodes.Any(t => t.Id == tag.Id)) return;
 
-        var newTopLevelTag = new TagItemViewModel(tag, this._getParentNamesById);
+        var newTopLevelTag = new TagItemViewModel(tag);
         var childLookup = this.TagDatabaseService.GetChildLookup();
         this.AddAllChildren(newTopLevelTag, childLookup, []);
 

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Models;
 
 namespace TagHierarchyManager.UI.ViewModels;
 
-public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> getParentNamesByIds)
+public partial class TagItemViewModel(Tag tag)
     : ViewModelBase
 {
     [ObservableProperty] private string _editingAliases = string.Empty;

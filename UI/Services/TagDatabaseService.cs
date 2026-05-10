@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TagHierarchyManager.Common;
@@ -17,7 +15,7 @@ using TagHierarchyManager.UI.Views;
 
 namespace TagHierarchyManager.UI.Services;
 
-public class TagDatabaseService : ObservableObject
+public class TagDatabaseService(DialogService dialogService) : ObservableObject
 {
     public event EventHandler? InitialisationComplete;
 
@@ -33,6 +31,8 @@ public class TagDatabaseService : ObservableObject
     public int TagCount => this.Database?.Tags.Count ?? 0;
 
     private TagDatabase? Database { get; set; }
+    
+    private DialogService DialogService { get; } = dialogService;
 
     public void CloseDatabase()
     {
@@ -294,15 +294,10 @@ public class TagDatabaseService : ObservableObject
                     tag.ParentIds.Add(parentTags[0].Id);
                     continue;
                 case > 1:
-                    var ambiguousVm = new SaveAmbiguousViewModel(this, tag, parentTags);
+                    var ambiguousVm = new SaveAmbiguousViewModel(tag, parentTags);
 
                     var dialog = new SaveAmbiguousDialog();
-                    var dialogOwner =
-                        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                        ?.Windows
-                        .FirstOrDefault(w => w.IsActive);
-                    dialog.DataContext = ambiguousVm;
-                    var result = await dialog.ShowDialog<TagItemViewModel?>(dialogOwner!);
+                    var result = await this.DialogService.ShowDialog<TagItemViewModel?>(dialog, ambiguousVm);
 
                     if (result == null) return false;
                     tag.ParentIds.Add(result.Id);

@@ -13,7 +13,6 @@ namespace TagHierarchyManager.UI.ViewModels;
 public partial class SearchViewModel : ViewModelBase, IDisposable
 {
     private readonly DialogService _dialogService;
-    private readonly Func<List<int>, List<string>> _getParentNamesById;
     private readonly MainWindowViewModel _mainWindow;
     [ObservableProperty] private bool _searchAliases;
     [ObservableProperty] private TagDatabaseSearchMode _searchMode = TagDatabaseSearchMode.Fuzzy;
@@ -29,7 +28,6 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
     {
         this._mainWindow = mainWindow;
         this._dialogService = dialogService;
-        this._getParentNamesById = this._mainWindow.GetParentNamesById;
         mainWindow.TagDatabaseService.TagsWritten += this.TagDatabase_OnTagsWritten;
         this._selectedSearchMode = this.SearchModes.First();
     }
@@ -71,7 +69,7 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
             }
 
             results.Select(tag =>
-                    new TagItemViewModel(tag, this._getParentNamesById))
+                    new TagItemViewModel(tag))
                 .OrderBy(tag => tag.CurrentName)
                 .ToList()
                 .ForEach(this.SearchResults.Add);
