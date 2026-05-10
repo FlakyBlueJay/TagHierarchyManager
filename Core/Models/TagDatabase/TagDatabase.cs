@@ -21,7 +21,7 @@ public partial class TagDatabase
     private const string TopLevelColumnName = "top_level";
     private SqliteConnection? _currentConnection;
 
-    private List<string> _defaultBindings = ["genre"];
+    private readonly List<string> _defaultBindings = ["genre"];
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="TagDatabase" /> class.
@@ -45,7 +45,7 @@ public partial class TagDatabase
     ///     Gets or sets a List(string) of tag binding(s) that will be added to a tag by default. Defaults to <i>genre</i>
     ///     (e.g. Festival Progressive House::genre).
     /// </summary>
-    public List<string> DefaultTagBindings { get; set; }
+    public List<string> DefaultTagBindings { get; set; } = [];
 
     /// <summary>
     ///     Gets the location of the .thdb file associated with the <see cref="TagDatabase" />, inferred from the current

@@ -265,7 +265,7 @@ public partial class HierarchyTreeViewModel : ViewModelBase, IDisposable
 
     // public ICommand NewTagCommand => this._mainWindow.NewTagCommand;
     // ReSharper disable once PartialMethodParameterNameMismatch
-    partial void OnSelectedTagChanged(TagItemViewModel? _, TagItemViewModel? newValue)
+    partial void OnSelectedTagChanged(TagItemViewModel? oldValue, TagItemViewModel? newValue)
     {
         if (newValue is null || this._mainWindow.SelectedTagId == newValue.Id) return;
         this._mainWindow.SelectedTag = newValue;

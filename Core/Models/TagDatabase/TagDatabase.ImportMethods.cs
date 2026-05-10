@@ -28,7 +28,7 @@ public partial class TagDatabase
             // phase 2: add the parents and aliases.
             foreach (var tag in importDict.Values)
             {
-                var currentTag = this.Tags.SingleOrDefault(t => t.Name == tag.Name);
+                var currentTag = this.Tags.Single(t => t.Name == tag.Name);
 
                 var parentIds = tag.Parents.Select(parentName => nameToId[parentName]).ToList();
 
@@ -47,6 +47,8 @@ public partial class TagDatabase
 
     private async Task WriteImportedParentsToDatabase(SqliteTransaction transaction, int targetId, List<int> parentIds)
     {
+        if (this._currentConnection is null)
+            throw new InvalidOperationException(ErrorMessages.TagDatabaseNotInitialised);
         var valuesClauses = new List<string>();
         var parameters = new List<SqliteParameter>();
 

@@ -21,8 +21,6 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
 
     [ObservableProperty] private string _editingTagBindings = string.Empty;
 
-    private bool _isInitialising;
-
     public string Aliases =>
         this.Tag.Aliases.Count > 0
             ? string.Join("; ", this.Tag.Aliases)
@@ -58,7 +56,6 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
 
     public void BeginEdit()
     {
-        this._isInitialising = true;
         this.EditingName = this.Tag.Name;
 
         if (this.OnDatabase || string.IsNullOrEmpty(this.EditingParents))
@@ -68,7 +65,6 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
         this.EditingTagBindings = this.CurrentTagBindings;
         this.EditingAliases = this.Aliases;
         this.EditingNotes = this.CurrentNotes;
-        this._isInitialising = false;
     }
 
     public void CommitEdit(Tag savedTag)
@@ -87,7 +83,6 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
 
     public void RefreshParentsString()
     {
-        this._isInitialising = true;
         this.OnPropertyChanged(nameof(this.CurrentParentsString));
         var newParents = this.CurrentParentsString;
         if (!string.IsNullOrEmpty(newParents))
@@ -95,8 +90,6 @@ public partial class TagItemViewModel(Tag tag, Func<List<int>, List<string>> get
             this.EditingParents = newParents;
             this.OnPropertyChanged(nameof(this.EditingParents));
         }
-
-        this._isInitialising = false;
     }
 
     public void RefreshSelf()
