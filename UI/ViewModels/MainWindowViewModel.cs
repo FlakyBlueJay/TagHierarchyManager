@@ -217,7 +217,14 @@ public partial class MainWindowViewModel : ViewModelBase
             if (this.UnsavedChanges)
             {
                 var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
-                if (userWantsToSave is null) return;
+                switch (userWantsToSave)
+                {
+                    case null:
+                        return;
+                    case true:
+                        this.StartTagSaveCommand.Execute(null);
+                        break;
+                }
             }
 
             var storageProvider = desktop.MainWindow?.StorageProvider;
@@ -250,9 +257,15 @@ public partial class MainWindowViewModel : ViewModelBase
             if (this.UnsavedChanges)
             {
                 var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
-                if (userWantsToSave is null) return;
+                switch (userWantsToSave)
+                {
+                    case null:
+                        return;
+                    case true:
+                        this.StartTagSaveCommand.Execute(null);
+                        break;
+                }
             }
-
 
             var storageProvider = desktop.MainWindow?.StorageProvider;
             if (storageProvider is null) return;
@@ -338,8 +351,18 @@ public partial class MainWindowViewModel : ViewModelBase
             Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
             desktop.MainWindow is null) return;
 
-        var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedCancelDialog());
-        if (userWantsToSave is null) return;
+        if (this.UnsavedChanges)
+        {
+            var userWantsToSave = await this._dialogService.ShowDialog<bool?>(new UnsavedChangesDialog());
+            switch (userWantsToSave)
+            {
+                case null:
+                    return;
+                case true:
+                    this.StartTagSaveCommand.Execute(null);
+                    break;
+            }
+        }
 
         var storageProvider = desktop.MainWindow?.StorageProvider;
         if (storageProvider is null) return;
