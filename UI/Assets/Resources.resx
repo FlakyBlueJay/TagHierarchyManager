@@ -209,7 +209,7 @@
     <data name="ImportNoFilePicked" xml:space="preserve">
         <value>No file picked.</value>
     </data>
-    <data name="TitlemportDialog" xml:space="preserve">
+    <data name="TitleImportDialog" xml:space="preserve">
         <value>Import...</value>
     </data>
     <data name="ErrorDialogTitleBarTitle" xml:space="preserve">
