@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using TagHierarchyManager.UI.ViewModels;
 
-namespace TagHierarchyManager.UI.Views.Controls;
+namespace TagHierarchyManager.UI.Controls;
 
 public partial class HierarchyTree : UserControl
 {

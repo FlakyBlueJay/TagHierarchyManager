@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TagHierarchyManager.Common;
@@ -23,6 +24,8 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private SearchModeOption _selectedSearchMode;
 
     [ObservableProperty] private TagItemViewModel? _selectedSearchResult;
+    
+    [ObservableProperty] private TagItemViewModel? _contextMenuTag;
 
     public SearchViewModel(MainWindowViewModel mainWindow, DialogService dialogService)
     {
@@ -97,5 +100,12 @@ public partial class SearchViewModel : ViewModelBase, IDisposable
         }
     }
 
+    [RelayCommand]
+    private async Task StartContextMenuTagDeletion()
+    {
+        if (this.ContextMenuTag is null) return;
+        await this._mainWindow.StartTagDeletionAsync(this.ContextMenuTag.Id);
+    }
+    
     public sealed record SearchModeOption(TagDatabaseSearchMode Mode, string DisplayName);
 }

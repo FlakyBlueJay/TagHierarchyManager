@@ -5,6 +5,7 @@
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
         xmlns:controls="clr-namespace:TagHierarchyManager.UI.Views.Controls"
+        xmlns:controls1="clr-namespace:TagHierarchyManager.UI.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TagHierarchyManager.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -53,10 +54,10 @@
 
             <TabControl Grid.Column="0" Margin="0 0 5 0 ">
                 <TabItem Header="{x:Static assets:Resources.TabHierarchyTree}">
-                    <controls:HierarchyTree DataContext="{Binding HierarchyTreeViewModel}" />
+                    <controls1:HierarchyTree DataContext="{Binding HierarchyTreeViewModel}" />
                 </TabItem>
                 <TabItem Header="{x:Static assets:Resources.TabSearch}">
-                    <controls:SearchPane DataContext="{Binding SearchViewModel}" />
+                    <controls1:SearchPane DataContext="{Binding SearchViewModel}" />
                 </TabItem>
             </TabControl>
 

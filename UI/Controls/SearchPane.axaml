@@ -5,7 +5,7 @@
              xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
              xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="TagHierarchyManager.UI.Views.Controls.SearchPane"
+             x:Class="TagHierarchyManager.UI.Controls.SearchPane"
              x:DataType="vm:SearchViewModel">
     <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
         <TextBox Grid.Row="0" Name="SearchTextBox"
@@ -32,7 +32,8 @@
                  Grid.Row="4"
                  SelectionMode="Single"
                  ItemsSource="{Binding SearchResults}"
-                 SelectedItem="{Binding SelectedSearchResult}">
+                 SelectedItem="{Binding SelectedSearchResult}"
+                 ContextRequested="SearchPane_ContextRequested">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -47,6 +48,21 @@
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem
+                        Command="{Binding StartContextMenuTagDeletionCommand}"
+                        CommandParameter="{Binding ContextMenuTag.Id, FallbackValue=Null}"
+                        IsEnabled="{Binding ContextMenuTag.CanBeDeleted, FallbackValue=False}">
+                        <MenuItem.Header>
+                            <MultiBinding StringFormat="{}{0} {1}">
+                                <Binding Source="{x:Static assets:Resources.ButtonDelete}" />
+                                <Binding Path="ContextMenuTag.CurrentName" FallbackValue="" />
+                            </MultiBinding>
+                        </MenuItem.Header>
+                    </MenuItem>
+                </ContextMenu>
+            </ListBox.ContextMenu>
         </ListBox>
     </Grid>
 </UserControl>

@@ -9,7 +9,6 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Reactive;
-using Avalonia.VisualTree;
 using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Controls;
@@ -35,8 +34,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
     public static readonly StyledProperty<string> WatermarkProperty =
         AvaloniaProperty.Register<MultiValueAutoCompleteBox, string>(
             nameof(Watermark), string.Empty);
-
-    private bool _inDataGridCell;
+    
 
     private bool _isTextBoxActive;
 
@@ -44,7 +42,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
 
     private bool _suppressPopup;
 
-    private SegmentData currentSegment = new(string.Empty, 0, 0);
+    private SegmentData _currentSegment = new(string.Empty, 0, 0);
 
     public MultiValueAutoCompleteBox()
     {
@@ -66,7 +64,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
             e.Handled = true;
         };
         this.MultiValueAutoCompleteBoxTextBox.TextChanged +=
-            (s, e) => this.RaiseEvent(new TextChangedEventArgs(TextChangedEvent));
+            (_, _) => this.RaiseEvent(new TextChangedEventArgs(TextChangedEvent));
     }
 
     public event EventHandler<TextChangedEventArgs>? TextChanged
@@ -114,27 +112,12 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this._lastTypedRawText = rawText;
 
         this.GetCurrentEditedSegment();
-        Debug.WriteLine($"Current segment: {this.currentSegment.FullSegment}," +
-                        $"Segment indexes: {this.currentSegment.IndexBack}-{this.currentSegment.IndexForward}," +
+        Debug.WriteLine($"Current segment: {this._currentSegment.FullSegment}," +
+                        $"Segment indexes: {this._currentSegment.IndexBack}-{this._currentSegment.IndexForward}," +
                         $"caret: {this.MultiValueAutoCompleteBoxTextBox.CaretIndex}");
 
         this.Text = rawText;
-        this.RepopulateFilteredItems(this.currentSegment.FullSegment);
-    }
-
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        var current = this.GetVisualParent();
-        while (current != null)
-        {
-            if (current is DataGridCell)
-            {
-                this._inDataGridCell = true;
-                break;
-            }
-
-            current = current.GetVisualParent();
-        }
+        this.RepopulateFilteredItems(this._currentSegment.FullSegment);
     }
 
     private void ApplyListBoxSelection(ListBox box, TagItemViewModel tag)
@@ -142,15 +125,15 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this._suppressPopup = true;
         box.SelectedItem = null;
 
-        var result = this._lastTypedRawText[..this.currentSegment.IndexBack]
-                     + (this.currentSegment.SpaceAtBeginning ? ' ' : string.Empty)
+        var result = this._lastTypedRawText[..this._currentSegment.IndexBack]
+                     + (this._currentSegment.SpaceAtBeginning ? ' ' : string.Empty)
                      + tag.CurrentName
-                     + this._lastTypedRawText[this.currentSegment.IndexForward..];
+                     + this._lastTypedRawText[this._currentSegment.IndexForward..];
         this.Text = result;
         this.MultiValueAutoCompletePopup.IsOpen = false;
         this.MultiValueAutoCompleteBoxTextBox.Text = result;
-        var finalCaretIndex = this.currentSegment.IndexBack + tag.CurrentName.Length;
-        if (this.currentSegment.SpaceAtBeginning) finalCaretIndex++;
+        var finalCaretIndex = this._currentSegment.IndexBack + tag.CurrentName.Length;
+        if (this._currentSegment.SpaceAtBeginning) finalCaretIndex++;
         this.MultiValueAutoCompleteBoxTextBox.CaretIndex = finalCaretIndex;
         this.MultiValueAutoCompleteBoxTextBox.Focus();
         this._lastTypedRawText = result;
@@ -172,7 +155,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
         var spaceAtBeginning = false;
         var activeSegment = this._lastTypedRawText[backIndex..forwardIndex];
         if (activeSegment.Length > 0 && activeSegment[0] == ' ') spaceAtBeginning = true;
-        this.currentSegment = new SegmentData(activeSegment.Trim(), backIndex, forwardIndex, spaceAtBeginning);
+        this._currentSegment = new SegmentData(activeSegment.Trim(), backIndex, forwardIndex, spaceAtBeginning);
     }
 
     private void ListBox_OnKeyDown(object? sender, KeyEventArgs e)
@@ -199,7 +182,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
             var filtered = this.ItemsSource
                 .Where(t => t.CurrentName.Contains(itemName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(t => t.CurrentName, StringComparer.OrdinalIgnoreCase).ToList();
-            if (filtered.Count == 1 && filtered[0].CurrentName == this.currentSegment.FullSegment) return;
+            if (filtered.Count == 1 && filtered[0].CurrentName == this._currentSegment.FullSegment) return;
             foreach (var item in filtered)
                 this.FilteredItems.Add(item);
         }
