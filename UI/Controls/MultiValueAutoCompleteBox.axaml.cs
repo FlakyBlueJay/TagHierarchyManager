@@ -9,6 +9,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Reactive;
+using Avalonia.VisualTree;
 using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Controls;
@@ -35,6 +36,8 @@ public partial class MultiValueAutoCompleteBox : UserControl
         AvaloniaProperty.Register<MultiValueAutoCompleteBox, string>(
             nameof(Watermark), string.Empty);
 
+    private bool _inDataGridCell;
+
     private bool _isTextBoxActive;
 
     private string _lastTypedRawText = string.Empty;
@@ -52,6 +55,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
             .GetPropertyChangedObservable(BoundsProperty)
             .Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs>(e =>
                 this.MultiValueAutoCompleteListBox.Width = ((Rect)e.NewValue!).Width));
+
         this.KeyDown += (_, e) =>
         {
             if (e.Key != Key.Escape) return;
@@ -89,12 +93,18 @@ public partial class MultiValueAutoCompleteBox : UserControl
         set => this.SetValue(WatermarkProperty, value);
     }
 
+
     private bool CanShowPopup => (this._isTextBoxActive ||
                                   (this.MultiValueAutoCompleteListBox?.IsKeyboardFocusWithin ?? false))
                                  && this.FilteredItems.Any();
 
     private ObservableCollection<TagItemViewModel> FilteredItems { get; } = [];
 
+    public void FocusTextBox()
+    {
+        this.MultiValueAutoCompleteBoxTextBox.Focus();
+        this.MultiValueAutoCompleteBoxTextBox.CaretIndex = this.MultiValueAutoCompleteBoxTextBox.Text?.Length ?? 0;
+    }
 
     public void TextBox_OnTextChanged(object? sender, TextChangedEventArgs e)
     {
@@ -110,6 +120,21 @@ public partial class MultiValueAutoCompleteBox : UserControl
 
         this.Text = rawText;
         this.RepopulateFilteredItems(this.currentSegment.FullSegment);
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        var current = this.GetVisualParent();
+        while (current != null)
+        {
+            if (current is DataGridCell)
+            {
+                this._inDataGridCell = true;
+                break;
+            }
+
+            current = current.GetVisualParent();
+        }
     }
 
     private void ApplyListBoxSelection(ListBox box, TagItemViewModel tag)
@@ -154,8 +179,9 @@ public partial class MultiValueAutoCompleteBox : UserControl
     {
         if (sender is not ListBox { SelectedItem: TagItemViewModel tag } listBox) return;
 
-        if (e.Key == Key.Enter)
-            this.ApplyListBoxSelection(listBox, tag);
+        if (e.Key != Key.Enter) return;
+        this.ApplyListBoxSelection(listBox, tag);
+        e.Handled = true;
     }
 
     private void ListBox_OnPointerReleased(object? sender, PointerReleasedEventArgs e)

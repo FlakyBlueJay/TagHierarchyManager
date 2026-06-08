@@ -2,6 +2,8 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
+using TagHierarchyManager.UI.Controls;
 using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Views;
@@ -17,6 +19,8 @@ public partial class BulkAddWindow : Window
             if (this.ViewModel != null) this.ViewModel.RequestClose += this.Close;
         };
 
+        this.TagTable.PreparingCellForEdit += TagTable_PreparingCellForEdit;
+
         this.Unloaded += (_, _) =>
         {
             if (this.ViewModel != null)
@@ -29,6 +33,16 @@ public partial class BulkAddWindow : Window
     public void ButtonCancel_Click(object? sender, RoutedEventArgs e)
     {
         this.Close();
+    }
+
+    private static void TagTable_PreparingCellForEdit(object? sender, DataGridPreparingCellForEditEventArgs e)
+    {
+        var element = e.EditingElement;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (element is MultiValueAutoCompleteBox box)
+                box.FocusTextBox();
+        });
     }
 
     private void BulkAddWindow_OnKeyDown(object? sender, KeyEventArgs e)

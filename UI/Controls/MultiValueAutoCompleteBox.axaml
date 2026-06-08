@@ -13,7 +13,8 @@
                  Watermark="{Binding Watermark,
                  RelativeSource={RelativeSource AncestorType=controls:MultiValueAutoCompleteBox}}"
                  TextChanged="TextBox_OnTextChanged" KeyDown="TextBox_OnKeyDown"
-                 GotFocus="TextBox_OnGotFocus" LostFocus="TextBox_OnLostFocus" />
+                 GotFocus="TextBox_OnGotFocus" LostFocus="TextBox_OnLostFocus" 
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
         <Popup Name="MultiValueAutoCompletePopup"
                Placement="Bottom"
