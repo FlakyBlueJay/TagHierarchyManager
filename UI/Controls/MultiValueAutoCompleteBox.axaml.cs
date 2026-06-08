@@ -15,6 +15,8 @@ namespace TagHierarchyManager.UI.Controls;
 
 public partial class MultiValueAutoCompleteBox : UserControl
 {
+    private const char Separator = ';';
+
     public static readonly StyledProperty<IEnumerable<TagItemViewModel>?> ItemsSourceProperty =
         AvaloniaProperty.Register<MultiValueAutoCompleteBox, IEnumerable<TagItemViewModel>?>(
             nameof(ItemsSource), []);
@@ -38,6 +40,8 @@ public partial class MultiValueAutoCompleteBox : UserControl
     private string _lastTypedRawText = string.Empty;
 
     private bool _suppressPopup;
+
+    private SegmentData currentSegment = new(string.Empty, 0, 0);
 
     public MultiValueAutoCompleteBox()
     {
@@ -91,27 +95,21 @@ public partial class MultiValueAutoCompleteBox : UserControl
 
     private ObservableCollection<TagItemViewModel> FilteredItems { get; } = [];
 
+
     public void TextBox_OnTextChanged(object? sender, TextChangedEventArgs e)
     {
         if (sender is not TextBox box) return;
         var rawText = box.Text ?? string.Empty;
         if (box.Text == this._lastTypedRawText) return;
         this._lastTypedRawText = rawText;
-        this.Text = rawText;
-    }
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
-        Debug.WriteLine(
-            $"CanShowPopup: {this.CanShowPopup}, focused: {this._isTextBoxActive}, items: {this.FilteredItems.Count}");
-        // ReSharper disable once InvertIf
-        if (change.Property == TextProperty)
-        {
-            var last = this.Text.Split(';').Last();
-            last = last.Trim();
-            this.RepopulateFilteredItems(last);
-        }
+        this.GetCurrentEditedSegment();
+        Debug.WriteLine($"Current segment: {this.currentSegment.FullSegment}," +
+                        $"Segment indexes: {this.currentSegment.IndexBack}-{this.currentSegment.IndexForward}," +
+                        $"caret: {this.MultiValueAutoCompleteBoxTextBox.CaretIndex}");
+
+        this.Text = rawText;
+        this.RepopulateFilteredItems(this.currentSegment.FullSegment);
     }
 
     private void ApplyListBoxSelection(ListBox box, TagItemViewModel tag)
@@ -119,16 +117,37 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this._suppressPopup = true;
         box.SelectedItem = null;
 
-        var lastSemicolon = this._lastTypedRawText.LastIndexOf(';');
-        var prefix = lastSemicolon >= 0 ? this._lastTypedRawText[..lastSemicolon].TrimEnd() + "; " : string.Empty;
-        var result = $"{prefix}{tag.CurrentName}";
+        var result = this._lastTypedRawText[..this.currentSegment.IndexBack]
+                     + (this.currentSegment.SpaceAtBeginning ? ' ' : string.Empty)
+                     + tag.CurrentName
+                     + this._lastTypedRawText[this.currentSegment.IndexForward..];
         this.Text = result;
         this.MultiValueAutoCompletePopup.IsOpen = false;
         this.MultiValueAutoCompleteBoxTextBox.Text = result;
-        this.MultiValueAutoCompleteBoxTextBox.CaretIndex = result.Length;
+        var finalCaretIndex = this.currentSegment.IndexBack + tag.CurrentName.Length;
+        if (this.currentSegment.SpaceAtBeginning) finalCaretIndex++;
+        this.MultiValueAutoCompleteBoxTextBox.CaretIndex = finalCaretIndex;
         this.MultiValueAutoCompleteBoxTextBox.Focus();
         this._lastTypedRawText = result;
         this._suppressPopup = false;
+    }
+
+    private void GetCurrentEditedSegment()
+    {
+        var caretIndex = this.MultiValueAutoCompleteBoxTextBox.CaretIndex;
+        var backIndex = caretIndex > 0
+            ? this._lastTypedRawText.LastIndexOf(Separator, caretIndex - 1)
+            : -1;
+        var forwardIndex = this._lastTypedRawText.IndexOf(Separator, caretIndex);
+
+        if (backIndex == -1) backIndex = 0;
+        else backIndex++;
+        if (forwardIndex == -1) forwardIndex = this._lastTypedRawText.Length;
+
+        var spaceAtBeginning = false;
+        var activeSegment = this._lastTypedRawText[backIndex..forwardIndex];
+        if (activeSegment.Length > 0 && activeSegment[0] == ' ') spaceAtBeginning = true;
+        this.currentSegment = new SegmentData(activeSegment.Trim(), backIndex, forwardIndex, spaceAtBeginning);
     }
 
     private void ListBox_OnKeyDown(object? sender, KeyEventArgs e)
@@ -154,6 +173,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
             var filtered = this.ItemsSource
                 .Where(t => t.CurrentName.Contains(itemName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(t => t.CurrentName, StringComparer.OrdinalIgnoreCase).ToList();
+            if (filtered.Count == 1 && filtered[0].CurrentName == this.currentSegment.FullSegment) return;
             foreach (var item in filtered)
                 this.FilteredItems.Add(item);
         }
@@ -187,4 +207,6 @@ public partial class MultiValueAutoCompleteBox : UserControl
         if (this._suppressPopup) return;
         this.MultiValueAutoCompletePopup.IsOpen = this.CanShowPopup;
     }
+
+    private record SegmentData(string FullSegment, int IndexBack, int IndexForward, bool SpaceAtBeginning = false);
 }
