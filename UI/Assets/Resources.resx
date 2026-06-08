@@ -305,4 +305,7 @@
     <data name="DisplayNotesNoNotes" xml:space="preserve">
         <value>No notes</value>
     </data>
+    <data name="ImportDialogWarning" xml:space="preserve">
+        <value>Note that if two tags share the same name (without the ::tag ending), these will be combined and you'll have to separate them after import.</value>
+    </data>
 </root>

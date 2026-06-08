@@ -4,8 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:assets="clr-namespace:TagHierarchyManager.UI.Assets"
         xmlns:vm="clr-namespace:TagHierarchyManager.UI.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="200"
-        Width="600" Height="200" CanResize="False" ShowInTaskbar="False"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="240"
+        Width="600" Height="240" CanResize="False" ShowInTaskbar="False"
         x:Class="TagHierarchyManager.UI.Views.ImportDialog"
         x:DataType="vm:ImportDialogViewModel"
         Title="{x:Static assets:Resources.TitlemportDialog}">
@@ -30,6 +30,7 @@
                     Content="{x:Static assets:Resources.ButtonBrowse}"
                     Command="{Binding ShowDatabaseBrowseDialogCommand}" />
         </Grid>
+        <TextBlock Text="{x:Static assets:Resources.ImportDialogWarning}" TextWrapping="Wrap" Padding="0 0 0 10"/>
         <Grid ColumnDefinitions="*, Auto, Auto">
             <TextBlock Grid.Column="0" IsVisible="True" VerticalAlignment="Center" Text="{Binding ImportStatus}" />
             <Button Grid.Column="1" Content="{x:Static assets:Resources.ButtonCancel}" Click="ButtonCancel_Click" />
