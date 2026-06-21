@@ -12,7 +12,7 @@
                  RelativeSource={RelativeSource AncestorType=controls:MultiValueAutoCompleteBox}}"
                  Watermark="{Binding Watermark,
                  RelativeSource={RelativeSource AncestorType=controls:MultiValueAutoCompleteBox}}"
-                 TextChanged="TextBox_OnTextChanged" KeyDown="TextBox_OnKeyDown"
+                 TextChanged="TextBox_OnTextChanged"
                  GotFocus="TextBox_OnGotFocus" LostFocus="TextBox_OnLostFocus" 
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
@@ -24,8 +24,7 @@
                 <ListBox Name="MultiValueAutoCompleteListBox"
                          SelectionMode="Single"
                          MaxHeight="500"
-                         PointerReleased="ListBox_OnPointerReleased"
-                         KeyDown="ListBox_OnKeyDown">
+                         PointerPressed="ListBox_OnPointerPressed">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:TagItemViewModel">
                             <TextBlock Text="{Binding CurrentName}" />

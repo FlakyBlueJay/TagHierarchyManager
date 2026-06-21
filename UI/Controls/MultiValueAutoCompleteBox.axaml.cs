@@ -53,6 +53,10 @@ public partial class MultiValueAutoCompleteBox : UserControl
             .GetPropertyChangedObservable(BoundsProperty)
             .Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs>(e =>
                 this.MultiValueAutoCompleteListBox.Width = ((Rect)e.NewValue!).Width));
+        this.MultiValueAutoCompleteBoxTextBox.AddHandler(KeyDownEvent, TextBox_OnKeyDown,
+            RoutingStrategies.Bubble, handledEventsToo: true);
+        this.MultiValueAutoCompleteBoxTextBox.AddHandler(PointerPressedEvent,
+            ListBox_OnPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
 
         this.KeyDown += (_, e) =>
         {
@@ -158,18 +162,11 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this._currentSegment = new SegmentData(activeSegment.Trim(), backIndex, forwardIndex, spaceAtBeginning);
     }
 
-    private void ListBox_OnKeyDown(object? sender, KeyEventArgs e)
+    private void ListBox_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not ListBox { SelectedItem: TagItemViewModel tag } listBox) return;
-
-        if (e.Key != Key.Enter) return;
-        this.ApplyListBoxSelection(listBox, tag);
+        if (sender is not ListBox listBox) return;
+        if (e.Source is not Control { DataContext: TagItemViewModel tag }) return;
         e.Handled = true;
-    }
-
-    private void ListBox_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        if (sender is not ListBox { SelectedItem: TagItemViewModel tag } listBox) return;
         this.ApplyListBoxSelection(listBox, tag);
     }
 
@@ -180,6 +177,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
         if (!string.IsNullOrWhiteSpace(itemName) && this.ItemsSource is not null)
         {
             var filtered = this.ItemsSource
+                .DistinctBy(t => t.CurrentName)
                 .Where(t => t.CurrentName.Contains(itemName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(t => t.CurrentName, StringComparer.OrdinalIgnoreCase).ToList();
             if (filtered.Count == 1 && filtered[0].CurrentName == this._currentSegment.FullSegment) return;
@@ -190,19 +188,32 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this.UpdatePopupIsVisible();
     }
 
-    private void TextBox_OnGotFocus(object? sender, GotFocusEventArgs e)
+    private void TextBox_OnGotFocus(object? sender, FocusChangedEventArgs e)
     {
         this._isTextBoxActive = true;
     }
 
     private void TextBox_OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Down) return;
         if (!this.MultiValueAutoCompletePopup.IsOpen) return;
-        this.MultiValueAutoCompleteListBox.SelectedIndex = 0;
-        var first = this.MultiValueAutoCompleteListBox.ContainerFromIndex(0);
-        first?.Focus();
-        e.Handled = true;
+        var listBox = this.MultiValueAutoCompleteListBox;
+        switch (e.Key)
+        {
+            case Key.Down:
+                listBox.SelectedIndex =
+                    Math.Min(listBox.SelectedIndex + 1, this.FilteredItems.Count - 1);
+                e.Handled = true;
+                break;
+            case Key.Up:
+                listBox.SelectedIndex =
+                    Math.Max(listBox.SelectedIndex - 1, 0);
+                e.Handled = true;
+                break;
+            case Key.Enter when listBox.SelectedItem is TagItemViewModel tag:
+                this.ApplyListBoxSelection(listBox, tag);
+                e.Handled = true;
+                break;
+        }
     }
 
     private void TextBox_OnLostFocus(object? sender, RoutedEventArgs e)
