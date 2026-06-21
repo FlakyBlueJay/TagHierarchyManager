@@ -11,7 +11,7 @@
     <Grid RowDefinitions="Auto, Auto, Auto, Auto, *, Auto"
           IsEnabled="{Binding SelectedTag, Converter={x:Static ObjectConverters.IsNotNull}}">
         <TextBox Grid.Row="0" Name="NameTextbox" Text="{Binding SelectedTag.EditingName, FallbackValue=''}"
-                 Watermark="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch"
+                 PlaceholderText="{x:Static assets:Resources.WatermarkTagName}" HorizontalAlignment="Stretch"
                  Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
         <controls:MultiValueAutoCompleteBox Grid.Row="1"
                                             Name="ParentsTextBox"
@@ -23,15 +23,15 @@
                                             TextChanged="OnTagTextboxEdited" />
         <TextBox Grid.Row="2" Name="BindingsTextBox"
                  Text="{Binding SelectedTag.EditingTagBindings, FallbackValue=''}"
-                 Watermark="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch"
+                 PlaceholderText="{x:Static assets:Resources.WatermarkTagBindings}" HorizontalAlignment="Stretch"
                  Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
         <TextBox Grid.Row="3" Name="AliasesTextBox"
                  Text="{Binding SelectedTag.EditingAliases, FallbackValue=''}"
-                 Watermark="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch"
+                 PlaceholderText="{x:Static assets:Resources.WatermarkTagAliases}" HorizontalAlignment="Stretch"
                  Margin="0 0 0 5 " TextChanged="OnTagTextboxEdited" />
         <TextBox Grid.Row="4" Name="NotesTextBox" Classes="TextArea ClearButton"
                  Text="{Binding SelectedTag.EditingNotes, FallbackValue=''}"
-                 Watermark="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch"
+                 PlaceholderText="{x:Static assets:Resources.WatermarkTagNotes}" VerticalAlignment="Stretch"
                  AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100" Margin="0 0 0 5 "
                  TextChanged="OnTagTextboxEdited" />
         <Grid Grid.Row="5" ColumnDefinitions="*, Auto, Auto, Auto" Margin="0">

@@ -9,7 +9,7 @@
              x:DataType="vm:SearchViewModel">
     <Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
         <TextBox Grid.Row="0" Name="SearchTextBox"
-                 Watermark="{x:Static assets:Resources.WatermarkSearchQuery}" Margin="0 5 0 5"
+                 PlaceholderText="{x:Static assets:Resources.WatermarkSearchQuery}" Margin="0 5 0 5"
                  Text="{Binding SearchQuery}"
                  KeyDown="SearchTextBox_OnKeyDown" />
         <CheckBox Grid.Row="1" Name="SearchAliasesCheckBox"
