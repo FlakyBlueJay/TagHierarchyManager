@@ -23,8 +23,7 @@
             <Border CornerRadius="10" Background="#555555">
                 <ListBox Name="MultiValueAutoCompleteListBox"
                          SelectionMode="Single"
-                         MaxHeight="500"
-                         PointerPressed="ListBox_OnPointerPressed">
+                         MaxHeight="500">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:TagItemViewModel">
                             <TextBlock Text="{Binding CurrentName}" />

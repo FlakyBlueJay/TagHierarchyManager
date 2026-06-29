@@ -55,7 +55,7 @@ public partial class MultiValueAutoCompleteBox : UserControl
                 this.MultiValueAutoCompleteListBox.Width = ((Rect)e.NewValue!).Width));
         this.MultiValueAutoCompleteBoxTextBox.AddHandler(KeyDownEvent, TextBox_OnKeyDown,
             RoutingStrategies.Bubble, handledEventsToo: true);
-        this.MultiValueAutoCompleteBoxTextBox.AddHandler(PointerPressedEvent,
+        this.MultiValueAutoCompleteListBox.AddHandler(PointerPressedEvent,
             ListBox_OnPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
 
         this.KeyDown += (_, e) =>
