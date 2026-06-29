@@ -9,10 +9,11 @@ namespace TagHierarchyManager.Utilities;
 public static class StringNormaliser
 {
     /// <summary>
-    ///     Strips out any diacritics from the input so it can be searched with regular Latin alphabet keys.
+    ///     Strips out any diacritics from the input so it can be searched with regular Latin alphabet keys.<br/>
+    ///     This code is very naive and will not work for all languages, but it does the job for a regular Latin keyboard.
     /// </summary>
     /// <param name="input">The string to be normalised.</param>
-    /// <returns><paramref name="input" /> with the diacritics stripped.</returns>
+    /// <returns><paramref name="input" /> with the letters lowercased and diacritics stripped.</returns>
     public static string FormatStringForSearch(string input)
     {
         if (string.IsNullOrEmpty(input)) return input;

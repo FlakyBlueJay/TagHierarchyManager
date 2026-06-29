@@ -9,10 +9,14 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Reactive;
+using TagHierarchyManager.Utilities;
 using TagHierarchyManager.UI.ViewModels;
 
 namespace TagHierarchyManager.UI.Controls;
 
+/// <summary>
+///  The user control object for MultiValueAutoCompleteBox.
+/// </summary>
 public partial class MultiValueAutoCompleteBox : UserControl
 {
     private const char Separator = ';';
@@ -44,6 +48,9 @@ public partial class MultiValueAutoCompleteBox : UserControl
 
     private SegmentData _currentSegment = new(string.Empty, 0, 0);
 
+    /// <summary>
+    /// Initialises a new instance of the <see cref="MultiValueAutoCompleteBox"/> class.
+    /// </summary>
     public MultiValueAutoCompleteBox()
     {
         this.InitializeComponent();
@@ -71,24 +78,37 @@ public partial class MultiValueAutoCompleteBox : UserControl
             (_, _) => this.RaiseEvent(new TextChangedEventArgs(TextChangedEvent));
     }
 
+    /// <summary>
+    /// Occurs when the text of the <see cref="MultiValueAutoCompleteBox"/> changes.
+    /// </summary>
     public event EventHandler<TextChangedEventArgs>? TextChanged
     {
         add => this.AddHandler(TextChangedEvent, value);
         remove => this.RemoveHandler(TextChangedEvent, value);
     }
 
+    /// <summary>
+    /// Gets or sets the source enumerable for the <see cref="MultiValueAutoCompleteBox"/>.
+    /// </summary>
     public IEnumerable<TagItemViewModel>? ItemsSource
     {
         get => this.GetValue(ItemsSourceProperty);
         set => this.SetValue(ItemsSourceProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the text of the <see cref="MultiValueAutoCompleteBox"/>.
+    /// </summary>
     public string Text
     {
         get => this.GetValue(TextProperty);
         set => this.SetValue(TextProperty, value);
     }
-
+    
+    /// <summary>
+    /// Gets or sets the watermark of the <see cref="MultiValueAutoCompleteBox"/>.<br/>
+    /// Avalonia 12 changed this to PlaceholderText, I'll have to do that some time as well.
+    /// </summary>
     public string Watermark
     {
         get => this.GetValue(WatermarkProperty);
@@ -101,13 +121,13 @@ public partial class MultiValueAutoCompleteBox : UserControl
                                  && this.FilteredItems.Any();
 
     private ObservableCollection<TagItemViewModel> FilteredItems { get; } = [];
-
+    
     public void FocusTextBox()
     {
         this.MultiValueAutoCompleteBoxTextBox.Focus();
         this.MultiValueAutoCompleteBoxTextBox.CaretIndex = this.MultiValueAutoCompleteBoxTextBox.Text?.Length ?? 0;
     }
-
+    
     public void TextBox_OnTextChanged(object? sender, TextChangedEventArgs e)
     {
         if (sender is not TextBox box) return;
@@ -144,6 +164,9 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this._suppressPopup = false;
     }
 
+    /// <summary>
+    /// Finds the text segment being edited based on the current caret position.
+    /// </summary>
     private void GetCurrentEditedSegment()
     {
         var caretIndex = this.MultiValueAutoCompleteBoxTextBox.CaretIndex;
@@ -162,6 +185,11 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this._currentSegment = new SegmentData(activeSegment.Trim(), backIndex, forwardIndex, spaceAtBeginning);
     }
 
+    /// <summary>
+    /// Fires when the user clicks on a list item, running ApplyListBoxSelection.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void ListBox_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not ListBox listBox) return;
@@ -173,12 +201,14 @@ public partial class MultiValueAutoCompleteBox : UserControl
     private void RepopulateFilteredItems(string itemName)
     {
         this.FilteredItems.Clear();
-
+        var itemNameNormalised = StringNormaliser.FormatStringForSearch(itemName).ToLowerInvariant();
         if (!string.IsNullOrWhiteSpace(itemName) && this.ItemsSource is not null)
         {
             var filtered = this.ItemsSource
                 .DistinctBy(t => t.CurrentName)
-                .Where(t => t.CurrentName.Contains(itemName, StringComparison.OrdinalIgnoreCase))
+                .Where(t =>
+                        StringNormaliser.FormatStringForSearch(t.CurrentName)
+                            .Contains(itemNameNormalised, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(t => t.CurrentName, StringComparer.OrdinalIgnoreCase).ToList();
             if (filtered.Count == 1 && filtered[0].CurrentName == this._currentSegment.FullSegment) return;
             foreach (var item in filtered)
@@ -222,11 +252,21 @@ public partial class MultiValueAutoCompleteBox : UserControl
         this.UpdatePopupIsVisible();
     }
 
+    /// <summary>
+    /// Updates the popup visibility based on the current state of the control.
+    /// </summary>
     private void UpdatePopupIsVisible()
     {
         if (this._suppressPopup) return;
         this.MultiValueAutoCompletePopup.IsOpen = this.CanShowPopup;
     }
 
+    /// <summary>
+    /// A record for storing the current segment of text being edited, for GetCurrentEditedSegment.
+    /// </summary>
+    /// <param name="FullSegment">The full string of the segment being edited.</param>
+    /// <param name="IndexBack">The index of the control's Separator char when scanning backwards.</param>
+    /// <param name="IndexForward">The index of the control's Separator char when scanning forwards.</param>
+    /// <param name="SpaceAtBeginning">Denotes whether a space is at the beginning or not.</param>
     private record SegmentData(string FullSegment, int IndexBack, int IndexForward, bool SpaceAtBeginning = false);
 }
