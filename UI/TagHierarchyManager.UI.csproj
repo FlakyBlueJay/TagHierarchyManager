@@ -78,6 +78,7 @@
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
             <DependentUpon>Resources.resx</DependentUpon>
+            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
         </Compile>
     </ItemGroup>
 
