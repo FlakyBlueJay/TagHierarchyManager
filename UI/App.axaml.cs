@@ -1,7 +1,6 @@
-using System.Linq;
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using TagHierarchyManager.UI.Services;
 using TagHierarchyManager.UI.ViewModels;
@@ -38,4 +37,8 @@ public class App : Application
         base.OnFrameworkInitializationCompleted();
     }
     
+    public void NativeMenuItemAbout_Click(object? sender, EventArgs eventArgs)
+    {
+        new AboutWindow().Show();
+    }
 }

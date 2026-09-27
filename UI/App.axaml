@@ -3,15 +3,23 @@
              x:Class="TagHierarchyManager.UI.App"
              xmlns:local="using:TagHierarchyManager.UI"
              xmlns:semi="https://irihi.tech/semi"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="Dark"
+             Name="Tag Hierarchy Manager">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
-
+    
     <Application.Styles>
         <semi:SemiTheme Locale="en-GB" />
         <semi:DataGridSemiTheme />
     </Application.Styles>
+    
+    <!-- Native menu on macOS, all we can do until AvaloniaUI issue 22285 is fixed on Golden Gate. -->
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="About Tag Hierarchy Manager" Click="NativeMenuItemAbout_Click" />
+        </NativeMenu>
+    </NativeMenu.Menu>
 </Application>
